@@ -1,12 +1,18 @@
-import { useRouterState } from '@tanstack/react-router';
-import { ChevronRight, Moon, Sun } from 'lucide-react';
+import { Link, useRouterState } from '@tanstack/react-router';
+import { Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { OperatorMenu } from '@/features/operator-session/components/operator-menu';
 import { useResolvedTheme } from '@/features/preferences/hooks/use-resolved-theme';
 import { usePreferencesStore } from '@/features/preferences/store/preferences-store';
 
@@ -40,20 +46,21 @@ export function ConsoleHeader() {
       />
       <Separator orientation="vertical" className="mr-1 h-4" />
 
-      <nav
-        className="flex min-w-0 items-center gap-1.5 text-sm"
-        aria-label={t('navigation.breadcrumb')}
-      >
-        <span className="hidden text-muted-foreground sm:inline">{t('navigation.console')}</span>
-        <ChevronRight
-          className="hidden size-3.5 text-muted-foreground sm:block"
-          aria-hidden="true"
-        />
-        <span className="truncate font-medium">{currentPage}</span>
-      </nav>
+      <Breadcrumb aria-label={t('navigation.breadcrumb')} className="min-w-0">
+        <BreadcrumbList className="flex-nowrap">
+          <BreadcrumbItem className="hidden sm:inline-flex">
+            <BreadcrumbLink asChild>
+              <Link to="/console">{t('navigation.console')}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="hidden sm:block" />
+          <BreadcrumbItem className="min-w-0">
+            <BreadcrumbPage className="truncate font-medium">{currentPage}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-      <div className="ml-auto flex items-center gap-2">
-        <StatusBadge className="hidden sm:inline-flex">{t('common.adminConsole')}</StatusBadge>
+      <div className="ml-auto flex items-center gap-1">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -69,7 +76,6 @@ export function ConsoleHeader() {
           </TooltipTrigger>
           <TooltipContent side="bottom">{themeLabel}</TooltipContent>
         </Tooltip>
-        <OperatorMenu />
       </div>
     </header>
   );

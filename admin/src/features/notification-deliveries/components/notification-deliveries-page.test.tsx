@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import '@/i18n';
+import { chooseOption } from '@/test/select';
 import { NotificationDeliveriesPage } from '@/features/notification-deliveries/components/notification-deliveries-page';
 
 function json(body: unknown, status = 200) {
@@ -84,8 +85,8 @@ describe('NotificationDeliveriesPage', () => {
     );
 
     expect(await screen.findByText(/no deliveries match/i)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'failed' } });
-    fireEvent.change(screen.getByLabelText('Channel'), { target: { value: 'email' } });
+    await chooseOption(screen.getByLabelText('Status'), 'Failed');
+    await chooseOption(screen.getByLabelText('Channel'), 'Email');
     fireEvent.change(screen.getByLabelText('Recipient user ID'), { target: { value: 'abc' } });
     fireEvent.submit(screen.getByRole('search'));
 
