@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { env, isFeatureEnabled } from '@/config/env';
 import { featureManifest } from '@/config/feature-manifest';
 import { ApiHealthPanel } from '@/features/system/components/api-health-panel';
+import { AttentionPanel } from '@/features/system/components/attention-panel';
 import { OperatorSystemPanel } from '@/features/system/components/operator-system-panel';
 import { useApiReadiness } from '@/features/system/hooks/use-api-readiness';
 import { cn } from '@/lib/cn';
@@ -95,6 +96,7 @@ export function OverviewPage() {
       </div>
 
       <div className="content-grid">
+        <AttentionPanel />
         <ApiHealthPanel />
         <SectionCard
           icon={PackageCheck}

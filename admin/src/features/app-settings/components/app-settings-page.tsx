@@ -1,4 +1,4 @@
-import { RotateCcw, Save, SlidersHorizontal } from 'lucide-react';
+import { RotateCcw, Save, SlidersHorizontal, Undo2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -22,12 +22,15 @@ import {
 } from '@/features/app-settings/hooks/use-app-settings';
 import { isInactiveStarter, settingErrorKey } from '@/features/app-settings/setting-errors';
 import type { AppSetting, AppSettingValue } from '@/features/app-settings/types';
+import { cn } from '@/lib/cn';
 
 function SettingEditor({ setting }: { setting: AppSetting }) {
   const { t } = useTranslation();
   const change = useChangeAppSetting();
   const [draft, setDraft] = useState<AppSettingValue>(setting.value);
   const dirty = draft !== setting.value;
+  const display = (value: AppSettingValue) =>
+    typeof value === 'boolean' ? (value ? t('settings.on') : t('settings.off')) : String(value);
 
   const save = (value: AppSettingValue) =>
     change.mutate(
@@ -78,7 +81,12 @@ function SettingEditor({ setting }: { setting: AppSetting }) {
   }
 
   return (
-    <li className="flex flex-col gap-2 border-b px-4 py-3 last:border-0 md:flex-row md:items-center">
+    <li
+      className={cn(
+        'flex flex-col gap-2 border-b px-4 py-3 transition-colors last:border-0 md:flex-row md:items-center',
+        dirty && 'bg-brand-subtle/60',
+      )}
+    >
       <div className="min-w-0 md:w-1/3">
         <code className="text-sm font-medium">{setting.key}</code>
         <div className="mt-1 flex flex-wrap gap-1">
@@ -88,8 +96,27 @@ function SettingEditor({ setting }: { setting: AppSetting }) {
           <StatusBadge>{t('settings.version', { version: setting.version })}</StatusBadge>
         </div>
       </div>
-      <div className="flex-1">{control}</div>
+      <div className="flex flex-1 flex-col gap-1">
+        {control}
+        {dirty ? (
+          <p className="text-xs text-brand-strong" aria-live="polite">
+            {t('settings.unsaved', { from: display(setting.value), to: display(draft) })}
+          </p>
+        ) : null}
+      </div>
       <div className="flex gap-2">
+        {dirty ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            disabled={change.isPending}
+            onClick={() => setDraft(setting.value)}
+          >
+            <Undo2 aria-hidden="true" />
+            {t('settings.discard')}
+          </Button>
+        ) : null}
         <Button
           type="button"
           size="sm"

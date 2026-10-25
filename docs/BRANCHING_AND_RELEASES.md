@@ -50,7 +50,7 @@ main
 ## CI and Environment Mapping
 
 - Pull requests, into any branch, run the checks for the areas they change; see [`CI.md`](CI.md).
-- Pushes to `main`, the nightly schedule, and release tags run everything.
+- Pushes to `main`, the weekly schedule, and release tags run everything.
 - The scaffold deploys nothing. A downstream project that adds deployment branches documents their
   source of truth here before giving CI write access.
 

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { CommandPalette } from '@/features/command-palette/components/command-palette';
 import { useResolvedTheme } from '@/features/preferences/hooks/use-resolved-theme';
 import { usePreferencesStore } from '@/features/preferences/store/preferences-store';
 
@@ -61,6 +62,7 @@ export function ConsoleHeader() {
       </Breadcrumb>
 
       <div className="ml-auto flex items-center gap-1">
+        <CommandPalette />
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

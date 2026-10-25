@@ -1,14 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import {
-  BellRing,
-  Building2,
-  Gauge,
-  History,
-  Settings2,
-  SlidersHorizontal,
-  Users,
-} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { navigationItems } from '@/components/layout/navigation';
 import {
   Sidebar,
   SidebarContent,
@@ -23,54 +15,10 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { env, isFeatureEnabled, isOperatorFeatureEnabled } from '@/config/env';
+import { env } from '@/config/env';
 import { OperatorMenu } from '@/features/operator-session/components/operator-menu';
 import { useApiReadiness } from '@/features/system/hooks/use-api-readiness';
 import { cn } from '@/lib/cn';
-
-const operatorNavigation = isFeatureEnabled('operator')
-  ? ([
-      { icon: Users, labelKey: 'navigation.users', to: '/console/users' },
-      { icon: History, labelKey: 'navigation.audit', to: '/console/audit' },
-      { icon: SlidersHorizontal, labelKey: 'navigation.settings', to: '/console/settings' },
-    ] as const)
-  : ([] as const);
-
-const starterNavigation = [
-  ...(isOperatorFeatureEnabled('organization')
-    ? ([
-        {
-          icon: Building2,
-          labelKey: 'navigation.organizations',
-          to: '/console/organizations',
-        },
-      ] as const)
-    : []),
-  ...(isOperatorFeatureEnabled('notification')
-    ? ([
-        {
-          icon: BellRing,
-          labelKey: 'navigation.notifications',
-          to: '/console/notifications',
-        },
-      ] as const)
-    : []),
-];
-
-const navigationItems = [
-  {
-    icon: Gauge,
-    labelKey: 'navigation.overview',
-    to: '/console',
-  },
-  ...operatorNavigation,
-  ...starterNavigation,
-  {
-    icon: Settings2,
-    labelKey: 'navigation.preferences',
-    to: '/console/preferences',
-  },
-] as const;
 
 export function AppSidebar() {
   const { t } = useTranslation();

@@ -15,6 +15,11 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   and `admin-container.yml` and the release workflow verify and scan the image.
   `admin/docs/DEPLOYMENT.md` documents both container and object-storage/CDN hosting.
 
+### Changed
+
+- CI runs less often: scheduled workflows run weekly on Monday instead of nightly, and draft pull
+  requests run no checks until they are marked ready for review (see `docs/CI.md`).
+
 ### Fixed
 
 - The Admin Console's recommended CSP blocked the toast library's runtime stylesheet; `style-src`
