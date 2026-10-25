@@ -2,8 +2,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { LogIn, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { env } from '@/config/env';
 import { useSignIn } from '@/features/operator-session/hooks/use-operator-session';
 import { signInErrorKey } from '@/features/operator-session/sign-in-errors';
 
@@ -28,25 +31,30 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
   };
 
   return (
-    <main className="flex min-h-svh items-center justify-center bg-background px-4 py-10">
-      <section className="panel w-full max-w-sm" aria-labelledby="sign-in-title">
-        <div className="panel-header">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <ShieldCheck className="size-4" />
-            </span>
-            <div>
-              <h1 id="sign-in-title" className="panel-title">
-                {t('auth.title')}
-              </h1>
-              <p className="panel-description">{t('auth.description')}</p>
-            </div>
-          </div>
-        </div>
-        <form className="panel-body flex flex-col gap-4" onSubmit={submit} noValidate>
-          <label className="flex flex-col gap-1.5">
-            <span className="field-label">{t('auth.identifier')}</span>
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-10">
+      <div className="flex items-center gap-2.5">
+        <span className="brand-mark" aria-hidden="true">
+          {env.APP_NAME.charAt(0).toUpperCase()}
+        </span>
+        <span className="grid text-sm leading-tight">
+          <span className="font-semibold">{env.APP_NAME}</span>
+          <span className="text-xs text-muted-foreground">{t('app.shell')}</span>
+        </span>
+      </div>
+      <SectionCard
+        icon={ShieldCheck}
+        titleId="sign-in-title"
+        titleAs="h1"
+        title={t('auth.title')}
+        description={t('auth.description')}
+        className="w-full max-w-sm"
+        contentClassName="p-0"
+      >
+        <form className="p-5 flex flex-col gap-4" onSubmit={submit} noValidate>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="sign-in-identifier">{t('auth.identifier')}</Label>
             <Input
+              id="sign-in-identifier"
               name="identifier"
               autoComplete="username"
               required
@@ -54,10 +62,11 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
               value={identifier}
               onChange={(event) => setIdentifier(event.target.value)}
             />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="field-label">{t('auth.password')}</span>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="sign-in-password">{t('auth.password')}</Label>
             <Input
+              id="sign-in-password"
               name="password"
               type="password"
               autoComplete="current-password"
@@ -66,7 +75,7 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-          </label>
+          </div>
           {signIn.isError ? (
             <p role="alert" className="text-sm text-destructive">
               {t(signInErrorKey(signIn.error))}
@@ -81,7 +90,7 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
           </Button>
           <p className="text-xs text-muted-foreground">{t('auth.operatorNote')}</p>
         </form>
-      </section>
+      </SectionCard>
     </main>
   );
 }

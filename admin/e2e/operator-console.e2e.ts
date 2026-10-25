@@ -24,7 +24,8 @@ test('an operator signs in, sees live API state, and signs out', async ({ page }
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByRole('cell', { name: /operator\.session/ }).first()).toBeVisible();
 
-  await page.getByRole('button', { name: 'Sign out' }).click();
+  await page.getByRole('button', { name: 'Account menu' }).click();
+  await page.getByRole('menuitem', { name: 'Sign out' }).click();
   await expect(page).toHaveURL(/\/login/);
   await page.goto('/console/users');
   await expect(page).toHaveURL(/\/login/);

@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import '@/i18n';
+import { chooseOption } from '@/test/select';
 import { WebhookDiagnostics } from '@/features/webhooks/components/webhook-diagnostics';
 
 function json(body: unknown, status = 200) {
@@ -166,7 +167,7 @@ describe('WebhookDiagnostics', () => {
     );
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
 
-    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'failed' } });
+    await chooseOption(screen.getByLabelText('Status'), 'Failed');
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/v1/operator/organizations/7/webhook-deliveries?page=1&per_page=20&status=failed',

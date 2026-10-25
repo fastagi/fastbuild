@@ -1,14 +1,32 @@
 import { History, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs';
 import type { AuditSearch } from '@/features/audit/types';
+
+function httpStatusTone(status: number) {
+  if (status >= 500) return 'danger';
+  if (status >= 400) return 'warning';
+  if (status >= 200 && status < 300) return 'success';
+  return 'neutral';
+}
 
 interface AuditPageProps {
   search: AuditSearch;
@@ -58,124 +76,122 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
         <p>{t('audit.description')}</p>
       </header>
 
-      <section className="panel" aria-labelledby="audit-title">
-        <div className="panel-header flex flex-col gap-3">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <History className="size-4" />
-            </span>
-            <div>
-              <h2 id="audit-title" className="panel-title">
-                {t('audit.listTitle')}
-              </h2>
-              <p className="panel-description">{t('audit.rangeHint')}</p>
-            </div>
+      <SectionCard
+        icon={History}
+        titleId="audit-title"
+        title={t('audit.listTitle')}
+        description={t('audit.rangeHint')}
+        contentClassName="p-0"
+        toolbar={
+          <>
+            <form
+              role="search"
+              onSubmit={submit}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
+            >
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-action">{t('audit.filters.action')}</Label>
+                <Input
+                  id="audit-action"
+                  maxLength={120}
+                  value={action}
+                  onChange={(event) => setAction(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-user-id">{t('audit.filters.userId')}</Label>
+                <Input
+                  id="audit-user-id"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={userId}
+                  onChange={(event) => setUserId(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-from">{t('audit.filters.from')}</Label>
+                <Input
+                  id="audit-from"
+                  type="date"
+                  value={from}
+                  onChange={(event) => setFrom(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-to">{t('audit.filters.to')}</Label>
+                <Input
+                  id="audit-to"
+                  type="date"
+                  value={to}
+                  onChange={(event) => setTo(event.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" className="w-full">
+                  <Search aria-hidden="true" />
+                  {t('audit.apply')}
+                </Button>
+              </div>
+            </form>
+          </>
+        }
+      >
+        {logs.isPending ? (
+          <div className="flex flex-col gap-2 p-4" aria-busy="true">
+            {Array.from({ length: 5 }, (_, index) => (
+              <Skeleton key={index} className="h-8 w-full" />
+            ))}
           </div>
-          <form
-            role="search"
-            onSubmit={submit}
-            className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
-          >
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.action')}</span>
-              <Input
-                maxLength={120}
-                value={action}
-                onChange={(event) => setAction(event.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.userId')}</span>
-              <Input
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={userId}
-                onChange={(event) => setUserId(event.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.from')}</span>
-              <Input type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.to')}</span>
-              <Input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
-            </label>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full">
-                <Search aria-hidden="true" />
-                {t('audit.apply')}
-              </Button>
-            </div>
-          </form>
-        </div>
-
-        <div className="panel-body overflow-x-auto p-0">
-          {logs.isPending ? (
-            <div className="flex flex-col gap-2 p-4" aria-busy="true">
-              {Array.from({ length: 5 }, (_, index) => (
-                <Skeleton key={index} className="h-8 w-full" />
+        ) : logs.isError ? (
+          <p role="alert" className="p-4 text-sm text-destructive">
+            {invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')}
+          </p>
+        ) : logs.data.data.length === 0 ? (
+          <EmptyState>{t('audit.empty')}</EmptyState>
+        ) : (
+          <Table className="min-w-[720px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">{t('audit.columns.time')}</TableHead>
+                <TableHead scope="col">{t('audit.columns.actor')}</TableHead>
+                <TableHead scope="col">{t('audit.columns.action')}</TableHead>
+                <TableHead scope="col">{t('audit.columns.request')}</TableHead>
+                <TableHead scope="col">{t('audit.columns.status')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.data.data.map((entry) => (
+                <TableRow key={entry.id} className="align-top">
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
+                    {dateFormat.format(new Date(entry.created_at))}
+                  </TableCell>
+                  <TableCell>
+                    {entry.user_id
+                      ? t('audit.actorUser', { id: entry.user_id })
+                      : t(`audit.actorType.${entry.actor_type}`, entry.actor_type)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{entry.action}</div>
+                    <div className="text-xs text-muted-foreground">{entry.resource}</div>
+                  </TableCell>
+                  <TableCell>
+                    <code className="text-xs">
+                      {entry.method} {entry.path}
+                    </code>
+                    {entry.request_id ? (
+                      <div className="text-xs text-muted-foreground">{entry.request_id}</div>
+                    ) : null}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge tone={httpStatusTone(entry.status_code)}>
+                      {entry.status_code}
+                    </StatusBadge>
+                  </TableCell>
+                </TableRow>
               ))}
-            </div>
-          ) : logs.isError ? (
-            <p role="alert" className="p-4 text-sm text-destructive">
-              {invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')}
-            </p>
-          ) : logs.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">{t('audit.empty')}</p>
-          ) : (
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="border-b text-left text-xs text-muted-foreground">
-                <tr>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.time')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.actor')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.action')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.request')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.data.data.map((entry) => (
-                  <tr key={entry.id} className="border-b align-top last:border-0">
-                    <td className="whitespace-nowrap px-4 py-2 text-muted-foreground">
-                      {dateFormat.format(new Date(entry.created_at))}
-                    </td>
-                    <td className="px-4 py-2">
-                      {entry.user_id
-                        ? t('audit.actorUser', { id: entry.user_id })
-                        : t(`audit.actorType.${entry.actor_type}`, entry.actor_type)}
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{entry.action}</div>
-                      <div className="text-xs text-muted-foreground">{entry.resource}</div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <code className="text-xs">
-                        {entry.method} {entry.path}
-                      </code>
-                      {entry.request_id ? (
-                        <div className="text-xs text-muted-foreground">{entry.request_id}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-2">
-                      <StatusBadge>{entry.status_code}</StatusBadge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+            </TableBody>
+          </Table>
+        )}
 
         {meta && (search.cursor || meta.has_more) ? (
           <nav
@@ -202,7 +218,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
             </Button>
           </nav>
         ) : null}
-      </section>
+      </SectionCard>
     </div>
   );
 }

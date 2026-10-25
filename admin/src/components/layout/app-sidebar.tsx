@@ -4,7 +4,6 @@ import {
   Building2,
   Gauge,
   History,
-  PanelsTopLeft,
   Settings2,
   SlidersHorizontal,
   Users,
@@ -25,6 +24,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { env, isFeatureEnabled, isOperatorFeatureEnabled } from '@/config/env';
+import { OperatorMenu } from '@/features/operator-session/components/operator-menu';
+import { useApiReadiness } from '@/features/system/hooks/use-api-readiness';
+import { cn } from '@/lib/cn';
 
 const operatorNavigation = isFeatureEnabled('operator')
   ? ([
@@ -94,7 +96,7 @@ export function AppSidebar() {
             >
               <Link to="/console" onClick={() => setOpenMobile(false)}>
                 <span className="brand-mark" aria-hidden="true">
-                  L
+                  {env.APP_NAME.charAt(0).toUpperCase()}
                 </span>
                 <span className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{env.APP_NAME}</span>
@@ -139,20 +141,42 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
-        <div className="flex min-w-0 items-center gap-2 px-2 py-1.5">
-          <span className="grid size-8 shrink-0 place-items-center rounded-md border border-sidebar-border bg-background text-muted-foreground">
-            <PanelsTopLeft className="size-4" aria-hidden="true" />
-          </span>
-          <span className="grid min-w-0 flex-1 text-xs leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-medium text-sidebar-foreground">
-              {t('common.adminConsole')}
-            </span>
-            <span className="truncate text-muted-foreground">v0.1</span>
-          </span>
-        </div>
+        <ApiStatusIndicator />
+        <OperatorMenu />
       </SidebarFooter>
 
       <SidebarRail aria-label={t('navigation.toggle')} title={t('navigation.toggle')} />
     </Sidebar>
+  );
+}
+
+/** Quiet footer signal for the shared readiness query; the overview page owns the details. */
+function ApiStatusIndicator() {
+  const { t } = useTranslation();
+  const readiness = useApiReadiness();
+  const available = readiness.data?.status === 'up' || readiness.data?.status === 'degraded';
+  const label = readiness.isPending
+    ? t('overview.apiChecking')
+    : available
+      ? t('overview.apiAvailable')
+      : t('overview.apiUnavailable');
+
+  return (
+    <div
+      className="flex min-w-0 items-center gap-2 px-2 py-1.5 text-xs"
+      title={`${t('overview.api')}: ${label}`}
+    >
+      <span className="grid size-4 shrink-0 place-items-center" aria-hidden="true">
+        <span
+          className={cn(
+            'size-2 rounded-full',
+            readiness.isPending ? 'bg-muted-foreground' : available ? 'bg-success' : 'bg-danger',
+          )}
+        />
+      </span>
+      <span className="truncate text-muted-foreground group-data-[collapsible=icon]:hidden">
+        {t('overview.api')} · {label}
+      </span>
+    </div>
   );
 }
