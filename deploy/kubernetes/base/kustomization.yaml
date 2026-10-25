@@ -1,5 +1,5 @@
-# Reference production baseline for the FastBuild API, workers, and Web application. Copy it into the
-# downstream deployment repository and own it there; see ../README.md.
+# Reference production baseline for the FastBuild API, workers, Web application, and Admin Console.
+# Copy it into the downstream deployment repository and own it there; see ../README.md.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -13,6 +13,7 @@ resources:
   - api.yaml
   - worker.yaml
   - web.yaml
+  - admin.yaml
 
 images:
   - name: fastbuild-api
@@ -20,4 +21,7 @@ images:
     newTag: replace-with-a-digest
   - name: fastbuild-web
     newName: registry.example.com/fastbuild-web
+    newTag: replace-with-a-digest
+  - name: fastbuild-admin
+    newName: registry.example.com/fastbuild-admin
     newTag: replace-with-a-digest

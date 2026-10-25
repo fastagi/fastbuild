@@ -1,0 +1,65 @@
+name: Admin Container
+
+# Pull requests run this only when the image's inputs change; a weekly run rebuilds and rescans it.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "admin/Dockerfile"
+      - "admin/.dockerignore"
+      - "admin/package.json"
+      - "admin/pnpm-lock.yaml"
+      - "admin/pnpm-workspace.yaml"
+      - "admin/vite.config.ts"
+      - "admin/deploy/nginx/**"
+      - "admin/scripts/verify-container.sh"
+      - "scripts/container-security.sh"
+      - "scripts/validate-container-sbom.py"
+      - ".trivyignore.yaml"
+      - ".agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py"
+      - ".github/workflows/admin-container.yml"
+  schedule:
+    - cron: "35 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-container-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Build, smoke test, and scan
+    if: github.event.pull_request.draft != true
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Verify production image contract
+        env:
+          BUILD_METADATA_OUTPUT: ${{ runner.temp }}/fastbuild-admin.build-metadata.json
+          OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          OCI_REVISION: ${{ github.sha }}
+          OCI_VERSION: ${{ github.sha }}
+        run: bash scripts/verify-container.sh fastbuild-admin:ci
+
+      - name: Export SBOM and scan production image
+        run: bash ../scripts/container-security.sh verify fastbuild-admin:ci "${RUNNER_TEMP}/fastbuild-admin.cdx.json"
+
+      - name: Upload Admin container evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fastbuild-admin-container-security-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/fastbuild-admin.build-metadata.json
+            ${{ runner.temp }}/fastbuild-admin.cdx.json
+          if-no-files-found: warn
+          retention-days: 14

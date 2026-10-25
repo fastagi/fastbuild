@@ -5,8 +5,9 @@ build inputs, runtime verification, image inventory and vulnerability policy, an
 publication identity. These controls complement the source dependency policy in
 [`DEPENDENCY_SECURITY.md`](DEPENDENCY_SECURITY.md); one must not be presented as another.
 
-This policy applies to the API and Next.js Web images. `admin/` intentionally emits static
-OSS/CDN assets and has no runtime container; its artifact, cache, and header contract lives in
+This policy applies to the API, Next.js Web, and Admin Console images. `admin/` emits static
+assets that may be hosted on OSS/CDN without any container, or served by its optional static nginx
+image; both options, and the cache and header contract, live in
 [`../admin/docs/DEPLOYMENT.md`](../admin/docs/DEPLOYMENT.md).
 
 ## Semantic Model
@@ -26,17 +27,25 @@ digest and apply its own Cosign identity and verification policy.
 
 ## Immutable Build Inputs
 
-Both Dockerfiles pin the Dockerfile frontend and every external `FROM` to an exact readable tag plus
-the reviewed multi-platform digest:
+Every Dockerfile pins the Dockerfile frontend and every external `FROM` to an exact readable tag
+plus the reviewed multi-platform digest:
 
 - API builder: Go 1.26.10 on Alpine 3.24;
 - API runtime: distroless static Debian 12 `nonroot`;
-- Web build/runtime source: Node 22.23.3 on Alpine 3.24.
+- Web build/runtime source: Node 22.23.3 on Alpine 3.24;
+- Admin builder: the same Node 22.23.3 Alpine 3.24 image;
+- Admin runtime source: `nginxinc/nginx-unprivileged` 1.30.6 slim on Alpine 3.24.
 
 The Web final image materializes a cleaned runtime root into a new `scratch` stage. apk, npm, npx,
 Corepack, pnpm, Yarn, Node build headers, debugger helpers, and manual pages are absent from the
 resulting filesystem, while the Node and native Sharp artifacts keep the same musl ABI used during
 the build. This removes development attack surface without creating an Alpine/glibc runtime mismatch.
+
+The Admin final image applies the same `scratch` copy to the nginx runtime: the apk binary and its
+repository configuration, the stock site, and the stock server config are removed, while the
+installed-package database stays so Trivy can inventory OS packages. nginx configuration,
+templates, and the built assets are root-owned and read-only, and nginx runs as UID 101 with only
+`/tmp` writable. No Node.js runtime ships in it.
 
 Dependabot discovers Docker updates monthly and opens security updates as soon as they are published. A base-image update is not complete until the tag,
 Dockerfile digest, verifier material digest, governance constant, smoke test, and image scan change
@@ -44,11 +53,12 @@ together. A digest-only update still requires release-note and image-diff review
 
 ## Local Verification
 
-Build and exercise both runtime contracts:
+Build and exercise each runtime contract:
 
 ```bash
 cd api && make container-check
 cd web && bash scripts/verify-container.sh fastbuild-web:container-check
+cd admin && bash scripts/verify-container.sh fastbuild-admin:container-check
 ```
 
 The verifiers use `docker buildx build --load`, write OCI source/revision/version labels, request
@@ -59,7 +69,11 @@ development tooling and every `.env*` file are absent. It also requests the real
 requires all nine production browser-security headers exactly once; policy ownership and downstream
 extension rules live in [`../web/docs/SECURITY.md`](../web/docs/SECURITY.md). A second run enables
 the production mock mode explicitly and proves the assembled Next.js Proxy redirects an
-unauthenticated protected route before render work.
+unauthenticated protected route before render work. The Admin verifier runs the image with a
+read-only root filesystem and all capabilities dropped, then checks the SPA deep-link fallback,
+immutable hashed-asset and revalidated HTML cache headers, `404` for missing assets and the build
+manifest, that `/api/*` reaches the proxy rather than the fallback, the exact browser-security header
+set, and the absence of apk and `.env*` files.
 
 Scan an already-built image and export its image-level SBOM:
 
@@ -69,6 +83,8 @@ IMAGE=fastbuild-api:container-check make container-sbom
 
 IMAGE=fastbuild-web:container-check make container-scan
 SBOM_OUTPUT="$PWD/fastbuild-web.cdx.json" IMAGE=fastbuild-web:container-check make container-sbom
+
+IMAGE=fastbuild-admin:container-check make container-scan
 ```
 
 `scripts/container-security.sh` downloads the official Trivy 0.72.0 archive over HTTPS, verifies a
@@ -87,8 +103,9 @@ network-scan images. The dedicated image workflows own those Docker- and network
 ## CI Evidence
 
 `.github/workflows/container.yml` builds, smoke-tests, inventories, and scans the API image before
-running Compose scenarios. `.github/workflows/web-container.yml` applies the same image contract to
-the Web deployable. Each read-only workflow uploads two files keyed by the exact Git commit:
+running Compose scenarios. `.github/workflows/web-container.yml` and
+`.github/workflows/admin-container.yml` apply the same image contract to the Web and Admin
+deployables. Each read-only workflow uploads two files keyed by the exact Git commit:
 
 - `<unit>.build-metadata.json`, containing the output digest and maximal BuildKit material evidence;
 - `<unit>.cdx.json`, containing the CycloneDX 1.7 runtime inventory and recorded advisories.
@@ -132,7 +149,7 @@ runtime secret injection for application credentials.
 1. Review official release notes and the exact multi-platform image index or scanner assets.
 2. Update readable versions and digests together; never replace a digest with a movable tag.
 3. Update verifier material expectations and `check-container-supply-chain.py` in the same change.
-4. Build and run both affected images, export their SBOMs, and enforce the live scan.
+4. Build and run every affected image, export their SBOMs, and enforce the live scan.
 5. Run `make check`; it includes deterministic container governance.
 6. Push the exact commit, inspect both workflow logs and artifacts, and confirm no warning was hidden
    behind a successful status.

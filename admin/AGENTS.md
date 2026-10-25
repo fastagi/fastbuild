@@ -122,7 +122,7 @@ This is a static browser client, not a BFF:
 | ----------------------------------- | ------------------------------------------------------------ |
 | Architecture and stack decision     | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                 |
 | Adding a feature                    | [docs/ADDING_FEATURE.md](docs/ADDING_FEATURE.md)             |
-| OSS/CDN deployment                  | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                     |
+| Container and OSS/CDN deployment    | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)                     |
 | Browser security and authentication | [docs/SECURITY.md](docs/SECURITY.md)                         |
 | Internationalization                | [docs/INTERNATIONALIZATION.md](docs/INTERNATIONALIZATION.md) |
 | Bundle and runtime performance      | [docs/PERFORMANCE.md](docs/PERFORMANCE.md)                   |
@@ -148,7 +148,8 @@ release, not for every Admin Console commit or push.
 ## Do Not
 
 - Add TanStack Start, SSR, server functions, API routes, or a Node production
-  server to this surface.
+  server to this surface. The container is static nginx plus a fixed `/api`
+  proxy; keep application logic out of `deploy/nginx/`.
 - Copy Next.js Route Handlers, Server Components, or server-only modules from
   `web/`.
 - Hide production auth gaps behind a development token store.

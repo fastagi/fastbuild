@@ -171,7 +171,9 @@ cd admin && corepack pnpm install && corepack pnpm dev  # Admin Console shell
 ```
 
 The Web mock BFF makes the customer console explorable without the API; production requires the
-same-origin API adapter. Build static Admin assets with `corepack pnpm build`.
+same-origin API adapter. Build static Admin assets with `corepack pnpm build`, or the Admin
+container with `docker build admin`; both hosting options are in
+[admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md).
 
 ## Enable Business Starters
 
@@ -308,6 +310,7 @@ FastBuild includes practical application-security foundations:
 Deployments still own secrets, TLS termination, ingress policy, PostgreSQL backups, provider
 credentials, scaling, monitoring, and release approvals. Start with
 [api/docs/DEPLOYMENT.md](api/docs/DEPLOYMENT.md),
+[admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md),
 [web/docs/SECURITY.md](web/docs/SECURITY.md), and
 [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md).
 
@@ -342,7 +345,7 @@ fastbuild/
 |---|---|
 | API development and commands | [api/README.md](api/README.md) |
 | Customer Web application | [web/README.md](web/README.md) |
-| Admin Console and CDN deployment | [admin/README.md](admin/README.md) |
+| Admin Console, container, and CDN deployment | [admin/README.md](admin/README.md), [admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md) |
 | Architecture and ownership | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | HTTP contracts | [contracts/README.md](contracts/README.md) |
 | Add an API starter or module | [api/docs/ADDING_MODULE.md](api/docs/ADDING_MODULE.md) |

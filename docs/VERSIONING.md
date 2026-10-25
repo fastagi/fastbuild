@@ -57,8 +57,8 @@ Security fixes may remove behavior immediately; the `UPGRADING.md` entry says so
 4. Tag and push: `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`.
 
 Pushing the tag runs [`.github/workflows/release.yml`](../.github/workflows/release.yml). It
-verifies that the tag is on `main` and has a changelog section, builds and scans both production
-images, exports dependency and image SBOMs, records build provenance attestations for them, and
+verifies that the tag is on `main` and has a changelog section, builds and scans the API, Web, and
+Admin production images, exports dependency and image SBOMs, records build provenance attestations for them, and
 publishes the GitHub release with the changelog section as its notes.
 
 FastBuild does not publish container images: downstream projects build and sign their own. See

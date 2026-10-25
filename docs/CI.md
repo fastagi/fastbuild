@@ -12,10 +12,11 @@ compatible with supported runners, and reviewable without trusting a movable act
 | `e2e.yml` | Starts PostgreSQL, the API, and one browser shell with `make dev`, then runs Playwright smoke tests: the operator flow in the Admin Console and sign-in through the API adapter in the Web application | `contents: read` |
 | `perf.yml` | Weekly and on demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
 | `dependency-security.yml` | Scheduled and change-triggered OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
-| `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans both images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
+| `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans the API, Web, and Admin images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
 | `skill-self-test.yml` | Starter-module skill validators in one job (Skill metadata is validated by `make governance`) | `contents: read` |
 | `plugins.yml` | Installs, integrates, builds, tests, doctors, and removes every registry plugin (`scripts/verify-plugin.sh`) | `contents: read` |
 | `web-container.yml` | Web image identity, smoke test, SBOM, and vulnerability gate | `contents: read` |
+| `admin-container.yml` | Admin Console static image identity, SPA/cache/header smoke test, SBOM, and vulnerability gate | `contents: read` |
 
 Only the release job elevates its permissions, to publish a release. Do not add write permissions to
 validation workflows; the branch governance check rejects workflows that push. Do not use `pull_request_target` for repository code verification; it combines privileged
@@ -36,7 +37,7 @@ ready for review. Scheduled runs happen once a week, on Monday between 02:41 and
 | Web and Admin on Node 24 | No | Yes | Yes | Via `make release-check` |
 | PostgreSQL 15, 17, 18 compatibility | No | Yes | Yes | — |
 | Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
-| API and Web containers | When an image input changes (Dockerfile, dependency manifests, container scripts) | No | Yes | Built and scanned by `release.yml` |
+| API, Web, and Admin containers | When an image input changes (Dockerfile, dependency manifests, container scripts) | No | Yes | Built and scanned by `release.yml` |
 | End-to-end | When a browser shell, sign-in, the operator flow, or the dev stack changes | No | Yes | — |
 | Dependency security | When a dependency manifest changes | No | Yes | — |
 | Skill self-test | When starter modules or skills change | No | — | — |
@@ -76,6 +77,9 @@ attestations and Cosign identity remain a downstream publication responsibility.
 The Web image smoke check also requests `/login` from the running standalone server and validates
 the centralized production browser-security response policy. This proves image/runtime wiring; the
 unit test and root governance check separately own policy semantics and Next.js Proxy conventions.
+The Admin image smoke check runs nginx with a read-only root filesystem and proves the SPA deep-link
+fallback, cache headers, `/api` proxy routing, and the browser-security headers from
+[`admin/docs/DEPLOYMENT.md`](../admin/docs/DEPLOYMENT.md).
 
 The action runtime is separate from browser project runtimes: CI tests both `web/` and `admin/`
 on Node 22 and Node 24. Node 22 remains the production image and type-definition baseline. Each

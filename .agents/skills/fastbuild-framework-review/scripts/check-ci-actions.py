@@ -70,6 +70,7 @@ REVIEWED_ACTIONS = {
 }
 
 REVIEWED_WORKFLOW_PERMISSIONS = {
+    "admin-container.yml": {"contents": "read"},
     "ci.yml": {"contents": "read"},
     "container.yml": {"contents": "read"},
     "dependency-security.yml": {"contents": "read"},
@@ -234,6 +235,17 @@ def main() -> int:
     ):
         if marker not in web_container_workflow:
             failures.append(f"web-container.yml must contain {marker!r}")
+
+    admin_container_workflow = (WORKFLOW_ROOT / "admin-container.yml").read_text(
+        encoding="utf-8"
+    )
+    for marker in (
+        "bash scripts/verify-container.sh fastbuild-admin:ci",
+        "bash ../scripts/container-security.sh verify fastbuild-admin:ci",
+        "fastbuild-admin-container-security-${{ github.sha }}",
+    ):
+        if marker not in admin_container_workflow:
+            failures.append(f"admin-container.yml must contain {marker!r}")
 
     compose_verifier = (ROOT / "api/scripts/verify-compose.sh").read_text(
         encoding="utf-8"
