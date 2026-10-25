@@ -6,8 +6,28 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ## Unreleased
 
+## v0.26.0 — 2026-10-25
+
 ### Added
 
+- **Route boundaries.** The Admin Console router renders a translated error page with the API
+  `request_id`, a retry, and a link home instead of a blank screen, plus a pending skeleton;
+  signed-out errors return to sign-in. The Web console has its own `error.tsx`, `loading.tsx`, and
+  `not-found.tsx` inside the console shell.
+- **Database metrics and worker tracing.** With `METRICS_ENABLED=true`, a GORM plugin records
+  `db_queries_total` and `db_query_duration_seconds` by operation and bounded table label (never SQL
+  text or values), and a scrape-time collector reports `sql.DBStats` pool gauges. `workflow:work`,
+  `workflow:schedule:work`, `notification:work`, and `webhook:work` start tracing like the HTTP
+  server and continue queued `traceparent`s. Outbound AI, webhook, and R2 calls get client spans
+  through `pkg/tracedhttp`, which records no URL, host, path, query, or headers and propagates no
+  trace context to third parties. See `api/docs/OBSERVABILITY.md`.
+- **Admin Console interactions.** A command palette (⌘K / Ctrl+K) shares one navigation list with
+  the sidebar; audit rows expand to resource, target, result, and request with a copyable request
+  ID, and applied filters show as removable chips; notification deliveries show status tiles and an
+  opt-in 30-second refresh; the overview shows failed deliveries; unsaved app-setting edits are
+  highlighted; sign-in has a password reveal and a Caps Lock warning.
+- Shared Admin `DataTable` (with optional expandable detail rows) and `Pagination` components
+  replace the hand-built tables and pager on every list page.
 - The Admin Console has a deployment path: `admin/Dockerfile` builds a digest-pinned, non-root,
   read-only nginx image with SPA deep-link fallback, immutable hashed-asset caching, browser
   security headers, and a same-origin `/api` proxy to the API. `deploy/kubernetes/base/admin.yaml`
@@ -17,11 +37,19 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ### Changed
 
+- Web devtools routes (`/styleguide`, `/i18n-test`) return 404 in production builds unless
+  `NEXT_PUBLIC_DEVTOOLS_ENABLED=true`; the proxy rewrites them before any sign-in redirect, and the
+  console hides their links. The unused `dashboard-stats`, `dashboard-chart`, and
+  `activity-timeline` console components are removed.
+- `/v1/health` is registered by the health package instead of a duplicate handler in
+  `routes/api.go`; its response and OpenAPI operation are unchanged.
 - CI runs less often: scheduled workflows run weekly on Monday instead of nightly, and draft pull
   requests run no checks until they are marked ready for review (see `docs/CI.md`).
 
 ### Fixed
 
+- An OpenAI stream that hits `http.Client.Timeout` mid-body is classified as
+  `context.DeadlineExceeded`.
 - The Admin Console's recommended CSP blocked the toast library's runtime stylesheet; `style-src`
   now allows inline styles while scripts stay `'self'` only.
 
