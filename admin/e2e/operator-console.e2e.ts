@@ -7,7 +7,7 @@ const member = { identifier: 'user@example.com', password: 'secret' };
 async function signIn(page: Page, account: { identifier: string; password: string }) {
   await page.goto('/login');
   await page.getByLabel('Username or email').fill(account.identifier);
-  await page.getByLabel('Password').fill(account.password);
+  await page.getByLabel('Password', { exact: true }).fill(account.password);
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 

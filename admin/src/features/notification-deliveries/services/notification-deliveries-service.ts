@@ -11,8 +11,12 @@ export const notificationDeliveriesService = {
   list(
     search: NotificationDeliverySearch,
     signal?: AbortSignal,
+    perPage = 50,
   ): Promise<NotificationDeliveryPage> {
-    const params = new URLSearchParams({ page: String(search.page ?? 1), per_page: '50' });
+    const params = new URLSearchParams({
+      page: String(search.page ?? 1),
+      per_page: String(perPage),
+    });
     if (search.status) {
       params.set('status', search.status);
     }
@@ -27,6 +31,11 @@ export const notificationDeliveriesService = {
       schema: notificationDeliveryPageSchema,
       ...(signal ? { signal } : {}),
     });
+  },
+  /** Reads only the total of a filtered ledger: one row is the smallest page the API serves. */
+  async count(search: NotificationDeliverySearch, signal?: AbortSignal): Promise<number> {
+    const page = await notificationDeliveriesService.list({ ...search, page: 1 }, signal, 1);
+    return page.meta.total;
   },
 };
 

@@ -15,7 +15,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { useNotificationDeliveries } from '@/features/notification-deliveries/hooks/use-notification-deliveries';
+import { Switch } from '@/components/ui/switch';
+import {
+  deliveryRefreshIntervalMs,
+  useNotificationDeliveries,
+  useNotificationDeliveryCounts,
+} from '@/features/notification-deliveries/hooks/use-notification-deliveries';
 import {
   type NotificationChannel,
   type NotificationDeliverySearch,
@@ -24,6 +29,7 @@ import {
   notificationDeliveryStatuses,
   type NotificationDelivery,
 } from '@/features/notification-deliveries/types';
+import { cn } from '@/lib/cn';
 
 interface NotificationDeliveriesPageProps {
   search: NotificationDeliverySearch;
@@ -40,12 +46,21 @@ const statusTone = {
   failed: 'danger',
 } as const;
 
+const statusDot = {
+  pending: 'bg-muted-foreground/60',
+  processing: 'bg-brand',
+  delivered: 'bg-success',
+  failed: 'bg-danger',
+} as const;
+
 export function NotificationDeliveriesPage({
   search,
   onSearchChange,
 }: NotificationDeliveriesPageProps) {
   const { t, i18n } = useTranslation();
-  const deliveries = useNotificationDeliveries(search);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const deliveries = useNotificationDeliveries(search, autoRefresh);
+  const counts = useNotificationDeliveryCounts(search, autoRefresh);
   const [status, setStatus] = useState<string>(search.status ?? '');
   const [channel, setChannel] = useState<string>(search.channel ?? '');
   const [userId, setUserId] = useState(search.user_id ? String(search.user_id) : '');
@@ -54,6 +69,11 @@ export function NotificationDeliveriesPage({
     dateStyle: 'medium',
     timeStyle: 'medium',
   });
+
+  const selectStatus = (next: NotificationDeliveryStatus | undefined) => {
+    setStatus(next ?? '');
+    onSearchChange({ ...search, status: next, page: undefined });
+  };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -121,11 +141,61 @@ export function NotificationDeliveriesPage({
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <p className="page-eyebrow">{t('notificationDeliveries.eyebrow')}</p>
-        <h1>{t('notificationDeliveries.title')}</h1>
-        <p>{t('notificationDeliveries.description')}</p>
-      </header>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="page-header">
+          <p className="page-eyebrow">{t('notificationDeliveries.eyebrow')}</p>
+          <h1>{t('notificationDeliveries.title')}</h1>
+          <p>{t('notificationDeliveries.description')}</p>
+        </header>
+        <div className="flex items-center gap-2 text-sm">
+          <Switch
+            id="notification-auto-refresh"
+            checked={autoRefresh}
+            onCheckedChange={setAutoRefresh}
+          />
+          <Label htmlFor="notification-auto-refresh">
+            {t('notificationDeliveries.autoRefresh')}
+          </Label>
+          <span className="text-xs text-muted-foreground">
+            {autoRefresh
+              ? t('notificationDeliveries.autoRefreshOn', {
+                  seconds: deliveryRefreshIntervalMs / 1000,
+                })
+              : t('notificationDeliveries.autoRefreshOff')}
+          </span>
+        </div>
+      </div>
+
+      <div
+        role="group"
+        aria-label={t('notificationDeliveries.statusSummary')}
+        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+      >
+        {notificationDeliveryStatuses.map((value) => {
+          const selected = search.status === value;
+          const count = counts[value];
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => selectStatus(selected ? undefined : value)}
+              className={cn(
+                'flex flex-col items-start gap-1.5 rounded-lg border bg-card px-4 py-3 text-left shadow-xs transition-colors hover:border-brand/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+                selected && 'border-brand ring-[3px] ring-brand/15',
+              )}
+            >
+              <span className="flex items-center gap-2 text-xs font-medium text-subtle">
+                <span aria-hidden="true" className={cn('size-2 rounded-full', statusDot[value])} />
+                {t(`notificationDeliveries.status.${value}`)}
+              </span>
+              <span className="text-xl font-semibold tabular-nums">
+                {count === undefined ? '—' : count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       <SectionCard
         icon={BellRing}

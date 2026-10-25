@@ -1,6 +1,7 @@
-import { History, Search } from 'lucide-react';
+import { ChevronRight, Copy, History, Search, X } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
@@ -12,6 +13,17 @@ import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs';
 import type { AuditEntry, AuditSearch } from '@/features/audit/types';
+import { copyText } from '@/lib/clipboard';
+import { cn } from '@/lib/cn';
+
+type AuditFilter = 'action' | 'user_id' | 'from' | 'to';
+const auditFilters: readonly AuditFilter[] = ['action', 'user_id', 'from', 'to'];
+const filterLabelKey = {
+  action: 'audit.filters.action',
+  user_id: 'audit.filters.userId',
+  from: 'audit.filters.from',
+  to: 'audit.filters.to',
+} as const;
 
 function httpStatusTone(status: number) {
   if (status >= 500) return 'danger';
@@ -35,7 +47,24 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
   // Cursors of the pages before the current one, so Previous retraces the visited pages. A page
   // opened from a link has no trail, and Previous returns to the newest entries.
   const [trail, setTrail] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState<number | null>(null);
   const meta = logs.data?.meta;
+  const activeFilters = auditFilters.filter((key) => search[key] !== undefined);
+
+  const removeFilter = (key: AuditFilter) => {
+    const setters = { action: setAction, user_id: setUserId, from: setFrom, to: setTo };
+    setters[key]('');
+    setTrail([]);
+    onSearchChange({ ...search, [key]: undefined, cursor: undefined });
+  };
+
+  const copyRequestId = async (requestId: string) => {
+    if (await copyText(requestId)) {
+      toast.success(t('audit.copied', { id: requestId }));
+    } else {
+      toast.error(t('audit.copyFailed'));
+    }
+  };
   const goTo = (cursor: string | undefined, nextTrail: string[]) => {
     setTrail(nextTrail);
     onSearchChange({ ...search, cursor });
@@ -60,7 +89,36 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     setTrail([]);
   };
 
+  const detailsId = (entry: AuditEntry) => `audit-entry-${entry.id}`;
   const columns: DataTableColumn<AuditEntry>[] = [
+    {
+      id: 'details',
+      header: <span className="sr-only">{t('audit.columns.details')}</span>,
+      headerClassName: 'w-10 pr-0',
+      className: 'w-10 pr-0',
+      cell: (entry) => {
+        const open = expanded === entry.id;
+        return (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="size-7"
+            aria-expanded={open}
+            aria-controls={detailsId(entry)}
+            aria-label={t(open ? 'audit.hideDetails' : 'audit.showDetails', {
+              action: entry.action,
+            })}
+            onClick={() => setExpanded(open ? null : entry.id)}
+          >
+            <ChevronRight
+              aria-hidden="true"
+              className={cn('transition-transform', open && 'rotate-90')}
+            />
+          </Button>
+        );
+      },
+    },
     {
       id: 'time',
       header: t('audit.columns.time'),
@@ -107,6 +165,50 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
       ),
     },
   ];
+
+  const renderDetails = (entry: AuditEntry) =>
+    expanded === entry.id ? (
+      <dl className="grid gap-x-6 gap-y-2 text-xs sm:grid-cols-[max-content_1fr]">
+        <dt className="text-muted-foreground">{t('audit.details.resource')}</dt>
+        <dd>
+          <code>{entry.resource}</code>
+        </dd>
+        <dt className="text-muted-foreground">{t('audit.details.target')}</dt>
+        <dd>
+          {entry.target_type || entry.target_id ? (
+            <code>{[entry.target_type, entry.target_id].filter(Boolean).join(' · ')}</code>
+          ) : (
+            t('audit.details.none')
+          )}
+        </dd>
+        <dt className="text-muted-foreground">{t('audit.details.result')}</dt>
+        <dd>{entry.result || t('audit.details.none')}</dd>
+        <dt className="text-muted-foreground">{t('audit.details.request')}</dt>
+        <dd className="break-all">
+          <code>
+            {entry.method} {entry.path}
+          </code>
+        </dd>
+        {entry.request_id ? (
+          <>
+            <dt className="text-muted-foreground">{t('audit.details.requestId')}</dt>
+            <dd className="flex items-center gap-2">
+              <code>{entry.request_id}</code>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7"
+                onClick={() => void copyRequestId(entry.request_id ?? '')}
+              >
+                <Copy aria-hidden="true" />
+                {t('audit.copyRequestId')}
+              </Button>
+            </dd>
+          </>
+        ) : null}
+      </dl>
+    ) : null;
 
   return (
     <div className="page-stack">
@@ -173,6 +275,28 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
                 </Button>
               </div>
             </form>
+            {activeFilters.length > 0 ? (
+              <ul className="mt-3 flex flex-wrap gap-2" aria-label={t('audit.activeFilters')}>
+                {activeFilters.map((key) => (
+                  <li
+                    key={key}
+                    className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-subtle pr-1 pl-3 text-xs font-medium text-brand-strong"
+                  >
+                    {t(filterLabelKey[key])}: {String(search[key])}
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="size-5 rounded-full text-brand-strong hover:bg-brand/10"
+                      aria-label={t('audit.removeFilter', { filter: t(filterLabelKey[key]) })}
+                      onClick={() => removeFilter(key)}
+                    >
+                      <X aria-hidden="true" className="size-3" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </>
         }
       >
@@ -188,6 +312,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
           minWidthClassName="min-w-[720px]"
           alignTop
           skeletonRows={5}
+          details={{ id: detailsId, render: renderDetails }}
         />
 
         {meta && (search.cursor || meta.has_more) ? (

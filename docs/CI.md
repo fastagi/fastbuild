@@ -10,7 +10,7 @@ compatible with supported runners, and reviewable without trusting a movable act
 | `ci.yml` | Root governance, OpenAPI lint/generation/route/breaking gates, API build/lint/test/runtime-route/race gates, PostgreSQL 15-18 compatibility, plus Next.js Web and Admin Console type/lint/test/build gates | `contents: read` |
 | `container.yml` | API image identity, smoke test, SBOM/scan evidence, and local Compose lifecycle | `contents: read` |
 | `e2e.yml` | Starts PostgreSQL, the API, and one browser shell with `make dev`, then runs Playwright smoke tests: the operator flow in the Admin Console and sign-in through the API adapter in the Web application | `contents: read` |
-| `perf.yml` | Nightly and on demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
+| `perf.yml` | Weekly and on demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
 | `dependency-security.yml` | Scheduled and change-triggered OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
 | `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans both images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
 | `skill-self-test.yml` | Starter-module skill validators in one job (Skill metadata is validated by `make governance`) | `contents: read` |
@@ -24,10 +24,12 @@ permission-policy entry in `check-ci-actions.py` and a role in the table above.
 
 ## When Checks Run
 
-A pull request runs only what its change can break; everything else runs after merge, nightly,
+A pull request runs only what its change can break; everything else runs after merge, weekly,
 and before a release, so coverage is unchanged while a typical pull request runs five to eight checks.
+Draft pull requests run nothing: open a draft while iterating, and checks start when it is marked
+ready for review. Scheduled runs happen once a week, on Monday between 02:41 and 05:17 UTC.
 
-| Check | Pull request | Push to `main` | Nightly | Release tag |
+| Check | Pull request (not draft) | Push to `main` | Weekly | Release tag |
 |---|---|---|---|---|
 | Governance | Always | Yes | Yes | Via `make release-check` |
 | HTTP contracts, API (PostgreSQL 16), Web, Admin | When `contracts/`, `api/`, `web/`, `admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
@@ -36,13 +38,13 @@ and before a release, so coverage is unchanged while a typical pull request runs
 | Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
 | API and Web containers | When an image input changes (Dockerfile, dependency manifests, container scripts) | No | Yes | Built and scanned by `release.yml` |
 | End-to-end | When a browser shell, sign-in, the operator flow, or the dev stack changes | No | Yes | — |
-| Dependency security | When a dependency manifest changes | No | Weekly | — |
+| Dependency security | When a dependency manifest changes | No | Yes | — |
 | Skill self-test | When starter modules or skills change | No | — | — |
 | Plugins | When the registry or plugin machinery changes | No | Yes | — |
 | Performance baseline | — | — | Yes | — |
 
 Every workflow also has `workflow_dispatch`, so any check can be run on demand from the Actions tab.
-A nightly failure is fixed like a failing pull request: open a fix before the next release.
+A scheduled failure is fixed like a failing pull request: open a fix before the next release.
 
 ## Runner Contract
 

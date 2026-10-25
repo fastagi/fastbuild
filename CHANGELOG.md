@@ -6,6 +6,11 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ## Unreleased
 
+### Changed
+
+- CI runs less often: scheduled workflows run weekly on Monday instead of nightly, and draft pull
+  requests run no checks until they are marked ready for review (see `docs/CI.md`).
+
 ## v0.25.1 — 2026-10-12
 
 ### Fixed

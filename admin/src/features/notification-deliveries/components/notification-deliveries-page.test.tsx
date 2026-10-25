@@ -97,4 +97,48 @@ describe('NotificationDeliveriesPage', () => {
       page: undefined,
     });
   });
+
+  it('counts each status under the current filters and filters by a clicked count', async () => {
+    const totals: Record<string, number> = { pending: 2, processing: 1, delivered: 40, failed: 3 };
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      const params = new URL(url, 'http://admin.test').searchParams;
+      const status = params.get('status') ?? '';
+      return Promise.resolve(
+        json(params.get('per_page') === '1' ? page([], totals[status] ?? 0) : page([failed])),
+      );
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const onSearchChange = vi.fn();
+    render(
+      withQueryClient(
+        <NotificationDeliveriesPage
+          search={{ channel: 'email', status: 'failed' }}
+          onSearchChange={onSearchChange}
+        />,
+      ),
+    );
+
+    const summary = screen.getByRole('group', { name: 'Deliveries by status' });
+    const failedCount = within(summary).getByRole('button', { name: /failed/i });
+    expect(await within(failedCount).findByText('3')).toBeInTheDocument();
+    expect(within(summary).getByRole('button', { name: /delivered/i })).toHaveTextContent('40');
+    expect(failedCount).toHaveAttribute('aria-pressed', 'true');
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/operator/notification-deliveries?page=1&per_page=1&status=pending&channel=email',
+      expect.anything(),
+    );
+
+    fireEvent.click(within(summary).getByRole('button', { name: /pending/i }));
+    expect(onSearchChange).toHaveBeenLastCalledWith({
+      channel: 'email',
+      status: 'pending',
+      page: undefined,
+    });
+    fireEvent.click(failedCount);
+    expect(onSearchChange).toHaveBeenLastCalledWith({
+      channel: 'email',
+      status: undefined,
+      page: undefined,
+    });
+  });
 });
