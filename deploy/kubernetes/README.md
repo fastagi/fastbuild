@@ -1,7 +1,7 @@
 # Kubernetes Reference Baseline
 
 A production-shaped [kustomize](https://kustomize.io) baseline for the FastBuild API, its workers and
-retention jobs, and the Next.js Web application. It is an **example surface**: copy it into the
+retention jobs, the Next.js Web application, and the static Admin Console. It is an **example surface**: copy it into the
 downstream deployment repository and own it there. FastBuild does not choose a cloud, ingress
 controller, secret store, rollout controller, or PostgreSQL provider. Those choices stay with the
 downstream team.
@@ -15,13 +15,13 @@ how the manifests map onto it.
 | Path | Contents |
 |---|---|
 | `config/` | `fastbuild-api-config` ConfigMap: non-secret API runtime settings shared by every API pod, worker, and job |
-| `base/` | API Deployment + Service + PDB, workflow worker, Web Deployment + Service + PDB |
+| `base/` | API Deployment + Service + PDB, workflow worker, Web Deployment + Service + PDB, Admin Console Deployment + Service + PDB |
 | `migrate/` | Pre-deploy `fastbuild migrate --force` Job, using the same image and configuration |
 | `components/maintenance` | Retention CronJobs for authentication sessions and workflow tasks |
 | `components/notification` | `notification:work` delivery worker |
 | `components/webhook` | `webhook:work` delivery worker and `webhook:prune` retention job |
 | `components/asset` | `asset:prune` cleanup job |
-| `overlays/example` | Base plus `organization,notification,webhook` and their components |
+| `overlays/example` | Base plus `organization,notification,webhook,operator`, their components, and `OPERATOR_ALLOWED_ORIGINS` for the Admin Console |
 
 Every pod runs non-root with a read-only root filesystem, all capabilities dropped,
 `RuntimeDefault` seccomp, no service-account token, and an `emptyDir` for writable scratch space.
@@ -30,10 +30,11 @@ takes replicas out of traffic without restarting them.
 
 ## Deploy
 
-1. **Build and push images by digest.** Build `api/` and `web/` with their Dockerfiles, then set
-   the digest in each kustomization's `images` entry (`kustomize edit set image
-   fastbuild-api=registry.example.com/fastbuild-api@sha256:...`). The Web image bakes in `NEXT_PUBLIC_*`
-   at build time, so build it once per environment origin.
+1. **Build and push images by digest.** Build `api/`, `web/`, and `admin/` with their Dockerfiles,
+   then set the digest in each kustomization's `images` entry (`kustomize edit set image
+   fastbuild-api=registry.example.com/fastbuild-api@sha256:...`). The Web image bakes in
+   `NEXT_PUBLIC_*` and the Admin image bakes in `VITE_*` at build time, so build each once per
+   environment's public configuration.
 
 2. **Create the secret outside this repository.** It needs at least `DB_USERNAME` and
    `DB_PASSWORD`, plus starter secrets when they are selected (`WEBHOOK_ENCRYPTION_KEY`,
@@ -65,9 +66,15 @@ takes replicas out of traffic without restarting them.
 
    The migration job must use the same `OPTIONAL_STARTERS` as the serving pods.
 
-5. **Serve the Admin Console separately.** `admin/` builds to static files for object storage and
-   a CDN; see [`admin/docs/DEPLOYMENT.md`](../../admin/docs/DEPLOYMENT.md). Its origin goes in
-   `OPERATOR_ALLOWED_ORIGINS` when the `operator` starter is selected.
+5. **Expose the Admin Console on its own HTTPS host.** The `fastbuild-admin` pods serve the static
+   console on port 8080 and proxy same-origin `/api/*` to `fastbuild-api:8025`, so the operator
+   session cookie stays first-party. Route the whole admin host (for example
+   `https://admin.example.com`) to the `fastbuild-admin` Service; do not add a separate `/api` rule.
+   Put that exact origin in `OPERATOR_ALLOWED_ORIGINS` (the example overlay does) and add the admin
+   pod CIDR to `SERVER_TRUSTED_PROXIES`. Build the image with
+   `VITE_OPTIONAL_FEATURES=operator,...` matching the API starters. To host the console on object
+   storage and a CDN instead, drop `admin.yaml` and follow
+   [`admin/docs/DEPLOYMENT.md`](../../admin/docs/DEPLOYMENT.md).
 
 ## Adapting
 

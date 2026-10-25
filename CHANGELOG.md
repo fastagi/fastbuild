@@ -6,6 +6,20 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ## Unreleased
 
+### Added
+
+- The Admin Console has a deployment path: `admin/Dockerfile` builds a digest-pinned, non-root,
+  read-only nginx image with SPA deep-link fallback, immutable hashed-asset caching, browser
+  security headers, and a same-origin `/api` proxy to the API. `deploy/kubernetes/base/admin.yaml`
+  deploys it, the example overlay selects the `operator` starter with `OPERATOR_ALLOWED_ORIGINS`,
+  and `admin-container.yml` and the release workflow verify and scan the image.
+  `admin/docs/DEPLOYMENT.md` documents both container and object-storage/CDN hosting.
+
+### Fixed
+
+- The Admin Console's recommended CSP blocked the toast library's runtime stylesheet; `style-src`
+  now allows inline styles while scripts stay `'self'` only.
+
 ## v0.25.1 — 2026-10-12
 
 ### Fixed

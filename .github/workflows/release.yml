@@ -74,6 +74,17 @@ jobs:
           bash scripts/verify-container.sh fastbuild-web:release
           bash ../scripts/container-security.sh verify fastbuild-web:release "${GITHUB_WORKSPACE}/dist/fastbuild-web.cdx.json"
 
+      - name: Admin image, smoke test, SBOM, and scan
+        working-directory: admin
+        env:
+          OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}
+          OCI_REVISION: ${{ github.sha }}
+          OCI_VERSION: ${{ github.ref_name }}
+          BUILD_METADATA_OUTPUT: ${{ github.workspace }}/dist/fastbuild-admin.build-metadata.json
+        run: |
+          bash scripts/verify-container.sh fastbuild-admin:release
+          bash ../scripts/container-security.sh verify fastbuild-admin:release "${GITHUB_WORKSPACE}/dist/fastbuild-admin.cdx.json"
+
       - name: Attest build provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:

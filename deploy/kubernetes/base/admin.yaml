@@ -1,0 +1,86 @@
+# Admin Console: static assets served by unprivileged nginx. VITE_* values are compiled into the
+# image at build time. nginx proxies same-origin /api/* to the API so the operator session cookie
+# stays first-party; the public admin origin must be listed in OPERATOR_ALLOWED_ORIGINS.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastbuild-admin
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fastbuild-admin
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: fastbuild-admin
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: admin
+          image: fastbuild-admin
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ADMIN_API_UPSTREAM
+              value: http://fastbuild-api:8025
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastbuild-admin
+spec:
+  selector:
+    app.kubernetes.io/name: fastbuild-admin
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: fastbuild-admin
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: fastbuild-admin

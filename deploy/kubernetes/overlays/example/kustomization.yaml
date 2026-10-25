@@ -1,5 +1,6 @@
-# Example overlay: the base plus the organization, notification, and webhook starters with their
-# workers and retention jobs. Copy and adjust per environment.
+# Example overlay: the base plus the organization, notification, webhook, and operator starters with
+# their workers and retention jobs. Copy and adjust per environment. The Admin Console is served at
+# https://admin.example.com; that exact origin must be in OPERATOR_ALLOWED_ORIGINS.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -20,4 +21,7 @@ patches:
     patch: |-
       - op: replace
         path: /data/OPTIONAL_STARTERS
-        value: organization,notification,webhook
+        value: organization,notification,webhook,operator
+      - op: add
+        path: /data/OPERATOR_ALLOWED_ORIGINS
+        value: https://admin.example.com

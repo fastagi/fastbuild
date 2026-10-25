@@ -29,6 +29,10 @@ WEB_BASE = (
     "docker.io/library/node:22.23.3-alpine3.24@sha256:"
     "0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402"
 )
+ADMIN_RUNTIME = (
+    "docker.io/nginxinc/nginx-unprivileged:1.30.6-alpine3.24-slim@sha256:"
+    "5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6"
+)
 SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 IGNORE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 
@@ -187,6 +191,30 @@ def main() -> int:
         failures.append("web/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, web_dockerfile, web_content)
 
+    admin_dockerfile = ROOT / "admin/Dockerfile"
+    admin_content = require_markers(
+        failures,
+        admin_dockerfile,
+        (
+            FRONTEND,
+            f"FROM {WEB_BASE} AS builder",
+            f"FROM {ADMIN_RUNTIME} AS runtime-root",
+            "FROM scratch AS runner",
+            "rm -rf /sbin/apk /etc/apk /lib/apk",
+            "COPY --from=runtime-root / /",
+            'org.opencontainers.image.title="FastBuild Admin"',
+            "org.opencontainers.image.source",
+            "org.opencontainers.image.revision",
+            "org.opencontainers.image.version",
+            "org.opencontainers.image.base.digest",
+            "USER 101:101",
+            "HEALTHCHECK",
+        ),
+    )
+    if admin_content.splitlines()[0] != FRONTEND:
+        failures.append("admin/Dockerfile must pin the reviewed frontend on line 1")
+    check_external_from_pins(failures, admin_dockerfile, admin_content)
+
     for relative, expected_materials, expected_inputs in (
         (
             "api/scripts/verify-container.sh",
@@ -194,6 +222,11 @@ def main() -> int:
             (FRONTEND, API_BUILDER, API_RUNTIME),
         ),
         ("web/scripts/verify-container.sh", 2, (FRONTEND, WEB_BASE)),
+        (
+            "admin/scripts/verify-container.sh",
+            3,
+            (FRONTEND, WEB_BASE, ADMIN_RUNTIME),
+        ),
     ):
         path = ROOT / relative
         require_markers(
@@ -304,6 +337,20 @@ def main() -> int:
     )
     require_markers(
         failures,
+        ROOT / ".github/workflows/admin-container.yml",
+        (
+            "scripts/verify-container.sh fastbuild-admin:ci",
+            "scripts/container-security.sh verify fastbuild-admin:ci",
+            "scripts/validate-container-sbom.py",
+            "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
+            "fastbuild-admin.build-metadata.json",
+            "fastbuild-admin.cdx.json",
+            "fastbuild-admin-container-security-${{ github.sha }}",
+            "retention-days: 14",
+        ),
+    )
+    require_markers(
+        failures,
         ROOT / "Makefile",
         (
             "check-container-supply-chain.py",
@@ -336,7 +383,7 @@ def main() -> int:
 
     print(
         "Container supply-chain governance check passed "
-        "(2 digest-pinned images, BuildKit evidence, CycloneDX 1.7, Trivy 0.72.0)."
+        "(3 digest-pinned images, BuildKit evidence, CycloneDX 1.7, Trivy 0.72.0)."
     )
     return 0
 

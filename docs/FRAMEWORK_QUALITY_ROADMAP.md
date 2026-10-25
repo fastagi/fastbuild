@@ -68,12 +68,12 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   transitive sources, and a strict five-version build-script allowlist. A checksum-pinned
   OSV-Scanner 2.3.8 scans `api/go.mod` and the `contracts`, `web`, and `admin` pnpm lockfiles, exports a
   validated CycloneDX 1.5 SBOM, and permits only reasoned, expiring exceptions.
-- Container supply-chain policy covers the API and Next.js Web images. The Admin Console deliberately
-  has no runtime image and is governed as a static build artifact. Dockerfile frontend and every
+- Container supply-chain policy covers the API, Next.js Web, and Admin Console images. The Admin
+  image is optional static nginx; its `dist/` remains a standalone OSS/CDN artifact. Dockerfile frontend and every
   external base use exact versions plus multi-platform digests; Buildx verifiers require OCI
   source/revision/version labels and maximal BuildKit evidence containing every reviewed material.
   Checksum-pinned Trivy 0.72.0 exports CycloneDX 1.7 runtime inventories and blocks HIGH/CRITICAL
-  vulnerabilities, secrets, and known EOL bases in dedicated read-only API/Web workflows.
+  vulnerabilities, secrets, and known EOL bases in dedicated read-only API/Web/Admin workflows.
 - API operational routes now keep health probes always available while Prometheus instrumentation and `/metrics` follow `METRICS_ENABLED` (enabled outside production, disabled by default in production). Unmatched URLs collapse to one bounded metric label, and the broken default `/monitor` and `/swagger` surfaces have been removed until they have real assembly and contracts.
 - Removing the unwired Swagger runtime dependencies reduced the local Go module graph from 298 to 271 modules and the stripped `cmd/server` binary from 44,835,362 to 34,395,426 bytes (23.29%) on Go 1.25.0 `darwin/arm64`. This is a dependency and binary-footprint baseline measured with `go list -m all` and `go build -trimpath -ldflags='-s -w'`; it is not a throughput claim.
 - Compression is intentionally not part of the default API kernel; prefer deployment/CDN compression or explicit route/starter middleware.

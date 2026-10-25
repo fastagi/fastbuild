@@ -83,7 +83,8 @@ Same-origin CDN routing is preferred. If a separate API origin is unavoidable:
 ## CDN Controls
 
 Configure CSP, MIME sniffing protection, framing denial, referrer policy,
-permissions policy, TLS, and HSTS at the CDN. Keep `index.html` revalidated and
+permissions policy, TLS, and HSTS at the CDN, or use the container image, which
+sends the reviewed set listed in [DEPLOYMENT.md](DEPLOYMENT.md#security-headers). Keep `index.html` revalidated and
 hashed assets immutable. Disable public source maps unless an authenticated
 private symbol pipeline owns them.
 

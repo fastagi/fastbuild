@@ -3,7 +3,8 @@
 `admin/` is FastBuild's project management system. It owns operator and
 administrator workflows and is implemented as a lightweight Vite SPA. It
 produces static assets that can be uploaded directly to OSS/S3-compatible
-object storage and served through a CDN.
+object storage and served through a CDN, or served by the hardened nginx image
+built from `Dockerfile`.
 
 It complements the customer-facing `web/` application and is never imported by
 it. Projects may deploy either application or both. They follow the same
@@ -59,14 +60,18 @@ Build the deployable artifact:
 corepack pnpm build
 ```
 
-Upload the contents of `dist/` to object storage. Configure the CDN to:
+Deploy it one of two ways:
 
-1. serve existing assets normally;
-2. route `/api/*` to the reviewed API/browser gateway when needed;
-3. rewrite unknown application routes to `index.html`;
-4. cache hashed assets immutably and revalidate `index.html`.
+- **Container:** `docker build -t fastbuild-admin --build-arg VITE_OPTIONAL_FEATURES=operator .`
+  produces a non-root nginx image that serves the SPA with deep-link fallback and proxies
+  same-origin `/api/*` to the API. Kubernetes wiring lives in
+  [`../deploy/kubernetes/base/admin.yaml`](../deploy/kubernetes/base/admin.yaml).
+- **Object storage + CDN:** upload `dist/` and configure the CDN to route `/api/*` to the API
+  with the prefix stripped, serve existing assets, rewrite unknown application routes to
+  `index.html` with `200`, cache hashed assets immutably, and revalidate `index.html`.
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the complete contract.
+Either way, the console's public origin must be in the API's `OPERATOR_ALLOWED_ORIGINS`. See
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the complete contract.
 
 ## Architecture
 

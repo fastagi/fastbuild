@@ -1,0 +1,23 @@
+# Dependencies and build output are rebuilt inside the image.
+node_modules
+dist
+coverage
+test-results
+playwright-report
+.eslintcache
+*.tsbuildinfo
+
+# Environment files must never reach the build context; VITE_* values are build args.
+.env*
+
+# Git, docs, and editor state
+.git
+.gitignore
+README.md
+docs/
+e2e/
+.vscode
+.idea
+.DS_Store
+*.log
+*.pem
