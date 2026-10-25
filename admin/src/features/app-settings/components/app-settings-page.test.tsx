@@ -101,4 +101,23 @@ describe('AppSettingsPage', () => {
     );
     expect(await screen.findByRole('alert')).toHaveTextContent(/setting starter/i);
   });
+
+  it('shows an unsaved edit and discards it without a request', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(json({ code: 0, message: 'success', data: [setting] }));
+    renderPage(fetchMock);
+
+    const input = await screen.findByLabelText('app.support_email');
+    expect(screen.queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument();
+    fireEvent.change(input, { target: { value: 'ops@example.test' } });
+
+    expect(screen.getByText('Unsaved: help@example.test → ops@example.test')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Discard' }));
+
+    expect(input).toHaveValue('help@example.test');
+    expect(screen.queryByText(/^Unsaved:/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { LogIn, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, LogIn, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/components/layout/section-card';
@@ -16,6 +16,8 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
   const signIn = useSignIn();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [revealed, setRevealed] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -65,16 +67,39 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="sign-in-password">{t('auth.password')}</Label>
-            <Input
-              id="sign-in-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              maxLength={128}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+            <div className="relative">
+              <Input
+                id="sign-in-password"
+                name="password"
+                type={revealed ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                maxLength={128}
+                value={password}
+                className="pr-10"
+                aria-describedby={capsLock ? 'sign-in-caps-lock' : undefined}
+                onChange={(event) => setPassword(event.target.value)}
+                onKeyUp={(event) => setCapsLock(event.getModifierState('CapsLock'))}
+                onBlur={() => setCapsLock(false)}
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="absolute top-1/2 right-1 size-7 -translate-y-1/2"
+                aria-label={revealed ? t('auth.hidePassword') : t('auth.showPassword')}
+                aria-pressed={revealed}
+                title={revealed ? t('auth.hidePassword') : t('auth.showPassword')}
+                onClick={() => setRevealed((value) => !value)}
+              >
+                {revealed ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+              </Button>
+            </div>
+            {capsLock ? (
+              <p id="sign-in-caps-lock" className="text-xs text-warning-strong">
+                {t('auth.capsLock')}
+              </p>
+            ) : null}
           </div>
           {signIn.isError ? (
             <p role="alert" className="text-sm text-destructive">

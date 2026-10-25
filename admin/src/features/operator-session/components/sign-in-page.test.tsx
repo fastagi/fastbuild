@@ -31,7 +31,7 @@ function respond(body: unknown, status: number) {
 
 function submit() {
   fireEvent.change(screen.getByLabelText(/username or email/i), { target: { value: 'ops' } });
-  fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'secret' } });
+  fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: 'secret' } });
   fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 }
 
@@ -80,5 +80,30 @@ describe('SignInPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/platform-operator access/i);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('reveals the password on request and warns while Caps Lock is on', () => {
+    renderPage();
+    const password = screen.getByLabelText(/^password$/i);
+    expect(password).toHaveAttribute('type', 'password');
+
+    fireEvent.click(screen.getByRole('button', { name: /show password/i }));
+    expect(password).toHaveAttribute('type', 'text');
+    expect(screen.getByRole('button', { name: /hide password/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    // jsdom does not model Caps Lock, so the key event reports it the way a browser would.
+    const capsLockKey = new KeyboardEvent('keyup', { key: 'A', bubbles: true });
+    Object.defineProperty(capsLockKey, 'getModifierState', {
+      value: (key: string) => key === 'CapsLock',
+    });
+    fireEvent(password, capsLockKey);
+    expect(screen.getByText(/caps lock is on/i)).toBeInTheDocument();
+    expect(password).toHaveAccessibleDescription(/caps lock is on/i);
+
+    fireEvent.blur(password);
+    expect(screen.queryByText(/caps lock is on/i)).not.toBeInTheDocument();
   });
 });
