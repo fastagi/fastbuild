@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	"github.com/fastagi/fastbuild/api/internal/infra/config"
+	"github.com/fastagi/fastbuild/api/internal/infra/metrics"
 )
 
 // NewDB creates a new database connection via Wire DI.
@@ -78,6 +79,13 @@ func initDB(cfg *config.Config) (*gorm.DB, error) {
 			pingErr = errors.Join(pingErr, fmt.Errorf("close failed database pool: %w", closeErr))
 		}
 		return nil, fmt.Errorf("failed to ping database: %w", pingErr)
+	}
+
+	// Query and pool metrics follow METRICS_ENABLED, so a metrics-off process pays no callback cost.
+	if cfg.Metrics.Enabled {
+		if metricsErr := metrics.InstrumentDatabase(db); metricsErr != nil {
+			return nil, errors.Join(fmt.Errorf("instrument database metrics: %w", metricsErr), sqlDB.Close())
+		}
 	}
 
 	return db, nil

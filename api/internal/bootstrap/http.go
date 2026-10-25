@@ -50,32 +50,11 @@ func NewHttpKernel(application *app.Application) *HttpKernel {
 	r := gin.New()
 	configureTrustedProxies(r, application.Config)
 
-	// Initialize Tracing (if enabled)
-	var tracerProvider *tracing.TracerProvider
-	if application.Config.Tracing.Enabled {
-		tp, err := tracing.NewTracerProvider(&tracing.Config{
-			Enabled:     true,
-			ServiceName: application.Config.App.Name,
-			Environment: application.Config.App.Env,
-			Endpoint:    application.Config.Tracing.Endpoint,
-			Insecure:    application.Config.Tracing.Insecure,
-			SampleRate:  application.Config.Tracing.SampleRate,
-			Debug:       application.Config.App.Debug,
-		})
-		if err != nil {
-			log.Printf("Warning: Failed to initialize tracing: %v", err)
-		} else {
-			tracerProvider = tp
-			// Add tracing middleware
-			r.Use(tracing.Middleware(application.Config.App.Name))
-			r.Use(tracing.InjectTraceID())
-			log.Println("OpenTelemetry tracing enabled")
-
-			// Add GORM tracing
-			if err := tracing.WithTracing(application.DB, application.Config.App.Name); err != nil {
-				log.Printf("Warning: Failed to add GORM tracing: %v", err)
-			}
-		}
+	// Tracing shares one bootstrap helper with the worker commands.
+	tracerProvider := InitTracing(application.Config, application.DB)
+	if tracerProvider != nil {
+		r.Use(tracing.Middleware(application.Config.App.Name))
+		r.Use(tracing.InjectTraceID())
 	}
 
 	// Add custom logger and recovery middleware
@@ -217,13 +196,7 @@ func (k *HttpKernel) gracefulShutdown(srv *http.Server, serverErr <-chan error, 
 	}
 
 	// 3. Shutdown tracer provider (flush remaining spans)
-	if k.TracerProvider != nil {
-		if err := k.TracerProvider.Shutdown(ctx); err != nil {
-			log.Printf("Tracer shutdown error: %v", err)
-		} else {
-			log.Println("Tracer provider shutdown complete")
-		}
-	}
+	ShutdownTracing(k.TracerProvider)
 
 	// 4. Close database connection
 	if k.App.DB != nil {

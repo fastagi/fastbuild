@@ -4,13 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
+
+const workerInstrumentationName = "fastbuild/workflow"
 
 // WorkerConfig holds worker configuration
 type WorkerConfig struct {
@@ -349,6 +355,15 @@ func (w *Worker) executeJob(ctx context.Context, data []byte, claimedAttempt int
 	}
 	carrier := propagation.MapCarrier{"traceparent": payload.TraceParent, "tracestate": payload.TraceState}
 	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
+	// Job types are code-registered names, so the span name stays bounded. Job data is never exported.
+	ctx, span := otel.Tracer(workerInstrumentationName).Start(ctx, "workflow.job "+payload.Type,
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(
+			attribute.String("messaging.destination.name", w.config.Queue),
+			attribute.String("fastbuild.workflow.job_type", payload.Type),
+		),
+	)
+	defer span.End()
 
 	// Call before handler
 	if w.config.BeforeJob != nil {
@@ -379,6 +394,11 @@ func (w *Worker) executeJob(ctx context.Context, data []byte, claimedAttempt int
 		payload.Attempts++
 	}
 	err = job.Handle(jobCtx)
+	span.SetAttributes(attribute.Int("fastbuild.workflow.attempt", payload.Attempts))
+	if err != nil {
+		span.SetAttributes(attribute.String("error.type", fmt.Sprintf("%T", err)))
+		span.SetStatus(codes.Error, "")
+	}
 
 	// Call after handler
 	if w.config.AfterJob != nil {

@@ -54,6 +54,40 @@ the concrete `url.path`, raw query values, and free-form error messages from exp
 carry status and stable `error.type` summaries while structured logs own reviewed diagnostic detail.
 Unmatched requests use only the HTTP method as the span name.
 
+Tracing starts through one bootstrap helper, `bootstrap.InitTracing`, shared by the HTTP server
+and every long-running worker (`workflow:work`, `workflow:schedule:work`, `notification:work`,
+`webhook:work`). Each process uses the same resource, sampler, and W3C propagator, adds GORM spans
+to its database handle, and flushes buffered spans through `bootstrap.ShutdownTracing` (bounded to
+5 s) on exit. Exporter failures log the structured `tracing.init_failed` warning and the process
+continues untraced. Workflow workers continue the dispatcher's trace from the queued `traceparent`
+with one consumer span per job, named `workflow.job <type>` from the code-registered job type; job
+data is never exported. Notification and webhook workers open one consumer span per dispatch batch
+carrying only the processed count.
+
+Outbound HTTP for the AI provider, webhook delivery, and R2 storage goes through
+`pkg/tracedhttp`. Its client spans carry the method, a code-owned `peer.service` label (`openai`,
+`webhook`, `r2`), the status code, and the stable `error.type`, and nothing else: no URL, host,
+path, query, or header. Webhook URLs are customer-supplied and can embed credentials in the path,
+and storage paths contain object keys, so `otelhttp` is intentionally not used because its client
+spans always export `url.full`. The transport also never injects `traceparent` into requests to
+these third parties. The span ends when response headers arrive, so it excludes body streaming.
+
+## Database Metrics
+
+When `METRICS_ENABLED=true`, `database.NewDB` installs a GORM callback plugin and a pool collector:
+
+| Series | Labels | Source |
+|---|---|---|
+| `db_queries_total`, `db_query_duration_seconds` | `operation` (`create`, `query`, `update`, `delete`, `row`, `raw`), `table` | GORM callbacks |
+| `db_connections_open`, `db_connections_in_use`, `db_connections_idle`, `db_connections_max_open` | none | `sql.DBStats` at scrape time |
+| `db_connections_wait_total`, `db_connections_wait_duration_seconds_total` | none | `sql.DBStats` at scrape time |
+
+Labels never contain SQL text or bound values. `table` is the statement's table name when it is a
+plain lowercase identifier (optionally schema-qualified), `unknown` when GORM has none (most raw
+SQL), and `other` for anything else or once 256 distinct table labels exist. The plugin costs two
+allocations per statement; pool statistics are read only when Prometheus scrapes, with no
+background goroutine. With metrics disabled, no callback is registered.
+
 ## Audit Records
 
 Audit records intentionally persist actor, target, action, result, request correlation, and reviewed
@@ -79,7 +113,7 @@ lost; `AUDIT_WRITE_MODE=sync` restores a write before every response. Commands a
 ## Verification
 
 ```bash
-go test ./pkg/redact ./pkg/logger ./pkg/errors ./internal/infra/exception ./internal/infra/database ./internal/infra/tracing ./internal/modules/audit
+go test ./pkg/redact ./pkg/logger ./pkg/errors ./pkg/tracedhttp ./internal/infra/exception ./internal/infra/database ./internal/infra/tracing ./internal/infra/metrics ./internal/bootstrap ./internal/capabilities/workflow ./internal/modules/audit
 go test ./pkg/redact -run '^$' -bench '^BenchmarkMap$' -benchmem -count=5
 python3 ../.agents/skills/fastbuild-framework-review/scripts/check-sensitive-telemetry.py
 ```

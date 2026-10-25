@@ -18,6 +18,7 @@ import (
 	"github.com/aws/smithy-go"
 
 	storagecap "github.com/fastagi/fastbuild/api/internal/capabilities/storage"
+	"github.com/fastagi/fastbuild/api/pkg/tracedhttp"
 )
 
 // R2Options configures the private S3-compatible Cloudflare R2 adapter.
@@ -74,7 +75,7 @@ func NewR2Store(options R2Options) (*R2Store, error) {
 	awsConfig := aws.Config{
 		Region:                     options.Region,
 		Credentials:                aws.NewCredentialsCache(credentials.NewStaticCredentialsProvider(options.AccessKeyID, options.SecretAccessKey, "")),
-		HTTPClient:                 &http.Client{Timeout: options.RequestTimeout},
+		HTTPClient:                 &http.Client{Timeout: options.RequestTimeout, Transport: tracedhttp.NewTransport(nil, "r2")},
 		RequestChecksumCalculation: aws.RequestChecksumCalculationWhenRequired,
 		ResponseChecksumValidation: aws.ResponseChecksumValidationWhenRequired,
 		RetryMaxAttempts:           3,
