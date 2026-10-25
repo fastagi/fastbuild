@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { authConfig } from '@/config/auth';
+import { isDevtoolsEnabled, isDevtoolsPath } from '@/config/devtools';
 import { getMockSessionCookieName } from '@/config/mock-session';
 import { getAuthRuntimeMode } from '@/features/auth/server/auth-runtime';
 import { verifySession } from '@/lib/session-signing';
@@ -37,12 +38,26 @@ async function hasValidSession(request: NextRequest): Promise<boolean> {
   }
 }
 
+/**
+ * Unmatched internal path; rewriting to it renders the app's not-found page
+ * with a 404 status.
+ */
+const DEVTOOLS_DISABLED_PATH = '/_devtools-disabled';
+
 export async function proxy(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+
+  // Disabled devtools 404 before any auth redirect or render work, so they
+  // neither reveal themselves nor stream page content. The route group layout
+  // repeats the check as defense in depth.
+  if (!isDevtoolsEnabled() && isDevtoolsPath(pathname)) {
+    return NextResponse.rewrite(new URL(DEVTOOLS_DISABLED_PATH, request.url));
+  }
+
   if (getAuthRuntimeMode() !== 'mock-session') {
     return NextResponse.next();
   }
 
-  const { pathname, search } = request.nextUrl;
   const valid = await hasValidSession(request);
 
   if (!valid && isProtectedPath(pathname)) {
