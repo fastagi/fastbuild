@@ -1,8 +1,9 @@
 name: Web Container
 
-# Pull requests run this only when the image's inputs change; nightly rebuilds and rescans it.
+# Pull requests run this only when the image's inputs change; a weekly run rebuilds and rescans it.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "web/Dockerfile"
       - "web/.dockerignore"
@@ -15,7 +16,7 @@ on:
       - ".agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py"
       - ".github/workflows/web-container.yml"
   schedule:
-    - cron: "29 3 * * *"
+    - cron: "29 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -28,6 +29,7 @@ concurrency:
 jobs:
   verify:
     name: Build, smoke test, and scan
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 25
     defaults:

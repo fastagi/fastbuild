@@ -1,14 +1,15 @@
 name: CI
 
 # Pull requests run only the halves they change, on the production Node version. Pushes to main,
-# the nightly schedule, and manual runs check everything, including Node 24 and PostgreSQL 15/17/18.
+# the weekly schedule, and manual runs check everything, including Node 24 and PostgreSQL 15/17/18.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches:
       - main
   schedule:
-    - cron: "41 2 * * *"
+    - cron: "41 2 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -21,6 +22,7 @@ concurrency:
 jobs:
   changes:
     name: Changed areas
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     outputs:
       api: ${{ steps.areas.outputs.api }}
@@ -60,6 +62,7 @@ jobs:
 
   governance:
     name: Governance
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     steps:
       - name: Checkout
@@ -174,7 +177,7 @@ jobs:
 
   postgres-compatibility:
     name: PostgreSQL ${{ matrix.postgres-version }} compatibility
-    # PostgreSQL 16 runs with the API job on every change; other versions run after merge and nightly.
+    # PostgreSQL 16 runs with the API job on every change; other versions run after merge and weekly.
     if: github.event_name != 'pull_request'
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     strategy:
@@ -225,7 +228,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Node 22 is the production baseline; Node 24 runs after merge and nightly.
+        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
         node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
     defaults:
       run:
@@ -260,7 +263,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Node 22 is the production baseline; Node 24 runs after merge and nightly.
+        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
         node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
     defaults:
       run:

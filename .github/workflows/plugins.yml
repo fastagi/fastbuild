@@ -2,10 +2,11 @@ name: Plugins
 
 # Compatibility matrix: every official plugin is installed into a copy of the checkout, integrated,
 # built, tested on each half it touches, checked by plugin:doctor, and removed again
-# (scripts/verify-plugin.sh). Runs when the registry or the plugin machinery changes, and nightly
+# (scripts/verify-plugin.sh). Runs when the registry or the plugin machinery changes, and weekly
 # so a core change that breaks a plugin is caught even when no plugin file changed.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - registry/**
       - api/internal/infra/pluginregistry/**
@@ -14,7 +15,7 @@ on:
       - scripts/verify-plugin.sh
       - .github/workflows/plugins.yml
   schedule:
-    - cron: "17 3 * * *"
+    - cron: "17 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -27,6 +28,7 @@ concurrency:
 jobs:
   list:
     name: List plugins
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     outputs:
       plugins: ${{ steps.list.outputs.plugins }}
