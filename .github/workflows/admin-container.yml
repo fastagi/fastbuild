@@ -1,8 +1,9 @@
 name: Admin Container
 
-# Pull requests run this only when the image's inputs change; nightly rebuilds and rescans it.
+# Pull requests run this only when the image's inputs change; a weekly run rebuilds and rescans it.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "admin/Dockerfile"
       - "admin/.dockerignore"
@@ -18,7 +19,7 @@ on:
       - ".agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py"
       - ".github/workflows/admin-container.yml"
   schedule:
-    - cron: "35 3 * * *"
+    - cron: "35 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -31,6 +32,7 @@ concurrency:
 jobs:
   verify:
     name: Build, smoke test, and scan
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 25
     defaults:
