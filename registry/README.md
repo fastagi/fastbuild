@@ -42,6 +42,7 @@ codex mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'    # Cod
 | `feature` | API module and starter, migration, contract fragment, optional Web screens | `knowledge-base` |
 | `theme` | Design token overrides for the Web application and the Admin Console; one theme at a time | `theme-enterprise` |
 | `block` | A reusable page section under `web/src/components/blocks` | `block-pricing-table` |
+| `template` | A set of plugins installed together or not at all; `make init-project TEMPLATE=<name>` starts a project from one | `saas-app` |
 
 ## How A Plugin Touches The Project
 
