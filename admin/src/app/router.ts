@@ -1,5 +1,7 @@
 import { createRouter } from '@tanstack/react-router';
 import { queryClient } from '@/app/query-client';
+import { RouteErrorPage } from '@/components/layout/route-error-page';
+import { RoutePending } from '@/components/layout/route-pending';
 import { routeTree } from '@/routeTree.gen';
 
 const basepath =
@@ -11,6 +13,8 @@ export const router = createRouter({
   context: {
     queryClient,
   },
+  defaultErrorComponent: RouteErrorPage,
+  defaultPendingComponent: RoutePending,
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,

@@ -12,6 +12,14 @@ const messages = {
     afternoon: '下午好，{name}',
     evening: '晚上好，{name}',
   },
+  boundary: {
+    errorTitle: '无法加载此控制台页面',
+    errorDescription: '你的会话和数据没有变化。请重试，或返回控制台首页。',
+    requestId: '请求 ID：{requestId}',
+    errorDigest: '错误引用：{digest}',
+    notFoundDescription: '你请求的控制台页面不存在或已移动。',
+    backToConsole: '返回控制台',
+  },
   home: {
     defaultUser: '朋友',
     welcomeDescription: '这是可替换的 FastBuild 控制台起始页，请用你的业务工作区替换它。',
