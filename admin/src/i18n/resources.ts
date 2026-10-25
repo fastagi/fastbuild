@@ -384,6 +384,10 @@ const enUS = {
       notFoundTitle: 'Page not found',
       notFoundDescription: 'The requested console route does not exist.',
       backToConsole: 'Back to console',
+      routeErrorTitle: 'Something went wrong',
+      routeErrorDescription: 'This page could not be loaded. Try again, or return to the console.',
+      requestId: 'Request ID: {{requestId}}',
+      retry: 'Try again',
     },
     common: {
       adminConsole: 'Admin Console',
@@ -769,6 +773,10 @@ const zhHans = {
       notFoundTitle: '页面不存在',
       notFoundDescription: '请求的控制台路由不存在。',
       backToConsole: '返回控制台',
+      routeErrorTitle: '页面出错了',
+      routeErrorDescription: '此页面无法加载。请重试，或返回控制台。',
+      requestId: '请求 ID：{{requestId}}',
+      retry: '重试',
     },
     common: {
       adminConsole: '管理后台',

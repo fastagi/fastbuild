@@ -9,6 +9,14 @@ const messages = {
     afternoon: 'Good afternoon, {name}',
     evening: 'Good evening, {name}',
   },
+  boundary: {
+    errorTitle: 'This console page could not be loaded',
+    errorDescription: 'Your session and data were not changed. Try again, or return to the console home.',
+    requestId: 'Request ID: {requestId}',
+    errorDigest: 'Error reference: {digest}',
+    notFoundDescription: 'The console page you requested does not exist or has moved.',
+    backToConsole: 'Back to console',
+  },
   home: {
     defaultUser: 'there',
     welcomeDescription:

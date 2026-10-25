@@ -185,6 +185,30 @@
   .not-found p {
     @apply mb-6 mt-2 max-w-md text-sm text-subtle;
   }
+
+  .route-error {
+    @apply grid min-h-[60dvh] place-content-center justify-items-start px-6;
+  }
+
+  .route-error h1 {
+    @apply text-2xl font-semibold;
+  }
+
+  .route-error p {
+    @apply mt-2 max-w-md text-sm text-subtle;
+  }
+
+  .route-error .route-error-request {
+    @apply font-mono text-xs;
+  }
+
+  .route-error-actions {
+    @apply mt-6 flex flex-wrap gap-2;
+  }
+
+  .route-pending {
+    @apply flex flex-col gap-3;
+  }
 }
 
 @layer utilities {
