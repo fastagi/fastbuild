@@ -79,6 +79,20 @@ does not create a client from strings, read process configuration, close a share
 keys, or fall back to process-local memory during an outage. Such fallback changes consistency and
 must be an explicit product policy outside this capability.
 
+Because the starter configuration has no Redis driver, the HTTP kernel registers only the database
+readiness check. A composition root that wires a Redis-backed adapter registers its readiness check
+on the kernel's health instance, so `/health/ready` and `/health` fail while Redis is unreachable
+and `/health/live` stays up:
+
+```go
+kernel.Health.Register("redis", health.Timeout(health.RedisChecker(func(ctx context.Context) error {
+    return client.Ping(ctx).Err()
+}), 2*time.Second))
+```
+
+`RedisChecker` reports only `redis ping failed`; the driver error, which can contain the address,
+never reaches the probe body.
+
 Redis `maxmemory` and an eviction policy remain deployment responsibilities. Include app,
 environment, and owning capability in the namespace. Use opaque IDs or keyed hashes rather than
 emails, tokens, URLs, or other sensitive values in keys.

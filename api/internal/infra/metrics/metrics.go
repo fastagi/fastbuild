@@ -78,20 +78,6 @@ var (
 		[]string{"operation", "table"},
 	)
 
-	dbConnectionsOpen = promauto.NewGauge(
-		prometheus.GaugeOpts{
-			Name: "db_connections_open",
-			Help: "Number of open database connections",
-		},
-	)
-
-	dbConnectionsInUse = promauto.NewGauge(
-		prometheus.GaugeOpts{
-			Name: "db_connections_in_use",
-			Help: "Number of database connections in use",
-		},
-	)
-
 	// Cache metrics
 	cacheHitsTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -191,12 +177,6 @@ func RecordHTTPRequest(method, path, status string, duration time.Duration) {
 func RecordDBQuery(operation, table string, duration time.Duration) {
 	dbQueryTotal.WithLabelValues(operation, table).Inc()
 	dbQueryDuration.WithLabelValues(operation, table).Observe(duration.Seconds())
-}
-
-// SetDBConnections sets the database connection metrics
-func SetDBConnections(open, inUse int) {
-	dbConnectionsOpen.Set(float64(open))
-	dbConnectionsInUse.Set(float64(inUse))
 }
 
 // --- Cache Metrics ---

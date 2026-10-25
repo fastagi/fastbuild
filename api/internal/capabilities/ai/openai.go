@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,6 +14,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/fastagi/fastbuild/api/pkg/tracedhttp"
 )
 
 const (
@@ -82,7 +85,7 @@ func newProviderHTTPClient(timeout time.Duration) *http.Client {
 		},
 	}
 	return &http.Client{
-		Transport: transport,
+		Transport: tracedhttp.NewTransport(transport, "openai"),
 		Timeout:   timeout,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return errProviderRedirectBlocked
@@ -250,6 +253,12 @@ func (p *OpenAIProvider) GenerateTextStream(ctx context.Context, req *TextReques
 
 		if streamCtx.Err() != nil {
 			sendTerminal(out, providerRequestError(streamCtx.Err()))
+			return
+		}
+		// http.Client.Timeout can end the body read just before streamCtx reports its deadline.
+		var timeout interface{ Timeout() bool }
+		if errors.As(scanner.Err(), &timeout) && timeout.Timeout() {
+			sendTerminal(out, providerRequestError(context.DeadlineExceeded))
 			return
 		}
 		if scanner.Err() != nil {

@@ -12,9 +12,14 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/fastagi/fastbuild/api/internal/bootstrap"
 	"github.com/fastagi/fastbuild/api/internal/infra/config"
 	"github.com/fastagi/fastbuild/api/internal/infra/console"
+	"github.com/fastagi/fastbuild/api/internal/infra/tracing"
 	"github.com/fastagi/fastbuild/api/internal/wiring"
 )
 
@@ -35,6 +40,8 @@ type notificationDispatcher interface {
 }
 
 var errNotificationDispatcherUnavailable = errors.New("notification dispatcher is unavailable")
+
+var notificationTracer = otel.Tracer("fastbuild/worker")
 
 // NotificationWorkCommand processes durable notification channel deliveries.
 type NotificationWorkCommand struct {
@@ -75,6 +82,8 @@ func (c *NotificationWorkCommand) Run(args []string) error {
 	if application.NotificationDispatcher == nil {
 		return errNotificationDispatcherUnavailable
 	}
+	tracerProvider := bootstrap.InitTracing(cfg, application.DB)
+	defer bootstrap.ShutdownTracing(tracerProvider)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -110,7 +119,13 @@ func runNotificationWorker(
 			return total, nil
 		}
 
-		processed, err := dispatcher.DispatchDue(ctx, limit)
+		batchCtx, span := notificationTracer.Start(ctx, "notification.dispatch_batch", trace.WithSpanKind(trace.SpanKindConsumer))
+		processed, err := dispatcher.DispatchDue(batchCtx, limit)
+		span.SetAttributes(attribute.Int("fastbuild.worker.processed", processed))
+		if err != nil {
+			tracing.RecordError(batchCtx, err)
+		}
+		span.End()
 		total += processed
 		if err != nil {
 			if contextErr := ctx.Err(); contextErr != nil {

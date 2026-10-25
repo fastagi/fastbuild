@@ -87,6 +87,9 @@ func (c *WorkflowWorkCommand) Run(args []string) error {
 		defer sqlDB.Close()
 	}
 
+	tracerProvider := bootstrap.InitTracing(cfg, db)
+	defer bootstrap.ShutdownTracing(tracerProvider)
+
 	manager, err := workflow.Bootstrap(workflowQueueRuntimeConfig(cfg, db))
 	if err != nil {
 		return err
@@ -166,6 +169,9 @@ func (c *WorkflowScheduleWorkCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
+
+	tracerProvider := bootstrap.InitTracing(cfg, nil)
+	defer bootstrap.ShutdownTracing(tracerProvider)
 
 	if !cfg.Scheduler.Enabled {
 		c.output.Warning("SCHEDULER_ENABLED=false; starting scheduler because command was invoked explicitly")

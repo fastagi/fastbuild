@@ -12,11 +12,16 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/fastagi/fastbuild/api/internal/app"
 	"github.com/fastagi/fastbuild/api/internal/bootstrap"
 	"github.com/fastagi/fastbuild/api/internal/domain"
 	"github.com/fastagi/fastbuild/api/internal/infra/config"
 	"github.com/fastagi/fastbuild/api/internal/infra/console"
+	"github.com/fastagi/fastbuild/api/internal/infra/tracing"
 	"github.com/fastagi/fastbuild/api/internal/wiring"
 )
 
@@ -36,6 +41,8 @@ type webhookWorker interface {
 }
 
 var errWebhookRuntimeUnavailable = errors.New("webhook runtime is unavailable")
+
+var workerTracer = otel.Tracer("fastbuild/worker")
 
 // WebhookWorkCommand processes durable outbound deliveries.
 type WebhookWorkCommand struct {
@@ -59,13 +66,15 @@ func (c *WebhookWorkCommand) Run(args []string) error {
 	if err != nil {
 		return err
 	}
-	application, _, err := initWebhookApplication()
+	application, cfg, err := initWebhookApplication()
 	if err != nil {
 		return err
 	}
 	if application.WebhookDispatcher == nil {
 		return errWebhookRuntimeUnavailable
 	}
+	tracerProvider := bootstrap.InitTracing(cfg, application.DB)
+	defer bootstrap.ShutdownTracing(tracerProvider)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	slog.Info("webhook.worker_started", "batch", workerConfig.Batch, "poll", workerConfig.Poll.String())
@@ -87,7 +96,13 @@ func runWebhookWorker(ctx context.Context, worker webhookWorker, cfg webhookWork
 		if err := ctx.Err(); err != nil {
 			return total, err
 		}
-		processed, err := worker.DispatchWebhooks(ctx, cfg.Batch)
+		batchCtx, span := workerTracer.Start(ctx, "webhook.dispatch_batch", trace.WithSpanKind(trace.SpanKindConsumer))
+		processed, err := worker.DispatchWebhooks(batchCtx, cfg.Batch)
+		span.SetAttributes(attribute.Int("fastbuild.worker.processed", processed))
+		if err != nil {
+			tracing.RecordError(batchCtx, err)
+		}
+		span.End()
 		total += processed
 		if err != nil {
 			if ctx.Err() != nil {

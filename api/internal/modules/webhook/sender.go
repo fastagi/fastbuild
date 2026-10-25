@@ -19,6 +19,7 @@ import (
 	capabilitycrypto "github.com/fastagi/fastbuild/api/internal/capabilities/crypto"
 	"github.com/fastagi/fastbuild/api/internal/domain"
 	"github.com/fastagi/fastbuild/api/internal/infra/config"
+	"github.com/fastagi/fastbuild/api/pkg/tracedhttp"
 )
 
 const webhookUserAgent = "FastBuild-Webhooks/1.0"
@@ -111,7 +112,7 @@ func (s *sender) Send(ctx context.Context, outbound outboundWebhook) (sendResult
 	}
 	defer transport.CloseIdleConnections()
 	client := &http.Client{
-		Transport: transport,
+		Transport: tracedhttp.NewTransport(transport, "webhook"),
 		Timeout:   s.timeout,
 		CheckRedirect: func(*http.Request, []*http.Request) error {
 			return errWebhookRedirectBlocked

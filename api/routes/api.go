@@ -1,22 +1,14 @@
 package routes
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-
 	"github.com/fastagi/fastbuild/api/internal/infra/router"
 	"github.com/fastagi/fastbuild/api/internal/starter"
 )
 
 // RegisterAPI registers all API routes using fluent router
 func RegisterAPI(r *router.Router, starters *starter.Registry) {
-	// 1. Health Checks
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok", "version": "v1"})
-	}).Name("health")
-
-	// 2. Register Module Routes
+	// Health routes, including the /v1/health compatibility alias, are owned by the health package
+	// and registered by the HTTP kernel before this group.
 	r.WithMiddleware("audit")
 	starters.RegisterRoutes(r)
 }

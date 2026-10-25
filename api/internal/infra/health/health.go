@@ -363,11 +363,14 @@ func (h *Health) ReadinessHandler() gin.HandlerFunc {
 	}
 }
 
-// RegisterRoutes registers health check routes on the engine
+// RegisterRoutes registers health check routes on the engine. /v1/health is a documented
+// compatibility alias with a static liveness body (contracts/openapi.yaml getApiHealth); new
+// probes should use /health/live or /health/ready.
 func (h *Health) RegisterRoutes(r *gin.Engine) {
 	r.GET("/health", h.Handler())
 	r.GET("/health/live", LivenessHandler())
 	r.GET("/health/ready", h.ReadinessHandler())
+	r.GET("/v1/health", APIVersionHandler())
 }
 
 // --- Global Instance ---
@@ -420,6 +423,13 @@ func LivenessHandler() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "up",
 		})
+	}
+}
+
+// APIVersionHandler serves the static /v1/health compatibility body. It runs no dependency check.
+func APIVersionHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok", "version": "v1"})
 	}
 }
 
