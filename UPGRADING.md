@@ -11,6 +11,34 @@ has an impact level:
 Newest changes come first. Merge the upstream branch, run `make check`, then work through the
 entries in order.
 
+## v0.26.0 — Admin deployment, route boundaries, and observability
+
+### Medium — Web devtools routes are off in production
+
+`/styleguide` and `/i18n-test` now return 404 in production builds. A deployment that relied on
+them sets `NEXT_PUBLIC_DEVTOOLS_ENABLED=true` at build time; development builds keep them on. A
+fork that removed these routes can leave the flag unset.
+
+### Low — Database metrics replace the unused connection gauges
+
+With `METRICS_ENABLED=true`, `database.NewDB` installs the query metrics plugin and pool collector.
+The never-recorded `SetDBConnections` gauges are removed; dashboards should read the new `db_*`
+pool series in `api/docs/OBSERVABILITY.md`. Worker processes now export spans when tracing is
+configured, so size the collector for them.
+
+### Low — Admin list pages use `DataTable` and `Pagination`
+
+`admin/src/components/layout/pager.tsx` and the `users.page`, `users.previous`, and `users.next`
+keys are removed; use `@/components/ui/pagination` and the `common.*` keys. Custom list pages can
+adopt `@/components/ui/data-table`.
+
+### Low — Admin Console deployment and weekly CI
+
+The Admin Console now ships `admin/Dockerfile` and `deploy/kubernetes/base/admin.yaml`; a fork that
+hosts it elsewhere can ignore them, and one that deploys it sets `OPERATOR_ALLOWED_ORIGINS` as in
+`admin/docs/DEPLOYMENT.md`. Scheduled workflows run weekly and draft pull requests skip CI; forks
+that want nightly runs restore the `cron` lines.
+
 ## v0.25.0 — Plugin registry, lifecycle, and templates
 
 ### Scheduled — `plugin:list` becomes `command:list`
