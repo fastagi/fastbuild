@@ -5,9 +5,10 @@ name: End-to-End
 # Console, and sign-in through the server-owned API adapter in the Web application.
 
 # Pull requests run this when a browser shell, sign-in, the operator flow, or the dev stack
-# changes; the whole stack runs nightly.
+# changes; the whole stack runs weekly.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "admin/**"
       - "web/**"
@@ -17,7 +18,7 @@ on:
       - "compose.dev.yaml"
       - ".github/workflows/e2e.yml"
   schedule:
-    - cron: "37 3 * * *"
+    - cron: "37 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -30,6 +31,7 @@ concurrency:
 jobs:
   admin:
     name: Admin Console against the API
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 20
     env:
@@ -94,6 +96,7 @@ jobs:
 
   web:
     name: Web application against the API
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 20
     env:

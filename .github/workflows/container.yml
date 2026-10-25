@@ -1,9 +1,10 @@
 name: Container
 
 # Pull requests run this only when the image's inputs change; every image is rebuilt and scanned
-# nightly, which also catches new vulnerabilities in unchanged base images.
+# weekly, which also catches new vulnerabilities in unchanged base images.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "api/Dockerfile"
       - "api/.dockerignore"
@@ -16,7 +17,7 @@ on:
       - ".agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py"
       - ".github/workflows/container.yml"
   schedule:
-    - cron: "23 3 * * *"
+    - cron: "23 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +30,7 @@ concurrency:
 jobs:
   verify:
     name: Build and smoke test
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     timeout-minutes: 30
     defaults:

@@ -9,6 +9,7 @@ name: Skill Self-Test
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'api/internal/modules/**'
       - '.agents/skills/**'
@@ -22,6 +23,7 @@ permissions:
 jobs:
   starter-modules:
     name: Starter Modules
+    if: github.event.pull_request.draft != true
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     defaults:
       run:
