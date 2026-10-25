@@ -126,13 +126,14 @@ healthcheck="$(docker image inspect "${IMAGE_TAG}" --format '{{json .Config.Heal
 
 docker run --rm --entrypoint sh "${IMAGE_TAG}" -c '
   present=""
-  for path in /sbin/apk /etc/apk /lib/apk /usr/local/bin/node /etc/nginx/conf.d \
+  for path in /sbin/apk /etc/apk /usr/local/bin/node /etc/nginx/conf.d \
       /usr/share/nginx/html/.vite; do
     [ -e "${path}" ] && present="${present} ${path}"
   done
   for path in /usr/share/nginx/html/.env* /etc/nginx/.env*; do
     [ -e "${path}" ] && present="${present} ${path}"
   done
+  [ -f /lib/apk/db/installed ] || present="${present} missing:/lib/apk/db/installed"
   for path in /etc/nginx/nginx.conf /etc/nginx/templates /usr/share/nginx/html/index.html; do
     [ -w "${path}" ] && present="${present} writable:${path}"
   done

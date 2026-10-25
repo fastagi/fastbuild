@@ -200,7 +200,7 @@ def main() -> int:
             f"FROM {WEB_BASE} AS builder",
             f"FROM {ADMIN_RUNTIME} AS runtime-root",
             "FROM scratch AS runner",
-            "rm -rf /sbin/apk /etc/apk /lib/apk",
+            "rm -rf /sbin/apk /etc/apk",
             "COPY --from=runtime-root / /",
             'org.opencontainers.image.title="FastBuild Admin"',
             "org.opencontainers.image.source",

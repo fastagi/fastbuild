@@ -24,10 +24,11 @@ COPY . .
 RUN corepack enable pnpm && pnpm run build
 
 # Materialize a runtime root without the package manager, the stock site, or writable config. The
-# scratch copy prevents removed files from surviving in older layers.
+# scratch copy prevents removed files from surviving in older layers. /lib/apk/db stays so image
+# scanners can still inventory the installed OS packages.
 FROM docker.io/nginxinc/nginx-unprivileged:1.30.6-alpine3.24-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6 AS runtime-root
 USER 0
-RUN rm -rf /sbin/apk /etc/apk /lib/apk /usr/share/apk /var/cache/apk \
+RUN rm -rf /sbin/apk /etc/apk /usr/share/apk /var/cache/apk \
         /etc/nginx/conf.d /usr/share/nginx/html/* \
         /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh \
     && chown -R 0:0 /etc/nginx /usr/share/nginx /docker-entrypoint.d \

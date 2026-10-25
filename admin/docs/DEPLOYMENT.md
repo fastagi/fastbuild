@@ -63,7 +63,7 @@ must be served over TLS.
 ## Option A: Container
 
 `admin/Dockerfile` builds the console with the reviewed Node base and serves it from a digest-pinned
-`nginxinc/nginx-unprivileged` slim image copied into `scratch` without `apk`. It runs as UID 101 on
+`nginxinc/nginx-unprivileged` slim image copied into `scratch` without the `apk` binary. It runs as UID 101 on
 port 8080 with a read-only root filesystem; only `/tmp` must be writable.
 
 ```bash

@@ -41,10 +41,11 @@ Corepack, pnpm, Yarn, Node build headers, debugger helpers, and manual pages are
 resulting filesystem, while the Node and native Sharp artifacts keep the same musl ABI used during
 the build. This removes development attack surface without creating an Alpine/glibc runtime mismatch.
 
-The Admin final image applies the same `scratch` copy to the nginx runtime: apk and its database,
-the stock site, and the stock server config are removed; nginx configuration, templates, and the
-built assets are root-owned and read-only; and nginx runs as UID 101 with only `/tmp` writable. No
-Node.js runtime ships in it.
+The Admin final image applies the same `scratch` copy to the nginx runtime: the apk binary and its
+repository configuration, the stock site, and the stock server config are removed, while the
+installed-package database stays so Trivy can inventory OS packages. nginx configuration,
+templates, and the built assets are root-owned and read-only, and nginx runs as UID 101 with only
+`/tmp` writable. No Node.js runtime ships in it.
 
 Dependabot discovers Docker updates monthly and opens security updates as soon as they are published. A base-image update is not complete until the tag,
 Dockerfile digest, verifier material digest, governance constant, smoke test, and image scan change
