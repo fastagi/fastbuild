@@ -82,6 +82,9 @@ func TestPluginVersionProbeIsBounded(t *testing.T) {
 	if elapsed := time.Since(started); elapsed > 2*time.Second {
 		t.Fatalf("version probe took %s; the timeout did not stop the plugin", elapsed)
 	}
+	// The short timeout is only for the hanging plugin; under a loaded test run, starting a shell
+	// can take longer than 200ms.
+	pluginVersionTimeout = previous
 	if version := getPluginVersion(chatty); version != "2.1.0" {
 		t.Fatalf("chatty plugin version = %q, want the trimmed first line", version)
 	}
