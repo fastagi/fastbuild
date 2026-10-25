@@ -1,10 +1,13 @@
 import { Activity, Cloud, Gauge, PackageCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
+import { Card } from '@/components/ui/card';
 import { env, isFeatureEnabled } from '@/config/env';
 import { featureManifest } from '@/config/feature-manifest';
 import { ApiHealthPanel } from '@/features/system/components/api-health-panel';
 import { OperatorSystemPanel } from '@/features/system/components/operator-system-panel';
 import { useApiReadiness } from '@/features/system/hooks/use-api-readiness';
+import { cn } from '@/lib/cn';
 
 export function OverviewPage() {
   const { t } = useTranslation();
@@ -20,13 +23,17 @@ export function OverviewPage() {
         : apiAvailable
           ? t('overview.apiAvailable')
           : t('overview.apiUnavailable'),
-      tone: apiAvailable ? 'text-success-strong' : 'text-foreground',
+      tone: readiness.isPending
+        ? 'text-foreground'
+        : apiAvailable
+          ? 'text-success-strong'
+          : 'text-danger-strong',
     },
     {
       icon: Cloud,
       label: t('overview.delivery'),
       value: t('overview.deliveryValue'),
-      tone: 'text-brand-strong',
+      tone: 'text-foreground',
     },
     {
       icon: Gauge,
@@ -69,31 +76,33 @@ export function OverviewPage() {
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <article className="metric-card" key={metric.label}>
-              <Icon className="size-4 text-subtle" aria-hidden="true" />
-              <p>{metric.label}</p>
-              <strong className={metric.tone}>{metric.value}</strong>
-            </article>
+            <Card
+              key={metric.label}
+              className="flex items-center gap-3 rounded-lg px-4 py-3.5 shadow-xs"
+            >
+              <span className="icon-surface" aria-hidden="true">
+                <Icon className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-subtle">{metric.label}</p>
+                <p className={cn('mt-0.5 truncate text-base font-semibold', metric.tone)}>
+                  {metric.value}
+                </p>
+              </div>
+            </Card>
           );
         })}
       </div>
 
       <div className="content-grid">
         <ApiHealthPanel />
-        <section className="panel" aria-labelledby="release-profile-title">
-          <div className="panel-header">
-            <div className="flex items-start gap-3">
-              <span className="icon-surface" aria-hidden="true">
-                <PackageCheck className="size-4" />
-              </span>
-              <div>
-                <h2 id="release-profile-title" className="panel-title">
-                  {t('overview.releaseTitle')}
-                </h2>
-                <p className="panel-description">{t('overview.releaseDescription')}</p>
-              </div>
-            </div>
-          </div>
+        <SectionCard
+          icon={PackageCheck}
+          titleId="release-profile-title"
+          title={t('overview.releaseTitle')}
+          description={t('overview.releaseDescription')}
+          contentClassName="p-0"
+        >
           <dl className="divide-y divide-border">
             {releaseRows.map((row) => (
               <div className="definition-row" key={row.label}>
@@ -102,7 +111,7 @@ export function OverviewPage() {
               </div>
             ))}
           </dl>
-        </section>
+        </SectionCard>
         {isFeatureEnabled('operator') ? <OperatorSystemPanel /> : null}
       </div>
     </div>

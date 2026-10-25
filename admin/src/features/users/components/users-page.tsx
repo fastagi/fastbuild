@@ -1,8 +1,11 @@
 import { Ban, CircleCheck, LogOut, Search, Users } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import {
   Dialog,
   DialogClose,
@@ -12,8 +15,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { PagePagination } from '@/components/ui/pagination';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useUserAction, useUsers } from '@/features/users/hooks/use-users';
 import {
   type ManagedUser,
@@ -23,7 +26,6 @@ import {
   userStatusFilters,
 } from '@/features/users/types';
 import { userActionErrorKey } from '@/features/users/user-action-errors';
-import { cn } from '@/lib/cn';
 
 interface UsersPageProps {
   search: UserSearch;
@@ -59,7 +61,16 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
     }
     userAction.mutate(
       { action: pending.action, id: pending.user.id },
-      { onSuccess: () => setPending(null) },
+      {
+        onSuccess: () => {
+          toast.success(
+            t(`users.done.${pending.action}`, {
+              name: pending.user.nickname || pending.user.username,
+            }),
+          );
+          setPending(null);
+        },
+      },
     );
   };
 
@@ -81,8 +92,10 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
       header: t('users.columns.status'),
       cell: (user) => (
         <div className="flex flex-wrap gap-1">
-          <StatusBadge>{t(`users.status.${user.status}`)}</StatusBadge>
-          {user.is_operator ? <StatusBadge>{t('users.operator')}</StatusBadge> : null}
+          <StatusBadge tone={user.status === 'active' ? 'success' : 'warning'}>
+            {t(`users.status.${user.status}`)}
+          </StatusBadge>
+          {user.is_operator ? <StatusBadge tone="brand">{t('users.operator')}</StatusBadge> : null}
         </div>
       ),
     },
@@ -99,7 +112,7 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
       align: 'end',
       cell: (user) =>
         user.is_operator ? (
-          <p className="text-xs text-muted-foreground">{t('users.protectedHint')}</p>
+          <p className="text-right text-xs text-muted-foreground">{t('users.protectedHint')}</p>
         ) : (
           <div className="flex justify-end gap-1">
             {user.status === 'active' ? (
@@ -145,53 +158,53 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
         <p>{t('users.description')}</p>
       </header>
 
-      <section className="panel" aria-labelledby="users-title">
-        <div className="panel-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <Users className="size-4" />
-            </span>
-            <div>
-              <h2 id="users-title" className="panel-title">
-                {t('users.listTitle')}
-              </h2>
-              <p className="panel-description">
-                {page ? t('users.total', { count: page.total }) : t('users.loading')}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <form role="search" onSubmit={submitSearch} className="flex gap-2">
-              <Input
-                aria-label={t('users.search')}
-                placeholder={t('users.searchPlaceholder')}
-                maxLength={100}
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                className="w-full sm:w-56"
-              />
-              <Button type="submit" size="icon" variant="outline" aria-label={t('users.search')}>
-                <Search aria-hidden="true" />
-              </Button>
-            </form>
-            <div className="segmented-control" role="group" aria-label={t('users.statusFilter')}>
-              {userStatusFilters.map((value: UserStatusFilter) => (
-                <Button
-                  key={value}
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  aria-pressed={status === value}
-                  className={cn('flex-1', status === value && 'bg-background shadow-sm')}
-                  onClick={() => onSearchChange({ ...search, status: value, page: undefined })}
-                >
-                  {t(`users.status.${value}`)}
+      <SectionCard
+        icon={Users}
+        titleId="users-title"
+        title={t('users.listTitle')}
+        description={page ? t('users.total', { count: page.total }) : t('users.loading')}
+        contentClassName="p-0"
+        actions={
+          <>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <form role="search" onSubmit={submitSearch} className="flex gap-2">
+                <Input
+                  aria-label={t('users.search')}
+                  placeholder={t('users.searchPlaceholder')}
+                  maxLength={100}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  className="w-full sm:w-56"
+                />
+                <Button type="submit" size="icon" variant="outline" aria-label={t('users.search')}>
+                  <Search aria-hidden="true" />
                 </Button>
-              ))}
+              </form>
+              <ToggleGroup
+                type="single"
+                className="segmented-control sm:w-auto"
+                aria-label={t('users.statusFilter')}
+                value={status}
+                onValueChange={(value) => {
+                  if (value) {
+                    onSearchChange({
+                      ...search,
+                      status: value as UserStatusFilter,
+                      page: undefined,
+                    });
+                  }
+                }}
+              >
+                {userStatusFilters.map((value) => (
+                  <ToggleGroupItem key={value} value={value}>
+                    {t(`users.status.${value}`)}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
-          </div>
-        </div>
-
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={users.data?.data}
@@ -206,7 +219,7 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
           label={t('users.pagination')}
           onPageChange={(next) => onSearchChange({ ...search, page: next })}
         />
-      </section>
+      </SectionCard>
 
       <Dialog
         open={pending !== null}

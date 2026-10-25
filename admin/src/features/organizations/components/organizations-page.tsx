@@ -1,10 +1,11 @@
 import { Building2, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
 import { PagePagination } from '@/components/ui/pagination';
+import { Input } from '@/components/ui/input';
 import { useOrganizations } from '@/features/organizations/hooks/use-organizations';
 import type { OperatorOrganization, OrganizationSearch } from '@/features/organizations/types';
 
@@ -77,41 +78,35 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
         <p>{t('organizations.description')}</p>
       </header>
 
-      <section className="panel" aria-labelledby="organizations-title">
-        <div className="panel-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <Building2 className="size-4" />
-            </span>
-            <div>
-              <h2 id="organizations-title" className="panel-title">
-                {t('organizations.listTitle')}
-              </h2>
-              <p className="panel-description">
-                {meta ? t('organizations.total', { count: meta.total }) : t('common.loading')}
-              </p>
-            </div>
-          </div>
-          <form role="search" onSubmit={submitSearch} className="flex gap-2">
-            <Input
-              aria-label={t('organizations.search')}
-              placeholder={t('organizations.searchPlaceholder')}
-              maxLength={100}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              className="w-full sm:w-56"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              variant="outline"
-              aria-label={t('organizations.search')}
-            >
-              <Search aria-hidden="true" />
-            </Button>
-          </form>
-        </div>
-
+      <SectionCard
+        icon={Building2}
+        titleId="organizations-title"
+        title={t('organizations.listTitle')}
+        description={meta ? t('organizations.total', { count: meta.total }) : t('common.loading')}
+        contentClassName="p-0"
+        actions={
+          <>
+            <form role="search" onSubmit={submitSearch} className="flex gap-2">
+              <Input
+                aria-label={t('organizations.search')}
+                placeholder={t('organizations.searchPlaceholder')}
+                maxLength={100}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                className="w-full sm:w-56"
+              />
+              <Button
+                type="submit"
+                size="icon"
+                variant="outline"
+                aria-label={t('organizations.search')}
+              >
+                <Search aria-hidden="true" />
+              </Button>
+            </form>
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={organizations.data?.data}
@@ -127,7 +122,7 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
           label={t('organizations.pagination')}
           onPageChange={(page) => onSearchChange({ ...search, page })}
         />
-      </section>
+      </SectionCard>
     </div>
   );
 }

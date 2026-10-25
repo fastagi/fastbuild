@@ -1,15 +1,27 @@
-import { Languages, MonitorCog } from 'lucide-react';
+import { Languages, Monitor, MonitorCog, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { SectionCard } from '@/components/layout/section-card';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { changeLocale } from '@/i18n';
 import type { SupportedLocale } from '@/i18n/resources';
 import {
   type ThemePreference,
   usePreferencesStore,
 } from '@/features/preferences/store/preferences-store';
-import { cn } from '@/lib/cn';
 
-const themes: ThemePreference[] = ['light', 'dark', 'system'];
+const themes = [
+  { value: 'light', icon: Sun },
+  { value: 'dark', icon: Moon },
+  { value: 'system', icon: Monitor },
+] as const satisfies readonly { value: ThemePreference; icon: typeof Sun }[];
 
 export function PreferencesPage() {
   const { t, i18n } = useTranslation();
@@ -25,73 +37,56 @@ export function PreferencesPage() {
       </header>
 
       <div className="content-grid">
-        <section className="panel" aria-labelledby="appearance-title">
-          <div className="panel-header">
-            <div className="flex items-start gap-3">
-              <span className="icon-surface" aria-hidden="true">
-                <MonitorCog className="size-4" />
-              </span>
-              <div>
-                <h2 id="appearance-title" className="panel-title">
-                  {t('preferences.appearanceTitle')}
-                </h2>
-                <p className="panel-description">{t('preferences.appearanceDescription')}</p>
-              </div>
-            </div>
-          </div>
-          <div className="panel-body">
-            <span className="field-label">{t('preferences.theme')}</span>
-            <div className="segmented-control" role="group" aria-label={t('preferences.theme')}>
-              {themes.map((value) => (
-                <Button
-                  key={value}
-                  className={cn(
-                    'flex-1',
-                    theme === value &&
-                      'bg-background text-brand-strong shadow-sm hover:bg-background hover:text-brand-strong',
-                  )}
-                  variant="ghost"
-                  size="sm"
-                  aria-pressed={theme === value}
-                  onClick={() => setTheme(value)}
-                >
-                  {t(`preferences.${value}`)}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </section>
+        <SectionCard
+          icon={MonitorCog}
+          titleId="appearance-title"
+          title={t('preferences.appearanceTitle')}
+          description={t('preferences.appearanceDescription')}
+        >
+          <Label id="theme-label" className="mb-2 block">
+            {t('preferences.theme')}
+          </Label>
+          <ToggleGroup
+            type="single"
+            className="segmented-control"
+            aria-labelledby="theme-label"
+            value={theme}
+            onValueChange={(value) => {
+              if (value) setTheme(value as ThemePreference);
+            }}
+          >
+            {themes.map(({ value, icon: Icon }) => (
+              <ToggleGroupItem key={value} value={value}>
+                <Icon aria-hidden="true" />
+                {t(`preferences.${value}`)}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </SectionCard>
 
-        <section className="panel" aria-labelledby="language-title">
-          <div className="panel-header">
-            <div className="flex items-start gap-3">
-              <span className="icon-surface" aria-hidden="true">
-                <Languages className="size-4" />
-              </span>
-              <div>
-                <h2 id="language-title" className="panel-title">
-                  {t('preferences.languageTitle')}
-                </h2>
-                <p className="panel-description">{t('preferences.languageDescription')}</p>
-              </div>
-            </div>
-          </div>
-          <div className="panel-body">
-            <label className="field-label" htmlFor="locale">
-              {t('preferences.language')}
-            </label>
-            <select
-              id="locale"
-              className="select-input"
-              value={i18n.language}
-              onChange={(event) => void changeLocale(event.target.value as SupportedLocale)}
-            >
-              <option value="en-US">{t('preferences.english')}</option>
-              <option value="zh-Hans">{t('preferences.chinese')}</option>
-            </select>
-            <p className="mt-3 text-xs text-subtle">{t('preferences.storageNote')}</p>
-          </div>
-        </section>
+        <SectionCard
+          icon={Languages}
+          titleId="language-title"
+          title={t('preferences.languageTitle')}
+          description={t('preferences.languageDescription')}
+        >
+          <Label htmlFor="locale" className="mb-2 block">
+            {t('preferences.language')}
+          </Label>
+          <Select
+            value={i18n.language}
+            onValueChange={(value) => void changeLocale(value as SupportedLocale)}
+          >
+            <SelectTrigger id="locale">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en-US">{t('preferences.english')}</SelectItem>
+              <SelectItem value="zh-Hans">{t('preferences.chinese')}</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="mt-3 text-xs text-subtle">{t('preferences.storageNote')}</p>
+        </SectionCard>
       </div>
     </div>
   );

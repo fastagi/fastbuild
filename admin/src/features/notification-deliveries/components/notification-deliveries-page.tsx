@@ -1,25 +1,37 @@
 import { BellRing, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
 import { PagePagination } from '@/components/ui/pagination';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { useNotificationDeliveries } from '@/features/notification-deliveries/hooks/use-notification-deliveries';
 import {
   type NotificationChannel,
-  type NotificationDelivery,
   type NotificationDeliverySearch,
   type NotificationDeliveryStatus,
   notificationChannels,
   notificationDeliveryStatuses,
+  type NotificationDelivery,
 } from '@/features/notification-deliveries/types';
 
 interface NotificationDeliveriesPageProps {
   search: NotificationDeliverySearch;
   onSearchChange: (search: NotificationDeliverySearch) => void;
 }
+
+// Radix Select reserves the empty value, so "any" filters use a sentinel item.
+const ANY = 'any';
 
 const statusTone = {
   pending: 'neutral',
@@ -62,7 +74,9 @@ export function NotificationDeliveriesPage({
         <>
           <div className="font-medium">{delivery.kind}</div>
           <div className="text-xs text-muted-foreground">
-            {t('notificationDeliveries.notificationRef', { id: delivery.notification_id })}
+            {t('notificationDeliveries.notificationRef', {
+              id: delivery.notification_id,
+            })}
           </div>
         </>
       ),
@@ -113,76 +127,89 @@ export function NotificationDeliveriesPage({
         <p>{t('notificationDeliveries.description')}</p>
       </header>
 
-      <section className="panel" aria-labelledby="notification-deliveries-title">
-        <div className="panel-header flex flex-col gap-3">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <BellRing className="size-4" />
-            </span>
-            <div>
-              <h2 id="notification-deliveries-title" className="panel-title">
-                {t('notificationDeliveries.listTitle')}
-              </h2>
-              <p className="panel-description">
-                {meta
-                  ? t('notificationDeliveries.total', { count: meta.total })
-                  : t('notificationDeliveries.privacyHint')}
-              </p>
-            </div>
-          </div>
-          <form
-            role="search"
-            onSubmit={submit}
-            className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('notificationDeliveries.filters.status')}</span>
-              <select
-                className="select-input"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-              >
-                <option value="">{t('notificationDeliveries.any')}</option>
-                {notificationDeliveryStatuses.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`notificationDeliveries.status.${value}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('notificationDeliveries.filters.channel')}</span>
-              <select
-                className="select-input"
-                value={channel}
-                onChange={(event) => setChannel(event.target.value)}
-              >
-                <option value="">{t('notificationDeliveries.any')}</option>
-                {notificationChannels.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`notificationDeliveries.channel.${value}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('notificationDeliveries.filters.userId')}</span>
-              <Input
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={userId}
-                onChange={(event) => setUserId(event.target.value)}
-              />
-            </label>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full">
-                <Search aria-hidden="true" />
-                {t('notificationDeliveries.apply')}
-              </Button>
-            </div>
-          </form>
-        </div>
-
+      <SectionCard
+        icon={BellRing}
+        titleId="notification-deliveries-title"
+        title={t('notificationDeliveries.listTitle')}
+        description={
+          meta
+            ? t('notificationDeliveries.total', { count: meta.total })
+            : t('notificationDeliveries.privacyHint')
+        }
+        contentClassName="p-0"
+        toolbar={
+          <>
+            <form
+              role="search"
+              onSubmit={submit}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+            >
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="notification-status">
+                  {t('notificationDeliveries.filters.status')}
+                </Label>
+                <Select
+                  name="status"
+                  value={status || ANY}
+                  onValueChange={(value) => setStatus(value === ANY ? '' : value)}
+                >
+                  <SelectTrigger id="notification-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ANY}>{t('notificationDeliveries.any')}</SelectItem>
+                    {notificationDeliveryStatuses.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`notificationDeliveries.status.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="notification-channel">
+                  {t('notificationDeliveries.filters.channel')}
+                </Label>
+                <Select
+                  name="channel"
+                  value={channel || ANY}
+                  onValueChange={(value) => setChannel(value === ANY ? '' : value)}
+                >
+                  <SelectTrigger id="notification-channel">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ANY}>{t('notificationDeliveries.any')}</SelectItem>
+                    {notificationChannels.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {t(`notificationDeliveries.channel.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="notification-user-id">
+                  {t('notificationDeliveries.filters.userId')}
+                </Label>
+                <Input
+                  id="notification-user-id"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={userId}
+                  onChange={(event) => setUserId(event.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" className="w-full">
+                  <Search aria-hidden="true" />
+                  {t('notificationDeliveries.apply')}
+                </Button>
+              </div>
+            </form>
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={deliveries.data?.data}
@@ -200,7 +227,7 @@ export function NotificationDeliveriesPage({
           label={t('notificationDeliveries.pagination')}
           onPageChange={(page) => onSearchChange({ ...search, page })}
         />
-      </section>
+      </SectionCard>
     </div>
   );
 }

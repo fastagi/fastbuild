@@ -1,15 +1,24 @@
 import { History, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs';
 import type { AuditEntry, AuditSearch } from '@/features/audit/types';
+
+function httpStatusTone(status: number) {
+  if (status >= 500) return 'danger';
+  if (status >= 400) return 'warning';
+  if (status >= 200 && status < 300) return 'success';
+  return 'neutral';
+}
 
 interface AuditPageProps {
   search: AuditSearch;
@@ -93,7 +102,9 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     {
       id: 'status',
       header: t('audit.columns.status'),
-      cell: (entry) => <StatusBadge>{entry.status_code}</StatusBadge>,
+      cell: (entry) => (
+        <StatusBadge tone={httpStatusTone(entry.status_code)}>{entry.status_code}</StatusBadge>
+      ),
     },
   ];
 
@@ -105,58 +116,66 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
         <p>{t('audit.description')}</p>
       </header>
 
-      <section className="panel" aria-labelledby="audit-title">
-        <div className="panel-header flex flex-col gap-3">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <History className="size-4" />
-            </span>
-            <div>
-              <h2 id="audit-title" className="panel-title">
-                {t('audit.listTitle')}
-              </h2>
-              <p className="panel-description">{t('audit.rangeHint')}</p>
-            </div>
-          </div>
-          <form
-            role="search"
-            onSubmit={submit}
-            className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
-          >
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.action')}</span>
-              <Input
-                maxLength={120}
-                value={action}
-                onChange={(event) => setAction(event.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.userId')}</span>
-              <Input
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={userId}
-                onChange={(event) => setUserId(event.target.value)}
-              />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.from')}</span>
-              <Input type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="field-label">{t('audit.filters.to')}</span>
-              <Input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
-            </label>
-            <div className="flex items-end">
-              <Button type="submit" className="w-full">
-                <Search aria-hidden="true" />
-                {t('audit.apply')}
-              </Button>
-            </div>
-          </form>
-        </div>
-
+      <SectionCard
+        icon={History}
+        titleId="audit-title"
+        title={t('audit.listTitle')}
+        description={t('audit.rangeHint')}
+        contentClassName="p-0"
+        toolbar={
+          <>
+            <form
+              role="search"
+              onSubmit={submit}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
+            >
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-action">{t('audit.filters.action')}</Label>
+                <Input
+                  id="audit-action"
+                  maxLength={120}
+                  value={action}
+                  onChange={(event) => setAction(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-user-id">{t('audit.filters.userId')}</Label>
+                <Input
+                  id="audit-user-id"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={userId}
+                  onChange={(event) => setUserId(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-from">{t('audit.filters.from')}</Label>
+                <Input
+                  id="audit-from"
+                  type="date"
+                  value={from}
+                  onChange={(event) => setFrom(event.target.value)}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="audit-to">{t('audit.filters.to')}</Label>
+                <Input
+                  id="audit-to"
+                  type="date"
+                  value={to}
+                  onChange={(event) => setTo(event.target.value)}
+                />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" className="w-full">
+                  <Search aria-hidden="true" />
+                  {t('audit.apply')}
+                </Button>
+              </div>
+            </form>
+          </>
+        }
+      >
         <DataTable
           columns={columns}
           rows={logs.data?.data}
@@ -180,7 +199,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
             onNext={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
           />
         ) : null}
-      </section>
+      </SectionCard>
     </div>
   );
 }

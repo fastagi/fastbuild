@@ -93,6 +93,11 @@ const enUS = {
         actions: 'Actions',
       },
       actions: { disable: 'Disable', enable: 'Enable', revokeSessions: 'End sessions' },
+      done: {
+        disable: '{{name}} was disabled.',
+        enable: '{{name}} was enabled.',
+        revokeSessions: 'Ended all sessions for {{name}}.',
+      },
       confirm: {
         disable: {
           title: 'Disable this account?',
@@ -153,6 +158,8 @@ const enUS = {
       off: 'Off',
       save: 'Save',
       reset: 'Reset to default',
+      saved: 'Saved {{key}}.',
+      resetDone: 'Reset {{key}} to its default.',
       empty: 'No app settings are defined.',
       inactive:
         'App settings need the API setting starter (OPTIONAL_STARTERS=organization,setting,operator).',
@@ -311,6 +318,7 @@ const enUS = {
       submit: 'Sign in',
       submitting: 'Signing in…',
       signOut: 'Sign out',
+      accountMenu: 'Account menu',
       operatorNote:
         'Operator access is granted from the server command line, not from this console.',
       errors: {
@@ -427,6 +435,11 @@ const zhHans = {
       protectedHint: '需在命令行管理',
       columns: { account: '账号', status: '状态', lastLogin: '最近登录', actions: '操作' },
       actions: { disable: '禁用', enable: '启用', revokeSessions: '强制下线' },
+      done: {
+        disable: '已禁用 {{name}}。',
+        enable: '已启用 {{name}}。',
+        revokeSessions: '已让 {{name}} 的所有会话下线。',
+      },
       confirm: {
         disable: {
           title: '禁用该账号？',
@@ -479,6 +492,8 @@ const zhHans = {
       off: '关',
       save: '保存',
       reset: '恢复默认',
+      saved: '已保存 {{key}}。',
+      resetDone: '已将 {{key}} 恢复默认。',
       empty: '没有定义应用级设置。',
       inactive:
         '应用设置需要启用 API 的 setting 模块（OPTIONAL_STARTERS=organization,setting,operator）。',
@@ -634,6 +649,7 @@ const zhHans = {
       submit: '登录',
       submitting: '正在登录…',
       signOut: '退出登录',
+      accountMenu: '账号菜单',
       operatorNote: '运维权限需在服务器命令行授予，无法在本控制台中申请。',
       errors: {
         invalidCredentials: '用户名或密码不正确。',

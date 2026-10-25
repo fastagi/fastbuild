@@ -1,6 +1,7 @@
 import { ArrowLeft, Building2, Users } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PagePagination } from '@/components/ui/pagination';
@@ -49,55 +50,44 @@ export function OrganizationDetailPage({
         </div>
       </header>
 
-      <section className="panel" aria-labelledby="organization-summary-title">
-        <div className="panel-header">
-          <div className="flex items-start gap-3">
-            <span className="icon-surface" aria-hidden="true">
-              <Building2 className="size-4" />
-            </span>
-            <div>
-              <h2 id="organization-summary-title" className="panel-title">
-                {t('organizations.summaryTitle')}
-              </h2>
-              <p className="panel-description">{t('organizations.summaryDescription')}</p>
+      <SectionCard
+        icon={Building2}
+        titleId="organization-summary-title"
+        title={t('organizations.summaryTitle')}
+        description={t('organizations.summaryDescription')}
+        contentClassName="p-0"
+      >
+        {organization.isPending ? (
+          <Skeleton className="m-5 h-20" />
+        ) : organization.isError ? (
+          <p role="alert" className="p-5 text-sm text-destructive">
+            {notFound ? t('organizations.errors.notFound') : t('organizations.errors.unavailable')}
+          </p>
+        ) : (
+          <dl className="divide-y divide-border text-sm">
+            <div className="definition-row">
+              <dt>{t('organizations.fields.id')}</dt>
+              <dd>{organization.data.id}</dd>
             </div>
-          </div>
-        </div>
-        <div className="panel-body">
-          {organization.isPending ? (
-            <Skeleton className="h-20 w-full" />
-          ) : organization.isError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {notFound
-                ? t('organizations.errors.notFound')
-                : t('organizations.errors.unavailable')}
-            </p>
-          ) : (
-            <dl className="flex flex-col gap-2 text-sm">
-              <div className="definition-row">
-                <dt>{t('organizations.fields.id')}</dt>
-                <dd>{organization.data.id}</dd>
-              </div>
-              <div className="definition-row">
-                <dt>{t('organizations.fields.slug')}</dt>
-                <dd>{organization.data.slug}</dd>
-              </div>
-              <div className="definition-row">
-                <dt>{t('organizations.fields.members')}</dt>
-                <dd>{organization.data.member_count}</dd>
-              </div>
-              <div className="definition-row">
-                <dt>{t('organizations.fields.createdBy')}</dt>
-                <dd>{t('organizations.userRef', { id: organization.data.created_by })}</dd>
-              </div>
-              <div className="definition-row">
-                <dt>{t('organizations.fields.created')}</dt>
-                <dd>{dateFormat.format(new Date(organization.data.created_at))}</dd>
-              </div>
-            </dl>
-          )}
-        </div>
-      </section>
+            <div className="definition-row">
+              <dt>{t('organizations.fields.slug')}</dt>
+              <dd>{organization.data.slug}</dd>
+            </div>
+            <div className="definition-row">
+              <dt>{t('organizations.fields.members')}</dt>
+              <dd>{organization.data.member_count}</dd>
+            </div>
+            <div className="definition-row">
+              <dt>{t('organizations.fields.createdBy')}</dt>
+              <dd>{t('organizations.userRef', { id: organization.data.created_by })}</dd>
+            </div>
+            <div className="definition-row">
+              <dt>{t('organizations.fields.created')}</dt>
+              <dd>{dateFormat.format(new Date(organization.data.created_at))}</dd>
+            </div>
+          </dl>
+        )}
+      </SectionCard>
 
       {organization.isSuccess ? (
         <>
@@ -115,6 +105,7 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
   const members = useOrganizationMembers(organizationId, page);
   const meta = members.data?.meta;
   const dateFormat = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' });
+
   const columns: DataTableColumn<OperatorMember>[] = [
     {
       id: 'account',
@@ -131,7 +122,11 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
     {
       id: 'role',
       header: t('organizations.memberColumns.role'),
-      cell: (member) => <StatusBadge>{t(`organizations.roles.${member.role}`)}</StatusBadge>,
+      cell: (member) => (
+        <StatusBadge tone={member.role === 'owner' ? 'brand' : 'neutral'}>
+          {t(`organizations.roles.${member.role}`)}
+        </StatusBadge>
+      ),
     },
     {
       id: 'joined',
@@ -142,22 +137,15 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
   ];
 
   return (
-    <section className="panel" aria-labelledby="organization-members-title">
-      <div className="panel-header">
-        <div className="flex items-start gap-3">
-          <span className="icon-surface" aria-hidden="true">
-            <Users className="size-4" />
-          </span>
-          <div>
-            <h2 id="organization-members-title" className="panel-title">
-              {t('organizations.membersTitle')}
-            </h2>
-            <p className="panel-description">
-              {meta ? t('organizations.memberTotal', { count: meta.total }) : t('common.loading')}
-            </p>
-          </div>
-        </div>
-      </div>
+    <SectionCard
+      icon={Users}
+      titleId="organization-members-title"
+      title={t('organizations.membersTitle')}
+      description={
+        meta ? t('organizations.memberTotal', { count: meta.total }) : t('common.loading')
+      }
+      contentClassName="p-0"
+    >
       <DataTable
         columns={columns}
         rows={members.data?.data}
@@ -173,6 +161,6 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
         label={t('organizations.memberPagination')}
         onPageChange={setPage}
       />
-    </section>
+    </SectionCard>
   );
 }

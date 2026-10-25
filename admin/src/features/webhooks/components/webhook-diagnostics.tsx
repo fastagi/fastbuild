@@ -1,8 +1,10 @@
 import { ListTree, RotateCw, Send, Webhook } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import {
   Dialog,
   DialogClose,
@@ -11,7 +13,14 @@ import {
   DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { PagePagination } from '@/components/ui/pagination';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
@@ -24,10 +33,13 @@ import {
   isReplayable,
   type WebhookDelivery,
   type WebhookDeliveryStatus,
-  type WebhookEndpoint,
   webhookDeliveryStatuses,
+  type WebhookEndpoint,
 } from '@/features/webhooks/types';
 import { replayErrorKey } from '@/features/webhooks/webhook-errors';
+
+// Radix Select reserves the empty value, so the unfiltered view uses a sentinel item.
+const ALL = 'all';
 
 const deliveryTone = {
   pending: 'neutral',
@@ -52,6 +64,7 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
   const [page, setPage] = useState(1);
   const endpoints = useWebhookEndpoints(organizationId, page);
   const meta = endpoints.data?.meta;
+
   const columns: DataTableColumn<WebhookEndpoint>[] = [
     {
       id: 'endpoint',
@@ -80,7 +93,9 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
           ) : null}
           {endpoint.consecutive_failures > 0 ? (
             <div className="mt-1 text-xs text-muted-foreground">
-              {t('webhooks.consecutiveFailures', { count: endpoint.consecutive_failures })}
+              {t('webhooks.consecutiveFailures', {
+                count: endpoint.consecutive_failures,
+              })}
             </div>
           ) : null}
         </>
@@ -100,20 +115,13 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
   ];
 
   return (
-    <section className="panel" aria-labelledby="webhook-endpoints-title">
-      <div className="panel-header">
-        <div className="flex items-start gap-3">
-          <span className="icon-surface" aria-hidden="true">
-            <Webhook className="size-4" />
-          </span>
-          <div>
-            <h2 id="webhook-endpoints-title" className="panel-title">
-              {t('webhooks.endpointsTitle')}
-            </h2>
-            <p className="panel-description">{t('webhooks.endpointsDescription')}</p>
-          </div>
-        </div>
-      </div>
+    <SectionCard
+      icon={Webhook}
+      titleId="webhook-endpoints-title"
+      title={t('webhooks.endpointsTitle')}
+      description={t('webhooks.endpointsDescription')}
+      contentClassName="p-0"
+    >
       <DataTable
         columns={columns}
         rows={endpoints.data?.data}
@@ -125,7 +133,7 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
         skeletonRows={3}
       />
       <PagePagination meta={meta} label={t('webhooks.endpointPagination')} onPageChange={setPage} />
-    </section>
+    </SectionCard>
   );
 }
 
@@ -152,6 +160,7 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     setDialog(null);
     replay.reset();
   };
+
   const columns: DataTableColumn<WebhookDelivery>[] = [
     {
       id: 'event',
@@ -237,40 +246,42 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
   ];
 
   return (
-    <section className="panel" aria-labelledby="webhook-deliveries-title">
-      <div className="panel-header flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="icon-surface" aria-hidden="true">
-            <Send className="size-4" />
-          </span>
-          <div>
-            <h2 id="webhook-deliveries-title" className="panel-title">
-              {t('webhooks.deliveriesTitle')}
-            </h2>
-            <p className="panel-description">
-              {meta ? t('webhooks.deliveryTotal', { count: meta.total }) : t('common.loading')}
-            </p>
+    <SectionCard
+      icon={Send}
+      titleId="webhook-deliveries-title"
+      title={t('webhooks.deliveriesTitle')}
+      description={meta ? t('webhooks.deliveryTotal', { count: meta.total }) : t('common.loading')}
+      contentClassName="p-0"
+      actions={
+        <>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="webhook-status-filter" className="whitespace-nowrap text-xs">
+              {t('webhooks.statusFilter')}
+            </Label>
+            <Select
+              name="status"
+              value={status ?? ALL}
+              onValueChange={(value) => {
+                setStatus(value === ALL ? undefined : (value as WebhookDeliveryStatus));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger id="webhook-status-filter" className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>{t('webhooks.allStatuses')}</SelectItem>
+                {webhookDeliveryStatuses.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(`webhooks.deliveryStatus.${value}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <label className="flex items-center gap-2">
-          <span className="field-label">{t('webhooks.statusFilter')}</span>
-          <select
-            className="select-input"
-            value={status ?? ''}
-            onChange={(event) => {
-              setStatus((event.target.value || undefined) as WebhookDeliveryStatus | undefined);
-              setPage(1);
-            }}
-          >
-            <option value="">{t('webhooks.allStatuses')}</option>
-            {webhookDeliveryStatuses.map((value) => (
-              <option key={value} value={value}>
-                {t(`webhooks.deliveryStatus.${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+        </>
+      }
+    >
       <DataTable
         columns={columns}
         rows={deliveries.data?.data}
@@ -359,6 +370,6 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
           ) : null}
         </DialogContent>
       </Dialog>
-    </section>
+    </SectionCard>
   );
 }
