@@ -1,8 +1,8 @@
 import { ListTree, RotateCw, Send, Webhook } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pager } from '@/components/layout/pager';
 import { Button } from '@/components/ui/button';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import {
   Dialog,
   DialogClose,
@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { PagePagination } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
@@ -23,6 +24,7 @@ import {
   isReplayable,
   type WebhookDelivery,
   type WebhookDeliveryStatus,
+  type WebhookEndpoint,
   webhookDeliveryStatuses,
 } from '@/features/webhooks/types';
 import { replayErrorKey } from '@/features/webhooks/webhook-errors';
@@ -34,16 +36,6 @@ const deliveryTone = {
   failed: 'danger',
   canceled: 'warning',
 } as const;
-
-function ListSkeleton() {
-  return (
-    <div className="flex flex-col gap-2 p-4" aria-busy="true">
-      {Array.from({ length: 3 }, (_, index) => (
-        <Skeleton key={index} className="h-9 w-full" />
-      ))}
-    </div>
-  );
-}
 
 /** Secret-free webhook diagnosis and delivery replay for one organization. */
 export function WebhookDiagnostics({ organizationId }: { organizationId: number }) {
@@ -60,6 +52,52 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
   const [page, setPage] = useState(1);
   const endpoints = useWebhookEndpoints(organizationId, page);
   const meta = endpoints.data?.meta;
+  const columns: DataTableColumn<WebhookEndpoint>[] = [
+    {
+      id: 'endpoint',
+      header: t('webhooks.endpointColumns.endpoint'),
+      cell: (endpoint) => (
+        <>
+          <div className="font-medium">
+            {endpoint.name} <span className="text-muted-foreground">#{endpoint.id}</span>
+          </div>
+          <div className="break-all text-xs text-muted-foreground">{endpoint.url}</div>
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('webhooks.endpointColumns.status'),
+      cell: (endpoint) => (
+        <>
+          <StatusBadge tone={endpoint.status === 'active' ? 'success' : 'warning'}>
+            {t(`webhooks.endpointStatus.${endpoint.status}`)}
+          </StatusBadge>
+          {endpoint.disabled_reason ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              <code>{endpoint.disabled_reason}</code>
+            </div>
+          ) : null}
+          {endpoint.consecutive_failures > 0 ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              {t('webhooks.consecutiveFailures', { count: endpoint.consecutive_failures })}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'events',
+      header: t('webhooks.endpointColumns.events'),
+      className: 'text-xs',
+      cell: (endpoint) =>
+        endpoint.event_types.map((eventType) => (
+          <code key={eventType} className="mr-2 inline-block">
+            {eventType}
+          </code>
+        )),
+    },
+  ];
 
   return (
     <section className="panel" aria-labelledby="webhook-endpoints-title">
@@ -76,70 +114,17 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
           </div>
         </div>
       </div>
-      <div className="panel-body overflow-x-auto p-0">
-        {endpoints.isPending ? (
-          <ListSkeleton />
-        ) : endpoints.isError ? (
-          <p role="alert" className="p-4 text-sm text-destructive">
-            {t('webhooks.errors.unavailable')}
-          </p>
-        ) : endpoints.data.data.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">{t('webhooks.endpointsEmpty')}</p>
-        ) : (
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="border-b text-left text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.endpointColumns.endpoint')}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.endpointColumns.status')}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.endpointColumns.events')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {endpoints.data.data.map((endpoint) => (
-                <tr key={endpoint.id} className="border-b align-top last:border-0">
-                  <td className="px-4 py-2">
-                    <div className="font-medium">
-                      {endpoint.name} <span className="text-muted-foreground">#{endpoint.id}</span>
-                    </div>
-                    <div className="break-all text-xs text-muted-foreground">{endpoint.url}</div>
-                  </td>
-                  <td className="px-4 py-2">
-                    <StatusBadge tone={endpoint.status === 'active' ? 'success' : 'warning'}>
-                      {t(`webhooks.endpointStatus.${endpoint.status}`)}
-                    </StatusBadge>
-                    {endpoint.disabled_reason ? (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        <code>{endpoint.disabled_reason}</code>
-                      </div>
-                    ) : null}
-                    {endpoint.consecutive_failures > 0 ? (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {t('webhooks.consecutiveFailures', {
-                          count: endpoint.consecutive_failures,
-                        })}
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-2 text-xs">
-                    {endpoint.event_types.map((eventType) => (
-                      <code key={eventType} className="mr-2 inline-block">
-                        {eventType}
-                      </code>
-                    ))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      <Pager meta={meta} label={t('webhooks.endpointPagination')} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        rows={endpoints.data?.data}
+        rowKey={(endpoint) => endpoint.id}
+        status={endpoints.status}
+        errorMessage={t('webhooks.errors.unavailable')}
+        emptyMessage={t('webhooks.endpointsEmpty')}
+        alignTop
+        skeletonRows={3}
+      />
+      <PagePagination meta={meta} label={t('webhooks.endpointPagination')} onPageChange={setPage} />
     </section>
   );
 }
@@ -167,6 +152,89 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     setDialog(null);
     replay.reset();
   };
+  const columns: DataTableColumn<WebhookDelivery>[] = [
+    {
+      id: 'event',
+      header: t('webhooks.deliveryColumns.event'),
+      cell: (delivery) => (
+        <>
+          <div className="font-medium">{delivery.event_type}</div>
+          <div className="text-xs text-muted-foreground">
+            {delivery.message_id} · {t('webhooks.endpointRef', { id: delivery.endpoint_id })}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('webhooks.deliveryColumns.status'),
+      cell: (delivery) => (
+        <>
+          <StatusBadge tone={deliveryTone[delivery.status]}>
+            {t(`webhooks.deliveryStatus.${delivery.status}`)}
+          </StatusBadge>
+          {delivery.failure_code || delivery.http_status ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              <code>
+                {[delivery.http_status, delivery.failure_code].filter(Boolean).join(' · ')}
+              </code>
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'attempts',
+      header: t('webhooks.deliveryColumns.attempts'),
+      className: 'tabular-nums',
+      cell: (delivery) => (
+        <>
+          {delivery.attempt_count}
+          {delivery.replay_count > 0 ? (
+            <span className="text-xs text-muted-foreground">
+              {' '}
+              {t('webhooks.replayed', { count: delivery.replay_count })}
+            </span>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'updated',
+      header: t('webhooks.deliveryColumns.updated'),
+      className: 'whitespace-nowrap text-muted-foreground',
+      cell: (delivery) => dateFormat.format(new Date(delivery.updated_at)),
+    },
+    {
+      id: 'actions',
+      header: t('webhooks.deliveryColumns.actions'),
+      align: 'end',
+      cell: (delivery) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setDialog({ kind: 'attempts', delivery })}
+          >
+            <ListTree aria-hidden="true" />
+            {t('webhooks.actions.attempts')}
+          </Button>
+          {isReplayable(delivery) ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setDialog({ kind: 'replay', delivery })}
+            >
+              <RotateCw aria-hidden="true" />
+              {t('webhooks.actions.replay')}
+            </Button>
+          ) : null}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <section className="panel" aria-labelledby="webhook-deliveries-title">
@@ -203,103 +271,18 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
           </select>
         </label>
       </div>
-      <div className="panel-body overflow-x-auto p-0">
-        {deliveries.isPending ? (
-          <ListSkeleton />
-        ) : deliveries.isError ? (
-          <p role="alert" className="p-4 text-sm text-destructive">
-            {t('webhooks.errors.unavailable')}
-          </p>
-        ) : deliveries.data.data.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">{t('webhooks.deliveriesEmpty')}</p>
-        ) : (
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="border-b text-left text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.deliveryColumns.event')}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.deliveryColumns.status')}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.deliveryColumns.attempts')}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t('webhooks.deliveryColumns.updated')}
-                </th>
-                <th scope="col" className="px-4 py-2 text-right font-medium">
-                  {t('webhooks.deliveryColumns.actions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {deliveries.data.data.map((delivery) => (
-                <tr key={delivery.id} className="border-b align-top last:border-0">
-                  <td className="px-4 py-2">
-                    <div className="font-medium">{delivery.event_type}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {delivery.message_id} ·{' '}
-                      {t('webhooks.endpointRef', { id: delivery.endpoint_id })}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2">
-                    <StatusBadge tone={deliveryTone[delivery.status]}>
-                      {t(`webhooks.deliveryStatus.${delivery.status}`)}
-                    </StatusBadge>
-                    {delivery.failure_code || delivery.http_status ? (
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        <code>
-                          {[delivery.http_status, delivery.failure_code]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </code>
-                      </div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-2 tabular-nums">
-                    {delivery.attempt_count}
-                    {delivery.replay_count > 0 ? (
-                      <span className="text-xs text-muted-foreground">
-                        {' '}
-                        {t('webhooks.replayed', { count: delivery.replay_count })}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2 text-muted-foreground">
-                    {dateFormat.format(new Date(delivery.updated_at))}
-                  </td>
-                  <td className="px-4 py-2">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDialog({ kind: 'attempts', delivery })}
-                      >
-                        <ListTree aria-hidden="true" />
-                        {t('webhooks.actions.attempts')}
-                      </Button>
-                      {isReplayable(delivery) ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setDialog({ kind: 'replay', delivery })}
-                        >
-                          <RotateCw aria-hidden="true" />
-                          {t('webhooks.actions.replay')}
-                        </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      <Pager meta={meta} label={t('webhooks.deliveryPagination')} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        rows={deliveries.data?.data}
+        rowKey={(delivery) => delivery.id}
+        status={deliveries.status}
+        errorMessage={t('webhooks.errors.unavailable')}
+        emptyMessage={t('webhooks.deliveriesEmpty')}
+        minWidthClassName="min-w-[760px]"
+        alignTop
+        skeletonRows={3}
+      />
+      <PagePagination meta={meta} label={t('webhooks.deliveryPagination')} onPageChange={setPage} />
 
       <Dialog open={dialog !== null} onOpenChange={(open) => (open ? undefined : closeDialog())}>
         <DialogContent>

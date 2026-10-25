@@ -2,13 +2,14 @@ import { History, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Pagination } from '@/components/ui/pagination';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs';
-import type { AuditSearch } from '@/features/audit/types';
+import type { AuditEntry, AuditSearch } from '@/features/audit/types';
 
 interface AuditPageProps {
   search: AuditSearch;
@@ -49,6 +50,52 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     });
     setTrail([]);
   };
+
+  const columns: DataTableColumn<AuditEntry>[] = [
+    {
+      id: 'time',
+      header: t('audit.columns.time'),
+      className: 'whitespace-nowrap text-muted-foreground',
+      cell: (entry) => dateFormat.format(new Date(entry.created_at)),
+    },
+    {
+      id: 'actor',
+      header: t('audit.columns.actor'),
+      cell: (entry) =>
+        entry.user_id
+          ? t('audit.actorUser', { id: entry.user_id })
+          : t(`audit.actorType.${entry.actor_type}`, entry.actor_type),
+    },
+    {
+      id: 'action',
+      header: t('audit.columns.action'),
+      cell: (entry) => (
+        <>
+          <div className="font-medium">{entry.action}</div>
+          <div className="text-xs text-muted-foreground">{entry.resource}</div>
+        </>
+      ),
+    },
+    {
+      id: 'request',
+      header: t('audit.columns.request'),
+      cell: (entry) => (
+        <>
+          <code className="text-xs">
+            {entry.method} {entry.path}
+          </code>
+          {entry.request_id ? (
+            <div className="text-xs text-muted-foreground">{entry.request_id}</div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('audit.columns.status'),
+      cell: (entry) => <StatusBadge>{entry.status_code}</StatusBadge>,
+    },
+  ];
 
   return (
     <div className="page-stack">
@@ -110,97 +157,28 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
           </form>
         </div>
 
-        <div className="panel-body overflow-x-auto p-0">
-          {logs.isPending ? (
-            <div className="flex flex-col gap-2 p-4" aria-busy="true">
-              {Array.from({ length: 5 }, (_, index) => (
-                <Skeleton key={index} className="h-8 w-full" />
-              ))}
-            </div>
-          ) : logs.isError ? (
-            <p role="alert" className="p-4 text-sm text-destructive">
-              {invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')}
-            </p>
-          ) : logs.data.data.length === 0 ? (
-            <p className="p-4 text-sm text-muted-foreground">{t('audit.empty')}</p>
-          ) : (
-            <table className="w-full min-w-[720px] text-sm">
-              <thead className="border-b text-left text-xs text-muted-foreground">
-                <tr>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.time')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.actor')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.action')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.request')}
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    {t('audit.columns.status')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.data.data.map((entry) => (
-                  <tr key={entry.id} className="border-b align-top last:border-0">
-                    <td className="whitespace-nowrap px-4 py-2 text-muted-foreground">
-                      {dateFormat.format(new Date(entry.created_at))}
-                    </td>
-                    <td className="px-4 py-2">
-                      {entry.user_id
-                        ? t('audit.actorUser', { id: entry.user_id })
-                        : t(`audit.actorType.${entry.actor_type}`, entry.actor_type)}
-                    </td>
-                    <td className="px-4 py-2">
-                      <div className="font-medium">{entry.action}</div>
-                      <div className="text-xs text-muted-foreground">{entry.resource}</div>
-                    </td>
-                    <td className="px-4 py-2">
-                      <code className="text-xs">
-                        {entry.method} {entry.path}
-                      </code>
-                      {entry.request_id ? (
-                        <div className="text-xs text-muted-foreground">{entry.request_id}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-2">
-                      <StatusBadge>{entry.status_code}</StatusBadge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <DataTable
+          columns={columns}
+          rows={logs.data?.data}
+          rowKey={(entry) => entry.id}
+          status={logs.status}
+          errorMessage={
+            invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')
+          }
+          emptyMessage={t('audit.empty')}
+          minWidthClassName="min-w-[720px]"
+          alignTop
+          skeletonRows={5}
+        />
 
         {meta && (search.cursor || meta.has_more) ? (
-          <nav
-            className="flex items-center justify-end gap-2 border-t px-4 py-3 text-sm"
-            aria-label={t('users.pagination')}
-          >
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={!search.cursor}
-              onClick={() => goTo(trail.at(-1) || undefined, trail.slice(0, -1))}
-            >
-              {t('users.previous')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={!meta.next_cursor}
-              onClick={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
-            >
-              {t('users.next')}
-            </Button>
-          </nav>
+          <Pagination
+            label={t('audit.pagination')}
+            hasPrevious={Boolean(search.cursor)}
+            hasNext={Boolean(meta.next_cursor)}
+            onPrevious={() => goTo(trail.at(-1) || undefined, trail.slice(0, -1))}
+            onNext={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
+          />
         ) : null}
       </section>
     </div>
