@@ -1,10 +1,10 @@
 import { ListTree, RotateCw, Send, Webhook } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pager } from '@/components/layout/pager';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import {
   Dialog,
   DialogClose,
@@ -22,14 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   useReplayWebhookDelivery,
@@ -42,6 +34,7 @@ import {
   type WebhookDelivery,
   type WebhookDeliveryStatus,
   webhookDeliveryStatuses,
+  type WebhookEndpoint,
 } from '@/features/webhooks/types';
 import { replayErrorKey } from '@/features/webhooks/webhook-errors';
 
@@ -55,16 +48,6 @@ const deliveryTone = {
   failed: 'danger',
   canceled: 'warning',
 } as const;
-
-function ListSkeleton() {
-  return (
-    <div className="flex flex-col gap-2 p-4" aria-busy="true">
-      {Array.from({ length: 3 }, (_, index) => (
-        <Skeleton key={index} className="h-9 w-full" />
-      ))}
-    </div>
-  );
-}
 
 /** Secret-free webhook diagnosis and delivery replay for one organization. */
 export function WebhookDiagnostics({ organizationId }: { organizationId: number }) {
@@ -82,6 +65,55 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
   const endpoints = useWebhookEndpoints(organizationId, page);
   const meta = endpoints.data?.meta;
 
+  const columns: DataTableColumn<WebhookEndpoint>[] = [
+    {
+      id: 'endpoint',
+      header: t('webhooks.endpointColumns.endpoint'),
+      cell: (endpoint) => (
+        <>
+          <div className="font-medium">
+            {endpoint.name} <span className="text-muted-foreground">#{endpoint.id}</span>
+          </div>
+          <div className="break-all text-xs text-muted-foreground">{endpoint.url}</div>
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('webhooks.endpointColumns.status'),
+      cell: (endpoint) => (
+        <>
+          <StatusBadge tone={endpoint.status === 'active' ? 'success' : 'warning'}>
+            {t(`webhooks.endpointStatus.${endpoint.status}`)}
+          </StatusBadge>
+          {endpoint.disabled_reason ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              <code>{endpoint.disabled_reason}</code>
+            </div>
+          ) : null}
+          {endpoint.consecutive_failures > 0 ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              {t('webhooks.consecutiveFailures', {
+                count: endpoint.consecutive_failures,
+              })}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'events',
+      header: t('webhooks.endpointColumns.events'),
+      className: 'text-xs',
+      cell: (endpoint) =>
+        endpoint.event_types.map((eventType) => (
+          <code key={eventType} className="mr-2 inline-block">
+            {eventType}
+          </code>
+        )),
+    },
+  ];
+
   return (
     <SectionCard
       icon={Webhook}
@@ -90,62 +122,17 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
       description={t('webhooks.endpointsDescription')}
       contentClassName="p-0"
     >
-      {endpoints.isPending ? (
-        <ListSkeleton />
-      ) : endpoints.isError ? (
-        <p role="alert" className="p-4 text-sm text-destructive">
-          {t('webhooks.errors.unavailable')}
-        </p>
-      ) : endpoints.data.data.length === 0 ? (
-        <EmptyState>{t('webhooks.endpointsEmpty')}</EmptyState>
-      ) : (
-        <Table className="min-w-[640px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">{t('webhooks.endpointColumns.endpoint')}</TableHead>
-              <TableHead scope="col">{t('webhooks.endpointColumns.status')}</TableHead>
-              <TableHead scope="col">{t('webhooks.endpointColumns.events')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {endpoints.data.data.map((endpoint) => (
-              <TableRow key={endpoint.id} className="align-top">
-                <TableCell>
-                  <div className="font-medium">
-                    {endpoint.name} <span className="text-muted-foreground">#{endpoint.id}</span>
-                  </div>
-                  <div className="break-all text-xs text-muted-foreground">{endpoint.url}</div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge tone={endpoint.status === 'active' ? 'success' : 'warning'}>
-                    {t(`webhooks.endpointStatus.${endpoint.status}`)}
-                  </StatusBadge>
-                  {endpoint.disabled_reason ? (
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      <code>{endpoint.disabled_reason}</code>
-                    </div>
-                  ) : null}
-                  {endpoint.consecutive_failures > 0 ? (
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {t('webhooks.consecutiveFailures', {
-                        count: endpoint.consecutive_failures,
-                      })}
-                    </div>
-                  ) : null}
-                </TableCell>
-                <TableCell className="text-xs">
-                  {endpoint.event_types.map((eventType) => (
-                    <code key={eventType} className="mr-2 inline-block">
-                      {eventType}
-                    </code>
-                  ))}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      <Pager meta={meta} label={t('webhooks.endpointPagination')} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        rows={endpoints.data?.data}
+        rowKey={(endpoint) => endpoint.id}
+        status={endpoints.status}
+        errorMessage={t('webhooks.errors.unavailable')}
+        emptyMessage={t('webhooks.endpointsEmpty')}
+        alignTop
+        skeletonRows={3}
+      />
+      <PagePagination meta={meta} label={t('webhooks.endpointPagination')} onPageChange={setPage} />
     </SectionCard>
   );
 }
@@ -173,6 +160,90 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     setDialog(null);
     replay.reset();
   };
+
+  const columns: DataTableColumn<WebhookDelivery>[] = [
+    {
+      id: 'event',
+      header: t('webhooks.deliveryColumns.event'),
+      cell: (delivery) => (
+        <>
+          <div className="font-medium">{delivery.event_type}</div>
+          <div className="text-xs text-muted-foreground">
+            {delivery.message_id} · {t('webhooks.endpointRef', { id: delivery.endpoint_id })}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('webhooks.deliveryColumns.status'),
+      cell: (delivery) => (
+        <>
+          <StatusBadge tone={deliveryTone[delivery.status]}>
+            {t(`webhooks.deliveryStatus.${delivery.status}`)}
+          </StatusBadge>
+          {delivery.failure_code || delivery.http_status ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              <code>
+                {[delivery.http_status, delivery.failure_code].filter(Boolean).join(' · ')}
+              </code>
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'attempts',
+      header: t('webhooks.deliveryColumns.attempts'),
+      className: 'tabular-nums',
+      cell: (delivery) => (
+        <>
+          {delivery.attempt_count}
+          {delivery.replay_count > 0 ? (
+            <span className="text-xs text-muted-foreground">
+              {' '}
+              {t('webhooks.replayed', { count: delivery.replay_count })}
+            </span>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'updated',
+      header: t('webhooks.deliveryColumns.updated'),
+      className: 'whitespace-nowrap text-muted-foreground',
+      cell: (delivery) => dateFormat.format(new Date(delivery.updated_at)),
+    },
+    {
+      id: 'actions',
+      header: t('webhooks.deliveryColumns.actions'),
+      align: 'end',
+      cell: (delivery) => (
+        <div className="flex justify-end gap-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setDialog({ kind: 'attempts', delivery })}
+          >
+            <ListTree aria-hidden="true" />
+            {t('webhooks.actions.attempts')}
+          </Button>
+          {isReplayable(delivery) ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setDialog({ kind: 'replay', delivery })}
+            >
+              <RotateCw aria-hidden="true" />
+              {t('webhooks.actions.replay')}
+            </Button>
+          ) : null}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <SectionCard
@@ -211,91 +282,18 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
         </>
       }
     >
-      {deliveries.isPending ? (
-        <ListSkeleton />
-      ) : deliveries.isError ? (
-        <p role="alert" className="p-4 text-sm text-destructive">
-          {t('webhooks.errors.unavailable')}
-        </p>
-      ) : deliveries.data.data.length === 0 ? (
-        <EmptyState>{t('webhooks.deliveriesEmpty')}</EmptyState>
-      ) : (
-        <Table className="min-w-[760px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">{t('webhooks.deliveryColumns.event')}</TableHead>
-              <TableHead scope="col">{t('webhooks.deliveryColumns.status')}</TableHead>
-              <TableHead scope="col">{t('webhooks.deliveryColumns.attempts')}</TableHead>
-              <TableHead scope="col">{t('webhooks.deliveryColumns.updated')}</TableHead>
-              <TableHead scope="col" className="text-right">
-                {t('webhooks.deliveryColumns.actions')}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {deliveries.data.data.map((delivery) => (
-              <TableRow key={delivery.id} className="align-top">
-                <TableCell>
-                  <div className="font-medium">{delivery.event_type}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {delivery.message_id} ·{' '}
-                    {t('webhooks.endpointRef', { id: delivery.endpoint_id })}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge tone={deliveryTone[delivery.status]}>
-                    {t(`webhooks.deliveryStatus.${delivery.status}`)}
-                  </StatusBadge>
-                  {delivery.failure_code || delivery.http_status ? (
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      <code>
-                        {[delivery.http_status, delivery.failure_code].filter(Boolean).join(' · ')}
-                      </code>
-                    </div>
-                  ) : null}
-                </TableCell>
-                <TableCell className="tabular-nums">
-                  {delivery.attempt_count}
-                  {delivery.replay_count > 0 ? (
-                    <span className="text-xs text-muted-foreground">
-                      {' '}
-                      {t('webhooks.replayed', { count: delivery.replay_count })}
-                    </span>
-                  ) : null}
-                </TableCell>
-                <TableCell className="whitespace-nowrap text-muted-foreground">
-                  {dateFormat.format(new Date(delivery.updated_at))}
-                </TableCell>
-                <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDialog({ kind: 'attempts', delivery })}
-                    >
-                      <ListTree aria-hidden="true" />
-                      {t('webhooks.actions.attempts')}
-                    </Button>
-                    {isReplayable(delivery) ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDialog({ kind: 'replay', delivery })}
-                      >
-                        <RotateCw aria-hidden="true" />
-                        {t('webhooks.actions.replay')}
-                      </Button>
-                    ) : null}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      <Pager meta={meta} label={t('webhooks.deliveryPagination')} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        rows={deliveries.data?.data}
+        rowKey={(delivery) => delivery.id}
+        status={deliveries.status}
+        errorMessage={t('webhooks.errors.unavailable')}
+        emptyMessage={t('webhooks.deliveriesEmpty')}
+        minWidthClassName="min-w-[760px]"
+        alignTop
+        skeletonRows={3}
+      />
+      <PagePagination meta={meta} label={t('webhooks.deliveryPagination')} onPageChange={setPage} />
 
       <Dialog open={dialog !== null} onOpenChange={(open) => (open ? undefined : closeDialog())}>
         <DialogContent>

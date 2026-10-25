@@ -1,10 +1,10 @@
 import { BellRing, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pager } from '@/components/layout/pager';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -14,15 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -36,6 +27,7 @@ import {
   type NotificationDeliveryStatus,
   notificationChannels,
   notificationDeliveryStatuses,
+  type NotificationDelivery,
 } from '@/features/notification-deliveries/types';
 import { cn } from '@/lib/cn';
 
@@ -93,6 +85,59 @@ export function NotificationDeliveriesPage({
       page: undefined,
     });
   };
+
+  const columns: DataTableColumn<NotificationDelivery>[] = [
+    {
+      id: 'notification',
+      header: t('notificationDeliveries.columns.notification'),
+      cell: (delivery) => (
+        <>
+          <div className="font-medium">{delivery.kind}</div>
+          <div className="text-xs text-muted-foreground">
+            {t('notificationDeliveries.notificationRef', {
+              id: delivery.notification_id,
+            })}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'recipient',
+      header: t('notificationDeliveries.columns.recipient'),
+      cell: (delivery) => t('notificationDeliveries.userRef', { id: delivery.user_id }),
+    },
+    {
+      id: 'channel',
+      header: t('notificationDeliveries.columns.channel'),
+      cell: (delivery) => t(`notificationDeliveries.channel.${delivery.channel}`),
+    },
+    {
+      id: 'status',
+      header: t('notificationDeliveries.columns.status'),
+      cell: (delivery) => (
+        <>
+          <StatusBadge tone={statusTone[delivery.status]}>
+            {t(`notificationDeliveries.status.${delivery.status}`)}
+          </StatusBadge>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {t('notificationDeliveries.attempts', { count: delivery.attempts })}
+            {delivery.last_failure_code ? (
+              <>
+                {' · '}
+                <code>{delivery.last_failure_code}</code>
+              </>
+            ) : null}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'updated',
+      header: t('notificationDeliveries.columns.updated'),
+      className: 'whitespace-nowrap text-muted-foreground',
+      cell: (delivery) => dateFormat.format(new Date(delivery.updated_at)),
+    },
+  ];
 
   return (
     <div className="page-stack">
@@ -235,70 +280,19 @@ export function NotificationDeliveriesPage({
           </>
         }
       >
-        {deliveries.isPending ? (
-          <div className="flex flex-col gap-2 p-4" aria-busy="true">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-8 w-full" />
-            ))}
-          </div>
-        ) : deliveries.isError ? (
-          <p role="alert" className="p-4 text-sm text-destructive">
-            {t('notificationDeliveries.errors.unavailable')}
-          </p>
-        ) : deliveries.data.data.length === 0 ? (
-          <EmptyState>{t('notificationDeliveries.empty')}</EmptyState>
-        ) : (
-          <Table className="min-w-[720px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col">
-                  {t('notificationDeliveries.columns.notification')}
-                </TableHead>
-                <TableHead scope="col">{t('notificationDeliveries.columns.recipient')}</TableHead>
-                <TableHead scope="col">{t('notificationDeliveries.columns.channel')}</TableHead>
-                <TableHead scope="col">{t('notificationDeliveries.columns.status')}</TableHead>
-                <TableHead scope="col">{t('notificationDeliveries.columns.updated')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {deliveries.data.data.map((delivery) => (
-                <TableRow key={delivery.id} className="align-top">
-                  <TableCell>
-                    <div className="font-medium">{delivery.kind}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {t('notificationDeliveries.notificationRef', {
-                        id: delivery.notification_id,
-                      })}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {t('notificationDeliveries.userRef', { id: delivery.user_id })}
-                  </TableCell>
-                  <TableCell>{t(`notificationDeliveries.channel.${delivery.channel}`)}</TableCell>
-                  <TableCell>
-                    <StatusBadge tone={statusTone[delivery.status]}>
-                      {t(`notificationDeliveries.status.${delivery.status}`)}
-                    </StatusBadge>
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {t('notificationDeliveries.attempts', { count: delivery.attempts })}
-                      {delivery.last_failure_code ? (
-                        <>
-                          {' · '}
-                          <code>{delivery.last_failure_code}</code>
-                        </>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-muted-foreground">
-                    {dateFormat.format(new Date(delivery.updated_at))}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <DataTable
+          columns={columns}
+          rows={deliveries.data?.data}
+          rowKey={(delivery) => delivery.id}
+          status={deliveries.status}
+          errorMessage={t('notificationDeliveries.errors.unavailable')}
+          emptyMessage={t('notificationDeliveries.empty')}
+          minWidthClassName="min-w-[720px]"
+          alignTop
+          skeletonRows={5}
+        />
 
-        <Pager
+        <PagePagination
           meta={meta}
           label={t('notificationDeliveries.pagination')}
           onPageChange={(page) => onSearchChange({ ...search, page })}

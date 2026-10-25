@@ -2,10 +2,10 @@ import { Ban, CircleCheck, LogOut, Search, Users } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Pager } from '@/components/layout/pager';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import {
   Dialog,
   DialogClose,
@@ -15,15 +15,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useUserAction, useUsers } from '@/features/users/hooks/use-users';
@@ -83,6 +74,82 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
     );
   };
 
+  const columns: DataTableColumn<ManagedUser>[] = [
+    {
+      id: 'account',
+      header: t('users.columns.account'),
+      cell: (user) => (
+        <>
+          <div className="font-medium">{user.nickname || user.username}</div>
+          <div className="text-xs text-muted-foreground">
+            {user.username} · {user.email}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('users.columns.status'),
+      cell: (user) => (
+        <div className="flex flex-wrap gap-1">
+          <StatusBadge tone={user.status === 'active' ? 'success' : 'warning'}>
+            {t(`users.status.${user.status}`)}
+          </StatusBadge>
+          {user.is_operator ? <StatusBadge tone="brand">{t('users.operator')}</StatusBadge> : null}
+        </div>
+      ),
+    },
+    {
+      id: 'lastLogin',
+      header: t('users.columns.lastLogin'),
+      className: 'text-muted-foreground',
+      cell: (user) =>
+        user.last_login ? dateFormat.format(new Date(user.last_login)) : t('users.never'),
+    },
+    {
+      id: 'actions',
+      header: t('users.columns.actions'),
+      align: 'end',
+      cell: (user) =>
+        user.is_operator ? (
+          <p className="text-right text-xs text-muted-foreground">{t('users.protectedHint')}</p>
+        ) : (
+          <div className="flex justify-end gap-1">
+            {user.status === 'active' ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setPending({ action: 'disable', user })}
+              >
+                <Ban aria-hidden="true" />
+                {t('users.actions.disable')}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setPending({ action: 'enable', user })}
+              >
+                <CircleCheck aria-hidden="true" />
+                {t('users.actions.enable')}
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setPending({ action: 'revokeSessions', user })}
+            >
+              <LogOut aria-hidden="true" />
+              {t('users.actions.revokeSessions')}
+            </Button>
+          </div>
+        ),
+    },
+  ];
+
   return (
     <div className="page-stack">
       <header className="page-header">
@@ -138,101 +205,16 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
           </>
         }
       >
-        {users.isPending ? (
-          <div className="flex flex-col gap-2 p-4" aria-busy="true">
-            {Array.from({ length: 4 }, (_, index) => (
-              <Skeleton key={index} className="h-9 w-full" />
-            ))}
-          </div>
-        ) : users.isError ? (
-          <p role="alert" className="p-4 text-sm text-destructive">
-            {t('users.errors.unavailable')}
-          </p>
-        ) : users.data.data.length === 0 ? (
-          <EmptyState>{t('users.empty')}</EmptyState>
-        ) : (
-          <Table className="min-w-[640px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col">{t('users.columns.account')}</TableHead>
-                <TableHead scope="col">{t('users.columns.status')}</TableHead>
-                <TableHead scope="col">{t('users.columns.lastLogin')}</TableHead>
-                <TableHead scope="col" className="text-right">
-                  {t('users.columns.actions')}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.data.data.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="font-medium">{user.nickname || user.username}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {user.username} · {user.email}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      <StatusBadge tone={user.status === 'active' ? 'success' : 'warning'}>
-                        {t(`users.status.${user.status}`)}
-                      </StatusBadge>
-                      {user.is_operator ? (
-                        <StatusBadge tone="brand">{t('users.operator')}</StatusBadge>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {user.last_login
-                      ? dateFormat.format(new Date(user.last_login))
-                      : t('users.never')}
-                  </TableCell>
-                  <TableCell>
-                    {user.is_operator ? (
-                      <p className="text-right text-xs text-muted-foreground">
-                        {t('users.protectedHint')}
-                      </p>
-                    ) : (
-                      <div className="flex justify-end gap-1">
-                        {user.status === 'active' ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setPending({ action: 'disable', user })}
-                          >
-                            <Ban aria-hidden="true" />
-                            {t('users.actions.disable')}
-                          </Button>
-                        ) : (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setPending({ action: 'enable', user })}
-                          >
-                            <CircleCheck aria-hidden="true" />
-                            {t('users.actions.enable')}
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setPending({ action: 'revokeSessions', user })}
-                        >
-                          <LogOut aria-hidden="true" />
-                          {t('users.actions.revokeSessions')}
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <DataTable
+          columns={columns}
+          rows={users.data?.data}
+          rowKey={(user) => user.id}
+          status={users.status}
+          errorMessage={t('users.errors.unavailable')}
+          emptyMessage={t('users.empty')}
+        />
 
-        <Pager
+        <PagePagination
           meta={page}
           label={t('users.pagination')}
           onPageChange={(next) => onSearchChange({ ...search, page: next })}

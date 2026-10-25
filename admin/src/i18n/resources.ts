@@ -139,10 +139,7 @@ const enUS = {
         },
       },
       cancel: 'Cancel',
-      pagination: 'Pagination',
-      page: 'Page {{page}} of {{pages}}',
-      previous: 'Previous',
-      next: 'Next',
+      pagination: 'Account pages',
       errors: {
         protected: 'Operator accounts can only be changed from the server command line.',
         notFound: 'This account no longer exists.',
@@ -158,6 +155,7 @@ const enUS = {
       filters: { action: 'Action', userId: 'User ID', from: 'From', to: 'To' },
       apply: 'Apply',
       empty: 'No audit entries match these filters.',
+      pagination: 'Audit log pages',
       columns: {
         time: 'Time',
         actor: 'Actor',
@@ -532,10 +530,7 @@ const zhHans = {
         },
       },
       cancel: '取消',
-      pagination: '分页',
-      page: '第 {{page}} / {{pages}} 页',
-      previous: '上一页',
-      next: '下一页',
+      pagination: '账号分页',
       errors: {
         protected: '运维员账号只能在服务器命令行中修改。',
         notFound: '该账号已不存在。',
@@ -551,6 +546,7 @@ const zhHans = {
       filters: { action: '操作', userId: '用户 ID', from: '开始日期', to: '结束日期' },
       apply: '筛选',
       empty: '没有符合筛选条件的审计记录。',
+      pagination: '审计日志分页',
       columns: {
         time: '时间',
         actor: '操作者',

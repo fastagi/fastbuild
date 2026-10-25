@@ -1,26 +1,18 @@
 import { ChevronRight, Copy, History, Search, X } from 'lucide-react';
-import { type FormEvent, Fragment, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { Pagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 import { useAuditLogs } from '@/features/audit/hooks/use-audit-logs';
-import type { AuditSearch } from '@/features/audit/types';
+import type { AuditEntry, AuditSearch } from '@/features/audit/types';
 import { copyText } from '@/lib/clipboard';
 import { cn } from '@/lib/cn';
 
@@ -96,6 +88,127 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     });
     setTrail([]);
   };
+
+  const detailsId = (entry: AuditEntry) => `audit-entry-${entry.id}`;
+  const columns: DataTableColumn<AuditEntry>[] = [
+    {
+      id: 'details',
+      header: <span className="sr-only">{t('audit.columns.details')}</span>,
+      headerClassName: 'w-10 pr-0',
+      className: 'w-10 pr-0',
+      cell: (entry) => {
+        const open = expanded === entry.id;
+        return (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="size-7"
+            aria-expanded={open}
+            aria-controls={detailsId(entry)}
+            aria-label={t(open ? 'audit.hideDetails' : 'audit.showDetails', {
+              action: entry.action,
+            })}
+            onClick={() => setExpanded(open ? null : entry.id)}
+          >
+            <ChevronRight
+              aria-hidden="true"
+              className={cn('transition-transform', open && 'rotate-90')}
+            />
+          </Button>
+        );
+      },
+    },
+    {
+      id: 'time',
+      header: t('audit.columns.time'),
+      className: 'whitespace-nowrap text-muted-foreground',
+      cell: (entry) => dateFormat.format(new Date(entry.created_at)),
+    },
+    {
+      id: 'actor',
+      header: t('audit.columns.actor'),
+      cell: (entry) =>
+        entry.user_id
+          ? t('audit.actorUser', { id: entry.user_id })
+          : t(`audit.actorType.${entry.actor_type}`, entry.actor_type),
+    },
+    {
+      id: 'action',
+      header: t('audit.columns.action'),
+      cell: (entry) => (
+        <>
+          <div className="font-medium">{entry.action}</div>
+          <div className="text-xs text-muted-foreground">{entry.resource}</div>
+        </>
+      ),
+    },
+    {
+      id: 'request',
+      header: t('audit.columns.request'),
+      cell: (entry) => (
+        <>
+          <code className="text-xs">
+            {entry.method} {entry.path}
+          </code>
+          {entry.request_id ? (
+            <div className="text-xs text-muted-foreground">{entry.request_id}</div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: 'status',
+      header: t('audit.columns.status'),
+      cell: (entry) => (
+        <StatusBadge tone={httpStatusTone(entry.status_code)}>{entry.status_code}</StatusBadge>
+      ),
+    },
+  ];
+
+  const renderDetails = (entry: AuditEntry) =>
+    expanded === entry.id ? (
+      <dl className="grid gap-x-6 gap-y-2 text-xs sm:grid-cols-[max-content_1fr]">
+        <dt className="text-muted-foreground">{t('audit.details.resource')}</dt>
+        <dd>
+          <code>{entry.resource}</code>
+        </dd>
+        <dt className="text-muted-foreground">{t('audit.details.target')}</dt>
+        <dd>
+          {entry.target_type || entry.target_id ? (
+            <code>{[entry.target_type, entry.target_id].filter(Boolean).join(' · ')}</code>
+          ) : (
+            t('audit.details.none')
+          )}
+        </dd>
+        <dt className="text-muted-foreground">{t('audit.details.result')}</dt>
+        <dd>{entry.result || t('audit.details.none')}</dd>
+        <dt className="text-muted-foreground">{t('audit.details.request')}</dt>
+        <dd className="break-all">
+          <code>
+            {entry.method} {entry.path}
+          </code>
+        </dd>
+        {entry.request_id ? (
+          <>
+            <dt className="text-muted-foreground">{t('audit.details.requestId')}</dt>
+            <dd className="flex items-center gap-2">
+              <code>{entry.request_id}</code>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7"
+                onClick={() => void copyRequestId(entry.request_id ?? '')}
+              >
+                <Copy aria-hidden="true" />
+                {t('audit.copyRequestId')}
+              </Button>
+            </dd>
+          </>
+        ) : null}
+      </dl>
+    ) : null;
 
   return (
     <div className="page-stack">
@@ -187,165 +300,29 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
           </>
         }
       >
-        {logs.isPending ? (
-          <div className="flex flex-col gap-2 p-4" aria-busy="true">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-8 w-full" />
-            ))}
-          </div>
-        ) : logs.isError ? (
-          <p role="alert" className="p-4 text-sm text-destructive">
-            {invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')}
-          </p>
-        ) : logs.data.data.length === 0 ? (
-          <EmptyState>{t('audit.empty')}</EmptyState>
-        ) : (
-          <Table className="min-w-[720px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col" className="w-10 pr-0">
-                  <span className="sr-only">{t('audit.columns.details')}</span>
-                </TableHead>
-                <TableHead scope="col">{t('audit.columns.time')}</TableHead>
-                <TableHead scope="col">{t('audit.columns.actor')}</TableHead>
-                <TableHead scope="col">{t('audit.columns.action')}</TableHead>
-                <TableHead scope="col">{t('audit.columns.request')}</TableHead>
-                <TableHead scope="col">{t('audit.columns.status')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {logs.data.data.map((entry) => {
-                const open = expanded === entry.id;
-                const detailsId = `audit-entry-${entry.id}`;
-                return (
-                  <Fragment key={entry.id}>
-                    <TableRow className="align-top" data-state={open ? 'selected' : undefined}>
-                      <TableCell className="w-10 pr-0">
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="size-7"
-                          aria-expanded={open}
-                          aria-controls={detailsId}
-                          aria-label={t(open ? 'audit.hideDetails' : 'audit.showDetails', {
-                            action: entry.action,
-                          })}
-                          onClick={() => setExpanded(open ? null : entry.id)}
-                        >
-                          <ChevronRight
-                            aria-hidden="true"
-                            className={cn('transition-transform', open && 'rotate-90')}
-                          />
-                        </Button>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {dateFormat.format(new Date(entry.created_at))}
-                      </TableCell>
-                      <TableCell>
-                        {entry.user_id
-                          ? t('audit.actorUser', { id: entry.user_id })
-                          : t(`audit.actorType.${entry.actor_type}`, entry.actor_type)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{entry.action}</div>
-                        <div className="text-xs text-muted-foreground">{entry.resource}</div>
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-xs">
-                          {entry.method} {entry.path}
-                        </code>
-                        {entry.request_id ? (
-                          <div className="text-xs text-muted-foreground">{entry.request_id}</div>
-                        ) : null}
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge tone={httpStatusTone(entry.status_code)}>
-                          {entry.status_code}
-                        </StatusBadge>
-                      </TableCell>
-                    </TableRow>
-                    {open ? (
-                      <TableRow id={detailsId} className="bg-muted/30 hover:bg-muted/30">
-                        <TableCell colSpan={6} className="px-4 py-3">
-                          <dl className="grid gap-x-6 gap-y-2 text-xs sm:grid-cols-[max-content_1fr]">
-                            <dt className="text-muted-foreground">{t('audit.details.resource')}</dt>
-                            <dd>
-                              <code>{entry.resource}</code>
-                            </dd>
-                            <dt className="text-muted-foreground">{t('audit.details.target')}</dt>
-                            <dd>
-                              {entry.target_type || entry.target_id ? (
-                                <code>
-                                  {[entry.target_type, entry.target_id].filter(Boolean).join(' · ')}
-                                </code>
-                              ) : (
-                                t('audit.details.none')
-                              )}
-                            </dd>
-                            <dt className="text-muted-foreground">{t('audit.details.result')}</dt>
-                            <dd>{entry.result || t('audit.details.none')}</dd>
-                            <dt className="text-muted-foreground">{t('audit.details.request')}</dt>
-                            <dd className="break-all">
-                              <code>
-                                {entry.method} {entry.path}
-                              </code>
-                            </dd>
-                            {entry.request_id ? (
-                              <>
-                                <dt className="text-muted-foreground">
-                                  {t('audit.details.requestId')}
-                                </dt>
-                                <dd className="flex items-center gap-2">
-                                  <code>{entry.request_id}</code>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-7"
-                                    onClick={() => void copyRequestId(entry.request_id ?? '')}
-                                  >
-                                    <Copy aria-hidden="true" />
-                                    {t('audit.copyRequestId')}
-                                  </Button>
-                                </dd>
-                              </>
-                            ) : null}
-                          </dl>
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </Fragment>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
+        <DataTable
+          columns={columns}
+          rows={logs.data?.data}
+          rowKey={(entry) => entry.id}
+          status={logs.status}
+          errorMessage={
+            invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')
+          }
+          emptyMessage={t('audit.empty')}
+          minWidthClassName="min-w-[720px]"
+          alignTop
+          skeletonRows={5}
+          details={{ id: detailsId, render: renderDetails }}
+        />
 
         {meta && (search.cursor || meta.has_more) ? (
-          <nav
-            className="flex items-center justify-end gap-2 border-t px-4 py-3 text-sm"
-            aria-label={t('users.pagination')}
-          >
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={!search.cursor}
-              onClick={() => goTo(trail.at(-1) || undefined, trail.slice(0, -1))}
-            >
-              {t('users.previous')}
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={!meta.next_cursor}
-              onClick={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
-            >
-              {t('users.next')}
-            </Button>
-          </nav>
+          <Pagination
+            label={t('audit.pagination')}
+            hasPrevious={Boolean(search.cursor)}
+            hasNext={Boolean(meta.next_cursor)}
+            onPrevious={() => goTo(trail.at(-1) || undefined, trail.slice(0, -1))}
+            onNext={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
+          />
         ) : null}
       </SectionCard>
     </div>

@@ -1,24 +1,17 @@
 import { ArrowLeft, Building2, Users } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pager } from '@/components/layout/pager';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { PagePagination } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   useOrganization,
   useOrganizationMembers,
 } from '@/features/organizations/hooks/use-organizations';
+import type { OperatorMember } from '@/features/organizations/types';
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/client';
 
@@ -113,6 +106,36 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
   const meta = members.data?.meta;
   const dateFormat = new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' });
 
+  const columns: DataTableColumn<OperatorMember>[] = [
+    {
+      id: 'account',
+      header: t('organizations.memberColumns.account'),
+      cell: (member) => (
+        <>
+          <div className="font-medium">{member.nickname || member.username}</div>
+          <div className="text-xs text-muted-foreground">
+            {member.username} · {member.email}
+          </div>
+        </>
+      ),
+    },
+    {
+      id: 'role',
+      header: t('organizations.memberColumns.role'),
+      cell: (member) => (
+        <StatusBadge tone={member.role === 'owner' ? 'brand' : 'neutral'}>
+          {t(`organizations.roles.${member.role}`)}
+        </StatusBadge>
+      ),
+    },
+    {
+      id: 'joined',
+      header: t('organizations.memberColumns.joined'),
+      className: 'text-muted-foreground',
+      cell: (member) => dateFormat.format(new Date(member.joined_at)),
+    },
+  ];
+
   return (
     <SectionCard
       icon={Users}
@@ -123,50 +146,21 @@ function OrganizationMembers({ organizationId }: { organizationId: number }) {
       }
       contentClassName="p-0"
     >
-      {members.isPending ? (
-        <div className="flex flex-col gap-2 p-4" aria-busy="true">
-          {Array.from({ length: 3 }, (_, index) => (
-            <Skeleton key={index} className="h-9 w-full" />
-          ))}
-        </div>
-      ) : members.isError ? (
-        <p role="alert" className="p-4 text-sm text-destructive">
-          {t('organizations.errors.unavailable')}
-        </p>
-      ) : members.data.data.length === 0 ? (
-        <EmptyState>{t('organizations.membersEmpty')}</EmptyState>
-      ) : (
-        <Table className="min-w-[520px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">{t('organizations.memberColumns.account')}</TableHead>
-              <TableHead scope="col">{t('organizations.memberColumns.role')}</TableHead>
-              <TableHead scope="col">{t('organizations.memberColumns.joined')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.data.data.map((member) => (
-              <TableRow key={member.id}>
-                <TableCell>
-                  <div className="font-medium">{member.nickname || member.username}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {member.username} · {member.email}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <StatusBadge tone={member.role === 'owner' ? 'brand' : 'neutral'}>
-                    {t(`organizations.roles.${member.role}`)}
-                  </StatusBadge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {dateFormat.format(new Date(member.joined_at))}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      <Pager meta={meta} label={t('organizations.memberPagination')} onPageChange={setPage} />
+      <DataTable
+        columns={columns}
+        rows={members.data?.data}
+        rowKey={(member) => member.id}
+        status={members.status}
+        errorMessage={t('organizations.errors.unavailable')}
+        emptyMessage={t('organizations.membersEmpty')}
+        minWidthClassName="min-w-[520px]"
+        skeletonRows={3}
+      />
+      <PagePagination
+        meta={meta}
+        label={t('organizations.memberPagination')}
+        onPageChange={setPage}
+      />
     </SectionCard>
   );
 }
