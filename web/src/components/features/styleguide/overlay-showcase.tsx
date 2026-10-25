@@ -218,26 +218,26 @@ export function OverlayShowcase() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Terms of Service</DialogTitle>
+                  <DialogTitle>Scrollable Content</DialogTitle>
                   <DialogDescription>
-                    Please review the following terms before proceeding.
+                    The body scrolls while the header and footer stay in place.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogBody className="py-4">
                   <div className="space-y-4 text-sm text-muted-foreground">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
-                    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
-                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.</p>
-                    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.</p>
-                    <p>Sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                    <p>DialogBody scrolls on its own while the header and footer stay pinned to the dialog frame.</p>
+                    <p>Use it for long confirmation text, review steps, or any content taller than the viewport.</p>
+                    <p>The dialog caps its height to the viewport, so the footer actions remain reachable on small screens.</p>
+                    <p>Keyboard focus stays trapped inside the dialog while it is open and returns to the trigger on close.</p>
+                    <p>Escape and the close button both dismiss the dialog; footer actions decide whether it should close.</p>
+                    <p>Scroll position resets each time the dialog opens because its content mounts fresh.</p>
+                    <p>Keep the title short and let the description explain what the person is being asked to review.</p>
+                    <p>Replace this sample text with the real content of the downstream dialog that needs scrolling.</p>
                   </div>
                 </DialogBody>
                 <DialogFooter>
-                  <Button variant="outline">Decline</Button>
-                  <Button>Accept</Button>
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Confirm</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

@@ -49,8 +49,13 @@ NEXT_PUBLIC_DEFAULT_LOCALE=zh-Hans
 NEXT_PUBLIC_LOCALE_SWITCHER_ENABLED=true
 API_ADAPTER_ENABLED=false
 NEXT_PUBLIC_OPTIONAL_FEATURES=
+NEXT_PUBLIC_DEVTOOLS_ENABLED=
 MOCK_BFF_ENABLED=false
 ```
+
+Devtools routes under `src/app/(protected)/(devtools)` (`/styleguide`, `/i18n-test`) are
+available outside production. Production builds serve 404 for them and hide their console links
+unless the build sets `NEXT_PUBLIC_DEVTOOLS_ENABLED=true`.
 
 Most `/api/*` route behavior is the development mock BFF. Auth and enabled optional feature routes
 can select the shipped production adapter. Mock behavior is available outside production by default, while

@@ -3,6 +3,7 @@ import { Activity, ArrowUpRight, Code2, KeyRound, Rocket } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { isDevtoolsEnabled } from '@/config/devtools';
 import { ROUTES } from '@/constants/routes';
 import { getSessionUser } from '@/features/auth/server/session';
 import { getT } from '@/i18n/server';
@@ -29,19 +30,23 @@ export default async function ConsoleHomePage() {
       href: ROUTES.CONSOLE.SETTINGS,
       icon: KeyRound,
     },
-    {
-      title: t('home.quickLinks.styleguide.title'),
-      description: t('home.quickLinks.styleguide.description'),
-      href: ROUTES.DEVTOOLS.STYLEGUIDE,
-      icon: Code2,
-    },
-    {
-      title: t('home.quickLinks.i18nTest.title'),
-      description: t('home.quickLinks.i18nTest.description'),
-      href: ROUTES.DEVTOOLS.I18N_TEST,
-      icon: Activity,
-    },
-  ] as const;
+    ...(isDevtoolsEnabled()
+      ? [
+          {
+            title: t('home.quickLinks.styleguide.title'),
+            description: t('home.quickLinks.styleguide.description'),
+            href: ROUTES.DEVTOOLS.STYLEGUIDE,
+            icon: Code2,
+          },
+          {
+            title: t('home.quickLinks.i18nTest.title'),
+            description: t('home.quickLinks.i18nTest.description'),
+            href: ROUTES.DEVTOOLS.I18N_TEST,
+            icon: Activity,
+          },
+        ]
+      : []),
+  ];
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">

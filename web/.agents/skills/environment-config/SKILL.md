@@ -54,6 +54,7 @@ The project uses `zod` to validate environment variables at runtime. If a requir
 | `NEXT_PUBLIC_APP_URL` | No | `http://localhost:3000` | Absolute site URL for metadata, sitemap, and robots. |
 | `NEXT_PUBLIC_DEFAULT_LOCALE` | No | `zh-Hans` | Default locale. Must be one of `src/i18n/locales.ts`. |
 | `NEXT_PUBLIC_LOCALE_SWITCHER_ENABLED` | No | `true` | Shows or hides the language switcher. |
+| `NEXT_PUBLIC_DEVTOOLS_ENABLED` | Production opt-in only | `true` outside production, `false` in production | Build-time switch for the `(devtools)` route group; disabled routes serve 404 and console links to them are hidden. |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | - | Google Analytics ID. |
 | `NODE_ENV` | No | `development` | App environment (`development` \| `production` \| `test`). |
 | `API_ADAPTER_ENABLED` | No | `false` | Enables the same-origin server adapter for the FastBuild Go API. |

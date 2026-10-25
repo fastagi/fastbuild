@@ -35,6 +35,16 @@ The production adapter selects `api-session`; local/demo mock behavior selects `
 external identity systems select `client-session`. Proxy interprets only the signed mock
 cookie. See [`AUTHENTICATION.md`](AUTHENTICATION.md).
 
+## Devtools Routes
+
+The `(devtools)` route group (`/styleguide`, `/i18n-test`) follows the same demo-only rule as the
+mock BFF: it is available outside production and serves 404 in production builds unless
+`NEXT_PUBLIC_DEVTOOLS_ENABLED=true` was set at build time. Proxy rewrites disabled devtools paths to
+the not-found page in every auth mode, before any login redirect or render work, because a layout
+`notFound()` alone still streams the page payload with HTTP 200. The route group layout repeats the
+check as defense in depth, and console navigation hides its devtools links. `src/test/devtools-gate.test.ts` holds the
+production configuration tests. Delete the route group in downstream apps that do not need it.
+
 ## Replacement Checklist
 
 1. Confirm the real API follows [`../../contracts/README.md`](../../contracts/README.md), especially

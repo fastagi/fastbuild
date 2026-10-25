@@ -59,6 +59,7 @@ export const publicEnvSchema = z.object({
       });
     }
   }),
+  NEXT_PUBLIC_DEVTOOLS_ENABLED: z.boolean(),
   NODE_ENV: z.enum(['development', 'production', 'test']),
 });
 

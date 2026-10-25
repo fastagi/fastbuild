@@ -12,7 +12,6 @@ const coreSurfaceRoots = [
   'app/(auth)',
   'features/auth/components',
   'app/(protected)/(console)',
-  'components/features/console',
   'components/theme-toggle.tsx',
   'components/common',
   'components/blocks',

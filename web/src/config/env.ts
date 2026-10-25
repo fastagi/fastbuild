@@ -70,6 +70,8 @@ function readNodeEnv(value: string | undefined): PublicEnv['NODE_ENV'] {
     : invalidPublicEnv('NODE_ENV');
 }
 
+const nodeEnv = readNodeEnv(process.env.NODE_ENV);
+
 export const env: PublicEnv = {
   NEXT_PUBLIC_API_URL: readRequiredString(
     'NEXT_PUBLIC_API_URL',
@@ -93,7 +95,14 @@ export const env: PublicEnv = {
   ),
   NEXT_PUBLIC_OPTIONAL_FEATURES:
     process.env.NEXT_PUBLIC_OPTIONAL_FEATURES ?? '',
-  NODE_ENV: readNodeEnv(process.env.NODE_ENV),
+  // Devtools routes are on outside production and off in production builds
+  // unless a deployment explicitly opts in.
+  NEXT_PUBLIC_DEVTOOLS_ENABLED: readBoolean(
+    'NEXT_PUBLIC_DEVTOOLS_ENABLED',
+    process.env.NEXT_PUBLIC_DEVTOOLS_ENABLED,
+    nodeEnv !== 'production'
+  ),
+  NODE_ENV: nodeEnv,
 };
 
 export const isDev = env.NODE_ENV === 'development';

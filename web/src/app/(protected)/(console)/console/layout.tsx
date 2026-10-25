@@ -33,6 +33,7 @@ import { useT, type AllTranslationKeys } from '@/i18n';
 import { useLogout } from '@/features/auth/hooks/use-auth';
 import { useAuthStore } from '@/features/auth/store/auth-store';
 import { isWebFeatureEnabled } from '@/config/features';
+import { isDevtoolsEnabled } from '@/config/devtools';
 
 const OrganizationSwitcher = lazy(async () => {
   const organizationFeature =
@@ -99,11 +100,15 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
   ];
 
   const secondaryNavItems: NavItem[] = [
-    {
-      titleKey: 'nav.styleguide',
-      href: ROUTES.DEVTOOLS.STYLEGUIDE,
-      icon: Palette,
-    },
+    ...(isDevtoolsEnabled()
+      ? [
+          {
+            titleKey: 'nav.styleguide' as const,
+            href: ROUTES.DEVTOOLS.STYLEGUIDE,
+            icon: Palette,
+          },
+        ]
+      : []),
     {
       titleKey: 'nav.settings',
       href: ROUTES.CONSOLE.SETTINGS,
