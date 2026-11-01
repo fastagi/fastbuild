@@ -4,6 +4,8 @@ import type { ErrorsMessages } from './en-US';
 
 const messages = {
   notFound: '页面未找到',
+  notFoundDescription: '你请求的页面不存在或已移动。',
+  backToHome: '返回首页',
   serverError: '服务器错误',
   networkError: '网络错误，请检查网络连接',
   rateLimited: '操作过于频繁，请稍后重试',

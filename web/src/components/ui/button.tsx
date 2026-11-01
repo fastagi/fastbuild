@@ -32,15 +32,16 @@ const buttonVariants = cva(
         link: 'text-muted-foreground underline-offset-4 hover:text-primary hover:underline',
       },
       size: {
-        xs: 'h-7 px-2 text-xs',
-        sm: 'h-8 px-3 text-xs',
-        default: 'h-9 px-4',
+        xs: 'h-7 px-2 text-xs pointer-coarse:h-10',
+        sm: 'h-8 px-3 text-xs pointer-coarse:h-10',
+        default: 'h-9 px-4 pointer-coarse:h-10',
         lg: 'h-10 px-6',
         xl: 'h-11 px-8 text-base',
         '2xl': 'h-12 px-10 text-lg',
       },
       isIcon: {
-        true: 'aspect-square p-0',
+        // Callers often fix an icon button's size, which must not defeat the touch target.
+        true: 'aspect-square p-0 pointer-coarse:size-10',
       },
     },
     defaultVariants: {
