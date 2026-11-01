@@ -15,7 +15,9 @@ export async function signIn(page: Page, account: { identifier: string; password
 export async function signInAsOperator(page: Page) {
   await signIn(page, operator);
   await expect(page).toHaveURL(/\/console/);
-  // The palette shortcut and the header exist only once the console shell has mounted.
+  // The palette shortcut and the header exist only once the console shell has mounted. The URL
+  // changes first, while the sign-in page and its own h1 are still on screen.
+  await expect(page.getByRole('button', { name: 'Toggle sidebar' }).first()).toBeVisible();
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 }
 

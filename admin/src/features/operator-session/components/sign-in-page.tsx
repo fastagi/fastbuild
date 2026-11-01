@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Eye, EyeOff, LogIn, ShieldCheck } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
@@ -18,9 +18,20 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
   const [password, setPassword] = useState('');
   const [revealed, setRevealed] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
+  const [attempted, setAttempted] = useState(false);
+  const identifierInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+  const identifierMissing = attempted && identifier.trim() === '';
+  const passwordMissing = attempted && password === '';
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (identifier.trim() === '' || password === '') {
+      setAttempted(true);
+      signIn.reset();
+      (identifier.trim() === '' ? identifierInput : passwordInput).current?.focus();
+      return;
+    }
     signIn.mutate(
       { identifier: identifier.trim(), password },
       {
@@ -57,27 +68,42 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
             <Label htmlFor="sign-in-identifier">{t('auth.identifier')}</Label>
             <Input
               id="sign-in-identifier"
+              ref={identifierInput}
               name="identifier"
               autoComplete="username"
               required
               maxLength={100}
               value={identifier}
+              className="aria-invalid:border-destructive"
+              aria-invalid={identifierMissing || undefined}
+              aria-describedby={identifierMissing ? 'sign-in-identifier-error' : undefined}
               onChange={(event) => setIdentifier(event.target.value)}
             />
+            {identifierMissing ? (
+              <p id="sign-in-identifier-error" className="text-xs text-destructive">
+                {t('auth.errors.identifierRequired')}
+              </p>
+            ) : null}
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="sign-in-password">{t('auth.password')}</Label>
             <div className="relative">
               <Input
                 id="sign-in-password"
+                ref={passwordInput}
                 name="password"
                 type={revealed ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 maxLength={128}
                 value={password}
-                className="pr-10"
-                aria-describedby={capsLock ? 'sign-in-caps-lock' : undefined}
+                className="pr-10 aria-invalid:border-destructive"
+                aria-invalid={passwordMissing || undefined}
+                aria-describedby={
+                  [passwordMissing && 'sign-in-password-error', capsLock && 'sign-in-caps-lock']
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
                 onChange={(event) => setPassword(event.target.value)}
                 onKeyUp={(event) => setCapsLock(event.getModifierState('CapsLock'))}
                 onBlur={() => setCapsLock(false)}
@@ -95,6 +121,11 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
                 {revealed ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
               </Button>
             </div>
+            {passwordMissing ? (
+              <p id="sign-in-password-error" className="text-xs text-destructive">
+                {t('auth.errors.passwordRequired')}
+              </p>
+            ) : null}
             {capsLock ? (
               <p id="sign-in-caps-lock" className="text-xs text-warning-strong">
                 {t('auth.capsLock')}
@@ -106,10 +137,7 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
               {t(signInErrorKey(signIn.error))}
             </p>
           ) : null}
-          <Button
-            type="submit"
-            disabled={signIn.isPending || identifier.trim() === '' || password === ''}
-          >
+          <Button type="submit" loading={signIn.isPending}>
             <LogIn aria-hidden="true" />
             {signIn.isPending ? t('auth.submitting') : t('auth.submit')}
           </Button>

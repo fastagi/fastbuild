@@ -61,8 +61,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 }
 
@@ -95,8 +94,8 @@
   .brand-mark {
     @apply grid size-8 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-brand-foreground;
     box-shadow:
-      0 1px 2px oklch(0.18 0.05 250 / 22%),
-      0 5px 14px oklch(0.5 0.2 250 / 18%);
+      0 1px 2px color-mix(in oklch, var(--brand) 22%, transparent),
+      0 5px 14px color-mix(in oklch, var(--brand) 18%, transparent);
   }
 
   .page-container {
@@ -125,7 +124,7 @@
   }
 
   .metric-grid {
-    @apply grid gap-3 sm:grid-cols-3;
+    @apply grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))];
   }
 
   .content-grid {
@@ -170,39 +169,32 @@
     @apply size-5 text-subtle/70;
   }
 
-  .not-found {
-    @apply grid min-h-dvh place-content-center justify-items-start px-6;
+  /* One layout for every route failure: a 404 or an error, inside the shell or standing alone. */
+  .route-failure {
+    @apply grid min-h-[60dvh] place-content-center justify-items-start;
   }
 
-  .not-found-code {
-    @apply font-mono text-sm font-semibold text-brand-strong;
+  .route-failure-standalone {
+    @apply min-h-dvh px-6;
   }
 
-  .not-found h1 {
-    @apply mt-3 text-2xl font-semibold;
+  .route-failure-code {
+    @apply mb-3 font-mono text-sm font-semibold text-brand-strong;
   }
 
-  .not-found p {
-    @apply mb-6 mt-2 max-w-md text-sm text-subtle;
-  }
-
-  .route-error {
-    @apply grid min-h-[60dvh] place-content-center justify-items-start px-6;
-  }
-
-  .route-error h1 {
+  .route-failure h1 {
     @apply text-2xl font-semibold;
   }
 
-  .route-error p {
+  .route-failure p:not(.route-failure-code) {
     @apply mt-2 max-w-md text-sm text-subtle;
   }
 
-  .route-error .route-error-request {
+  .route-failure .route-failure-detail {
     @apply font-mono text-xs;
   }
 
-  .route-error-actions {
+  .route-failure-actions {
     @apply mt-6 flex flex-wrap gap-2;
   }
 

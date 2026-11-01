@@ -7,7 +7,7 @@ import { isOperatorFeatureEnabled } from '@/config/env';
 import { useFailedDeliveryCount } from '@/features/notification-deliveries/hooks/use-notification-deliveries';
 
 /** Failures an operator can act on, each linking to the screen that diagnoses it. */
-export function AttentionPanel() {
+export function AttentionPanel({ className }: { className?: string | undefined }) {
   const { t } = useTranslation();
   const notificationsEnabled = isOperatorFeatureEnabled('notification');
   const failedDeliveries = useFailedDeliveryCount(notificationsEnabled);
@@ -22,6 +22,7 @@ export function AttentionPanel() {
       titleId="attention-title"
       title={t('overview.attention.title')}
       description={t('overview.attention.description')}
+      className={className}
       contentClassName="p-0"
     >
       {failedDeliveries.isPending ? (
