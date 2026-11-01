@@ -1,8 +1,9 @@
 name: End-to-End
 
 # Starts the real stack with `make dev` (PostgreSQL, Go API, and a browser shell) and drives the
-# browser shell. It proves the one-command development path, the operator flow in the Admin
-# Console, and sign-in through the server-owned API adapter in the Web application.
+# browser shell. It proves the one-command development path and the main flows of each shell, checks
+# WCAG AA with axe, and compares screenshots. Baselines are rendered here because fonts differ per
+# platform: run this workflow with `update_snapshots` and commit the uploaded snapshots.
 
 # Pull requests run this when a browser shell, sign-in, the operator flow, or the dev stack
 # changes; the whole stack runs weekly.
@@ -20,6 +21,11 @@ on:
   schedule:
     - cron: "37 3 * * 1"
   workflow_dispatch:
+    inputs:
+      update_snapshots:
+        description: Render new screenshot baselines and upload them as artifacts
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -79,7 +85,16 @@ jobs:
 
       - name: Run end-to-end tests
         working-directory: admin
-        run: pnpm e2e
+        run: pnpm e2e ${{ inputs.update_snapshots && '--update-snapshots' || '' }}
+
+      - name: Upload new screenshot baselines
+        if: ${{ inputs.update_snapshots }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-admin-snapshots
+          path: admin/e2e/visual.e2e.ts-snapshots
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Show the stack log
         if: ${{ failure() }}
@@ -144,7 +159,16 @@ jobs:
 
       - name: Run end-to-end tests
         working-directory: web
-        run: pnpm e2e
+        run: pnpm e2e ${{ inputs.update_snapshots && '--update-snapshots' || '' }}
+
+      - name: Upload new screenshot baselines
+        if: ${{ inputs.update_snapshots }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-web-snapshots
+          path: web/e2e/visual.e2e.ts-snapshots
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Show the stack log
         if: ${{ failure() }}

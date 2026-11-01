@@ -6,6 +6,21 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ## Unreleased
 
+### Added
+
+- End-to-end coverage for the main Web and Admin Console flows (registration, organizations,
+  webhook endpoints, API keys, assets, command palette, audit details, route errors), WCAG AA checks
+  with axe in light and dark mode, and screenshot comparison at phone and desktop widths.
+
+### Fixed
+
+- Asset uploads work under `make dev` with the real API: it now sets `APP_URL` to the Web origin,
+  and the Next.js development server forwards `/v1/asset-transfers/<token>` to the API.
+- `POST /v1/webhook-endpoints` returns `422 WEBHOOK.INVALID_TARGET` for a host that does not exist
+  instead of a 500.
+- `make dev` prints why a migration, seed, or operator grant failed instead of exiting silently.
+- The Web asset upload input has an accessible name.
+
 ## v0.26.0 — 2026-10-25
 
 ### Added

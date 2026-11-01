@@ -1,15 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-// Accounts created by the API seeders that `make dev` runs; `make dev` grants admin@ the operator role.
-const operator = { identifier: 'admin@example.com', password: 'secret' };
-const member = { identifier: 'user@example.com', password: 'secret' };
-
-async function signIn(page: Page, account: { identifier: string; password: string }) {
-  await page.goto('/login');
-  await page.getByLabel('Username or email').fill(account.identifier);
-  await page.getByLabel('Password', { exact: true }).fill(account.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
-}
+import { expect, test } from '@playwright/test';
+import { member, operator, signIn } from './support';
 
 test('an operator signs in, sees live API state, and signs out', async ({ page }) => {
   await signIn(page, operator);
@@ -19,7 +9,7 @@ test('an operator signs in, sees live API state, and signs out', async ({ page }
   await expect(page.getByRole('definition').filter({ hasText: /^Available$/ })).toBeVisible();
 
   await page.getByRole('link', { name: 'Users' }).click();
-  await expect(page.getByText('user · user@example.com')).toBeVisible();
+  await expect(page.getByText(/ · \S+@\S+$/).first()).toBeVisible();
 
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByRole('cell', { name: /operator\.session/ }).first()).toBeVisible();

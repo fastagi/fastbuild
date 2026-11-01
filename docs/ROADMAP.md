@@ -25,7 +25,7 @@ Review this roadmap at every minor release and move finished items into the chan
 |---|---|---|
 | 1 Plugin registry | Everything, released in v0.25.0; initialized projects verified by the **Initialized project** CI job | — |
 | 2 Full-stack plugins and lifecycle | Slots, `plugin:update` / `remove` / `doctor` / `pack`, knowledge-base Web UI, `scripts/verify-plugin.sh` | Plugin authoring guide and a `make:plugin` generator |
-| 3 Themes and blocks | 3 themes, 8 blocks, contrast and registry guards, `plugin:add` for every kind | Screenshot and accessibility tests in a browser |
+| 3 Themes and blocks | 3 themes, 8 blocks, contrast and registry guards, `plugin:add` for every kind | Screenshot and accessibility tests for each installed theme |
 | 4 Official plugins | `knowledge-base`, `tags`, `comments`; nightly Plugins workflow | `ai-gateway`, `knowledge-vector`, `billing-stripe`, `forms`, `pages`, `import-export` |
 | 5 v1.0 enterprise ready | Shared rate limiting, `project:upgrade`, compatibility promise | OIDC, MFA, email verification, current GORM, external security review, documentation site, three production projects |
 | 6 Templates and agent-native building | 3 templates, `make init-project TEMPLATE=<name>`, `fastbuild mcp`, plugin-selection evaluation (32/32) | An agent evaluation that runs whole describe-to-deploy tasks |
@@ -82,7 +82,7 @@ an update test edits one installed file, updates the plugin, and keeps the edit;
 | 3 official themes | A neutral default, an enterprise theme, and a content-first theme | Done: `theme-enterprise`, `theme-warm`, `theme-midnight` |
 | 8 official blocks | Dashboard, data table, settings page, pricing table, empty and error states, auth pages, onboarding, landing hero | Done (v0.25.0) |
 | One install command | `plugin:add <name>` resolves plugins, themes, blocks, and templates from the same registry | Done (v0.25.0) |
-| Visual checks | Screenshot tests in light and dark mode at phone and desktop widths; accessibility lint | Not started |
+| Visual checks | Screenshot tests in light and dark mode at phone and desktop widths; accessibility lint | Done for the default theme in the End-to-End workflow; installed themes are not covered |
 
 **Exit:** an agent can switch the theme and add three blocks to a fresh project in one session, and
 the screenshot and accessibility checks pass.
