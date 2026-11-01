@@ -7,8 +7,11 @@
  * @example
  * <Google className="size-5" />
  * <Logo className="size-10" />
+ * <BrandLogo />
  */
 import React from 'react';
+
+import { cn } from '@/utils';
 
 // Custom brand icons
 export const Google = (props: React.SVGProps<SVGSVGElement>) => (
@@ -70,4 +73,55 @@ export const Logo = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
   </svg>
 );
- 
+
+const brandLogoSizes = {
+  md: { tile: 'h-8 w-8 rounded-lg', icon: 'h-5 w-5', wordmark: 'text-xl' },
+  lg: { tile: 'h-10 w-10 rounded-xl', icon: 'h-6 w-6', wordmark: 'text-2xl' },
+} as const;
+
+const brandLogoTones = {
+  default: { tile: 'bg-primary text-primary-foreground', wordmark: '' },
+  panel: {
+    tile: 'bg-brand-panel-foreground text-brand-panel',
+    wordmark: 'text-brand-panel-foreground',
+  },
+} as const;
+
+interface BrandLogoProps extends React.ComponentProps<'span'> {
+  size?: keyof typeof brandLogoSizes;
+  /** Use `panel` on brand panel surfaces, where a primary tile would disappear. */
+  tone?: keyof typeof brandLogoTones;
+  /** Lets a narrow header hide or restyle the wordmark while keeping the mark. */
+  wordmarkClassName?: string;
+}
+
+/** The FastBuild lockup: the shield mark in its tile and the wordmark. */
+export const BrandLogo = ({
+  size = 'md',
+  tone = 'default',
+  wordmarkClassName,
+  className,
+  ...props
+}: BrandLogoProps) => (
+  <span className={cn('inline-flex items-center gap-2.5', className)} {...props}>
+    <span
+      className={cn(
+        'flex shrink-0 items-center justify-center',
+        brandLogoSizes[size].tile,
+        brandLogoTones[tone].tile
+      )}
+    >
+      <Logo className={brandLogoSizes[size].icon} aria-hidden="true" />
+    </span>
+    <span
+      className={cn(
+        'font-bold tracking-tight',
+        brandLogoSizes[size].wordmark,
+        brandLogoTones[tone].wordmark,
+        wordmarkClassName
+      )}
+    >
+      FastBuild
+    </span>
+  </span>
+);

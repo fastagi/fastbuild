@@ -7,7 +7,7 @@ const messages = {
   welcomeBack: '欢迎回来',
   signInToContinue: '登录以继续访问您的账户',
   createAccount: '创建账户',
-  getStarted: '开始使用平台',
+  getStarted: '开始使用',
   registrationDisabled: '注册已关闭',
   registrationDisabledMessage: '该平台目前暂不开放注册，请联系管理员获取访问权限。',
   backToSignIn: '返回登录',
@@ -57,10 +57,10 @@ const messages = {
   // Decorative panel
   heroTitle: '构建卓越产品',
   heroSubtitle: '现代化Web脚手架，助力快速可靠的产品交付',
-  feature1: '极速开发体验',
-  feature2: '企业级安全保障',
-  feature3: '可扩展架构',
-  feature4: '全天候技术支持',
+  feature1: 'Next.js 与 Go 起步代码',
+  feature2: '登录、会话与受保护路由',
+  feature3: 'Web 与 API 可独立部署',
+  feature4: '内置英文与中文',
 
   // Validation messages
   nameRequired: '请输入姓名',

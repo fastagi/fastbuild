@@ -4,7 +4,7 @@ const messages = {
   welcomeBack: 'Welcome back',
   signInToContinue: 'Sign in to continue to your account',
   createAccount: 'Create account',
-  getStarted: 'Get started with the platform',
+  getStarted: 'Get started',
   registrationDisabled: 'Registration Disabled',
   registrationDisabledMessage:
     'Registration is currently disabled for this platform. Please contact your administrator for access.',
@@ -55,10 +55,10 @@ const messages = {
   // Decorative panel
   heroTitle: 'Build Amazing Products',
   heroSubtitle: 'The modern web scaffold for fast, reliable product delivery',
-  feature1: 'Lightning-fast development',
-  feature2: 'Enterprise-grade security',
-  feature3: 'Scalable architecture',
-  feature4: '24/7 global support',
+  feature1: 'Next.js and Go starter code',
+  feature2: 'Sign-in, sessions, and protected routes',
+  feature3: 'Independently deployable Web and API',
+  feature4: 'English and Chinese included',
 
   // Validation messages
   nameRequired: 'Name is required',

@@ -46,7 +46,6 @@ const messages = {
   cta: {
     title: '准备开始构建？',
     description: '从 FastBuild 的契约、认证和可替换控制台开始你的下一个项目。',
-    primaryAction: '免费开始',
     githubAction: '在 GitHub 查看',
   },
 } as const satisfies LocaleMessageShape<SiteMessages>;
