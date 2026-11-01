@@ -31,6 +31,19 @@ const nextConfig: NextConfig = {
   turbopack: {},
 
   // Browser response policy only. Cache ownership remains route-specific.
+  // The API's local object store issues same-origin `/v1/asset-transfers/<token>` grants; a real
+  // deployment routes that path to the API, and production assets use signed R2 URLs instead.
+  async rewrites() {
+    const upstream = process.env.API_UPSTREAM_URL;
+    if (process.env.NODE_ENV === 'production' || !upstream) return [];
+    return [
+      {
+        source: '/v1/asset-transfers/:token',
+        destination: `${upstream.replace(/\/+$/, '')}/asset-transfers/:token`,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

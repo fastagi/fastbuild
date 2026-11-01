@@ -60,10 +60,10 @@ function SignedInOperator() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              aria-label={t('auth.accountMenu')}
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               {identity}
+              <span className="sr-only">{t('auth.accountMenu')}</span>
               <ChevronsUpDown className="ml-auto size-4" aria-hidden="true" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>

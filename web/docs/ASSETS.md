@@ -42,6 +42,11 @@ short-lived browser object URL. Download responses are streamed through the decl
 media-type boundary before a Blob is created; a missing, short, oversized, or mismatched response
 fails closed.
 
+`make dev` runs the real API with the local storage provider, which issues transfer URLs under
+`APP_URL`. The script sets `APP_URL` to the Web origin, and outside production `next.config.ts`
+forwards `/v1/asset-transfers/:token` to the API. Production uses provider HTTPS URLs and has no such
+rewrite.
+
 ## UI And Query Behavior
 
 `/console/assets` is available only in an asset-enabled build. The console shows a compact status
