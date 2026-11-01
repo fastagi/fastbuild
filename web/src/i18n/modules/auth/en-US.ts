@@ -43,9 +43,10 @@ const messages = {
   termsOfService: 'Terms of Service',
   and: 'and',
   privacyPolicy: 'Privacy Policy',
-  orContinueWith: 'Or continue with',
+  legalDocumentsUnpublished: 'The Terms of Service and Privacy Policy have not been published yet.',
 
   // Password requirements
+  passwordHint: 'Use 8 to 50 characters.',
   passwordRequirements: 'Password requirements',
   passwordReqLength: 'At least 8 characters long',
   passwordReqCase: 'Contains uppercase and lowercase letters',
@@ -72,9 +73,10 @@ const messages = {
   passwordTooLong: 'Password is too long',
   passwordTooShort: 'Password is too short',
   passwordInvalid: 'Please enter a valid password',
+  passwordLengthInvalid: 'Password must be 8 to 50 characters',
   confirmPasswordRequired: 'Please confirm your password',
   passwordsDoNotMatch: 'Passwords do not match',
-  termsRequired: 'You must accept the terms and conditions',
+  termsRequired: 'Please accept the Terms of Service and Privacy Policy to continue',
 
   // Toast messages
   loginSuccess: 'Login successful',

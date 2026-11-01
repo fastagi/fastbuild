@@ -45,9 +45,10 @@ const messages = {
   termsOfService: '服务条款',
   and: '和',
   privacyPolicy: '隐私政策',
-  orContinueWith: '或通过以下方式继续',
+  legalDocumentsUnpublished: '服务条款和隐私政策尚未发布。',
 
   // Password requirements
+  passwordHint: '请使用 8 到 50 个字符。',
   passwordRequirements: '密码要求',
   passwordReqLength: '至少8个字符',
   passwordReqCase: '包含大小写字母',
@@ -74,9 +75,10 @@ const messages = {
   passwordTooLong: '密码过长',
   passwordTooShort: '密码过短',
   passwordInvalid: '请输入有效的密码',
+  passwordLengthInvalid: '密码长度必须为 8 到 50 个字符',
   confirmPasswordRequired: '请确认密码',
   passwordsDoNotMatch: '两次输入的密码不一致',
-  termsRequired: '请同意服务条款和隐私政策',
+  termsRequired: '请同意服务条款和隐私政策后继续',
 
   // Toast messages
   loginSuccess: '登录成功',
