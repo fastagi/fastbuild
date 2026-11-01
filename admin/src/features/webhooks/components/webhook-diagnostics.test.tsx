@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import { toast } from 'sonner';
 import '@/i18n';
 import { chooseOption } from '@/test/select';
 import { WebhookDiagnostics } from '@/features/webhooks/components/webhook-diagnostics';
@@ -46,6 +47,16 @@ const endpoint = {
   updated_at: '2026-09-02T00:00:00Z',
 };
 
+const failingEndpoint = {
+  ...endpoint,
+  id: 6,
+  name: 'Failing receiver',
+  url: 'https://hooks.example.test/failing',
+  status: 'active',
+  disabled_reason: '',
+  consecutive_failures: 2,
+};
+
 function delivery(id: number, status: string) {
   return {
     id,
@@ -87,7 +98,7 @@ function stubApi(replayResponse: () => Response) {
       return Promise.resolve(json(page([attempt])));
     }
     if (url.includes('/webhook-endpoints')) {
-      return Promise.resolve(json(page([endpoint])));
+      return Promise.resolve(json(page([endpoint, failingEndpoint])));
     }
     return Promise.resolve(json(page([delivery(21, 'failed'), delivery(22, 'pending')])));
   });
@@ -116,7 +127,19 @@ describe('WebhookDiagnostics', () => {
     expect(within(failedRow).getByText('500 · http_status')).toBeInTheDocument();
   });
 
+  it('warns about an active endpoint that keeps failing', async () => {
+    stubApi(() => json({}));
+    render(withQueryClient(<WebhookDiagnostics organizationId={7} />));
+
+    const row = (await screen.findByText('https://hooks.example.test/failing')).closest(
+      'tr',
+    ) as HTMLElement;
+    expect(within(row).getByText('Active')).toHaveClass('bg-warning-subtle');
+    expect(within(row).getByText('2 consecutive failures')).toHaveClass('text-warning-strong');
+  });
+
   it('replays a delivery only after confirmation', async () => {
+    const success = vi.spyOn(toast, 'success');
     const fetchMock = stubApi(() =>
       json({ code: 0, message: 'success', data: { ...delivery(21, 'pending'), replay_count: 1 } }),
     );
@@ -137,6 +160,8 @@ describe('WebhookDiagnostics', () => {
       ),
     );
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(success).toHaveBeenCalledWith('Message msg_21 was queued again.');
+    success.mockRestore();
   });
 
   it('explains a rejected replay inside the dialog', async () => {

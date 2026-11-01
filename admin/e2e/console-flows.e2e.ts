@@ -40,7 +40,7 @@ test('an audit row expands to its details, and filter chips can be removed', asy
 
 test('users, settings, and deliveries load from the API', async ({ page }) => {
   await page.goto('/console/users');
-  await expect(page.getByText(/ · \S+@\S+$/).first()).toBeVisible();
+  await expect(page.getByRole('cell').getByText(/^\S+@\S+$/).first()).toBeVisible();
 
   await page.goto('/console/settings');
   await expect(page.getByRole('heading', { level: 1, name: 'App settings' })).toBeVisible();
@@ -86,7 +86,7 @@ test('a failed session check shows the route error page, and retry recovers', as
 
   failing = false;
   await page.getByRole('button', { name: /try again|retry/i }).click();
-  await expect(page.getByText(/ · \S+@\S+$/).first()).toBeVisible();
+  await expect(page.getByRole('cell').getByText(/^\S+@\S+$/).first()).toBeVisible();
 });
 
 test('the theme preference applies and survives a reload', async ({ page }) => {

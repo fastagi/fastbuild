@@ -84,7 +84,7 @@ describe('NotificationDeliveriesPage', () => {
       ),
     );
 
-    expect(await screen.findByText(/no deliveries match/i)).toBeInTheDocument();
+    expect(await screen.findByText('No deliveries yet.')).toBeInTheDocument();
     await chooseOption(screen.getByLabelText('Status'), 'Failed');
     await chooseOption(screen.getByLabelText('Channel'), 'Email');
     fireEvent.change(screen.getByLabelText('Recipient user ID'), { target: { value: 'abc' } });
@@ -96,6 +96,58 @@ describe('NotificationDeliveriesPage', () => {
       user_id: undefined,
       page: undefined,
     });
+  });
+
+  it('shows applied filters as chips and clears them from a filtered empty list', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => Promise.resolve(json(page([])))),
+    );
+    const onSearchChange = vi.fn();
+    render(
+      withQueryClient(
+        <NotificationDeliveriesPage
+          search={{ status: 'failed', channel: 'email' }}
+          onSearchChange={onSearchChange}
+        />,
+      ),
+    );
+
+    expect(await screen.findByText(/no deliveries match/i)).toBeInTheDocument();
+    const chips = screen.getByRole('list', { name: 'Active filters' });
+    expect(chips).toHaveTextContent('Status: Failed');
+    expect(chips).toHaveTextContent('Channel: Email');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove the Channel filter' }));
+    expect(onSearchChange).toHaveBeenLastCalledWith({
+      status: 'failed',
+      channel: undefined,
+      page: undefined,
+    });
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Clear filters' })[0]!);
+    expect(onSearchChange).toHaveBeenLastCalledWith({});
+  });
+
+  it('marks a processing delivery apart from a pending one', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          json(
+            page([
+              { ...failed, id: 1, status: 'processing' },
+              { ...failed, id: 2, status: 'pending' },
+            ]),
+          ),
+        ),
+      ),
+    );
+    render(withQueryClient(<NotificationDeliveriesPage search={{}} onSearchChange={vi.fn()} />));
+
+    const rows = await screen.findAllByRole('row');
+    expect(within(rows[1]!).getByText('Processing')).toHaveClass('bg-brand-subtle');
+    expect(within(rows[2]!).getByText('Pending')).toHaveClass('bg-muted');
   });
 
   it('counts each status under the current filters and filters by a clicked count', async () => {

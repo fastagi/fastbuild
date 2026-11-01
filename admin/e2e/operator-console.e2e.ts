@@ -9,7 +9,7 @@ test('an operator signs in, sees live API state, and signs out', async ({ page }
   await expect(page.getByRole('definition').filter({ hasText: /^Available$/ })).toBeVisible();
 
   await page.getByRole('link', { name: 'Users' }).click();
-  await expect(page.getByText(/ · \S+@\S+$/).first()).toBeVisible();
+  await expect(page.getByRole('cell').getByText(/^\S+@\S+$/).first()).toBeVisible();
 
   await page.getByRole('link', { name: 'Audit log' }).click();
   await expect(page.getByRole('cell', { name: /operator\.session/ }).first()).toBeVisible();

@@ -14,10 +14,35 @@ const toneClasses: Record<StatusTone, string> = {
 
 interface StatusBadgeProps extends HTMLAttributes<HTMLDivElement> {
   tone?: StatusTone;
+  /**
+   * `status` is a state that can change and may need attention. `metadata` is a plain label for a
+   * fact, such as a role or a source: it has no dot and no color, and ignores `tone`.
+   */
+  variant?: 'status' | 'metadata';
 }
 
 /** A shadcn Badge with a leading dot, colored by semantic state rather than decoration. */
-export function StatusBadge({ className, children, tone = 'neutral', ...props }: StatusBadgeProps) {
+export function StatusBadge({
+  className,
+  children,
+  tone = 'neutral',
+  variant = 'status',
+  ...props
+}: StatusBadgeProps) {
+  if (variant === 'metadata') {
+    return (
+      <Badge
+        variant="outline"
+        className={cn(
+          'h-6 whitespace-nowrap rounded-md border-border bg-transparent px-2 font-medium text-subtle',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </Badge>
+    );
+  }
   return (
     <Badge
       variant="outline"
