@@ -33,7 +33,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
     test('the destructive confirmation dialog meets WCAG AA', async ({ page }) => {
       await signInAsOperator(page);
       await page.goto('/console/users');
-      await page.getByRole('button', { name: 'Disable', exact: true }).first().click();
+      await page.getByRole('button', { name: /^Actions for / }).first().click();
+      await page.getByRole('menuitem', { name: 'Disable' }).click();
       const dialog = page.getByRole('dialog');
       await expect(dialog.getByRole('button', { name: 'Disable', exact: true })).toBeVisible();
       await expectAccessible(page);
