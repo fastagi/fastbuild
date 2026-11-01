@@ -1,6 +1,8 @@
 // Errors translations - English (US)
 const messages = {
   notFound: 'Page not found',
+  notFoundDescription: 'The page you requested does not exist or has moved.',
+  backToHome: 'Back to home',
   serverError: 'Server error',
   networkError: 'Network error, please check your connection',
   rateLimited: 'Too many attempts, please try again later',

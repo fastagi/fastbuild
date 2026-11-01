@@ -2,6 +2,10 @@ import type { LocaleMessageShape } from '../../locale-message-shape';
 import type { ConsoleMessages } from './en-US';
 
 const messages = {
+  brand: 'FastBuild 控制台',
+  openNavigation: '打开导航菜单',
+  mainNavigation: '主导航',
+  secondaryNavigation: '工具与设置',
   notifications: '通知',
   profile: '个人资料',
   returnToSite: '返回站点',

@@ -1,4 +1,8 @@
 const messages = {
+  brand: 'FastBuild Console',
+  openNavigation: 'Open navigation menu',
+  mainNavigation: 'Main navigation',
+  secondaryNavigation: 'Tools and settings',
   notifications: 'Notifications',
   profile: 'Profile',
   returnToSite: 'Return to site',

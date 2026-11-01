@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { useLocale } from 'next-intl';
+import { useAuthStore } from '@/features/auth/store/auth-store';
 import { useT } from '@/i18n';
 
 /**
  * Small client island for the console greeting + wall-clock.
  * Keeps the parent page a pure Server Component.
+ *
+ * The name comes from the auth store because it is resolved in every auth mode; the mock session
+ * cookie exists only in mock mode.
  */
-export function GreetingClock({ name }: { name: string }) {
+export function GreetingClock() {
   const [now, setNow] = useState<Date | null>(null);
   const locale = useLocale();
-  const t = useT('console.greeting');
+  const t = useT('console');
+  const user = useAuthStore.use.user();
 
   useEffect(() => {
     const update = () => setNow(new Date());
@@ -28,17 +33,20 @@ export function GreetingClock({ name }: { name: string }) {
     hour: '2-digit',
     minute: '2-digit',
   });
+  const name = user?.name || user?.email || t('home.defaultUser');
 
   return (
-    <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-      {t(greetingKey, { name })}
+    <>
+      {t(`greeting.${greetingKey}`, { name })}
       {time ? (
         <>
           {' '}
-          <span className="ml-3 align-middle text-base font-normal text-text-muted">{time}</span>
+          <span className="mt-1 block text-base font-normal text-text-muted sm:mt-0 sm:ml-3 sm:inline sm:align-middle">
+            {time}
+          </span>
         </>
       ) : null}
-    </h1>
+    </>
   );
 }
 
