@@ -33,10 +33,10 @@ export function ApiHealthPanel() {
             title={t('overview.refresh')}
             variant="outline"
             size="icon"
-            disabled={query.isFetching}
+            loading={query.isFetching}
             onClick={() => void query.refetch()}
           >
-            <RefreshCw className={query.isFetching ? 'size-4 animate-spin' : 'size-4'} />
+            <RefreshCw aria-hidden="true" />
           </Button>
         </>
       }

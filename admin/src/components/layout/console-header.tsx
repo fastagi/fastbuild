@@ -23,6 +23,7 @@ export function ConsoleHeader() {
   const dark = useResolvedTheme();
   const setTheme = usePreferencesStore((state) => state.setTheme);
   const pageTitles: Record<string, string> = {
+    '/console': t('navigation.overview'),
     '/console/preferences': t('navigation.preferences'),
     '/console/users': t('navigation.users'),
     '/console/audit': t('navigation.audit'),
@@ -31,10 +32,10 @@ export function ConsoleHeader() {
     '/console/notifications': t('navigation.notifications'),
   };
   const currentPage =
-    pageTitles[pathname] ??
+    pageTitles[pathname.replace(/\/+$/, '')] ??
     (pathname.startsWith('/console/organizations/')
       ? t('navigation.organizations')
-      : t('navigation.overview'));
+      : t('errors.notFoundTitle'));
   const themeLabel = dark ? t('preferences.light') : t('preferences.dark');
 
   return (

@@ -82,6 +82,29 @@ describe('SignInPage', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('keeps submit enabled and validates empty fields only on submit', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage();
+
+    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    expect(submitButton).toBeEnabled();
+    expect(screen.queryByText('Enter your username or email.')).not.toBeInTheDocument();
+
+    fireEvent.click(submitButton);
+
+    const identifier = screen.getByLabelText(/username or email/i);
+    expect(identifier).toHaveAccessibleDescription('Enter your username or email.');
+    expect(identifier).toHaveFocus();
+    expect(screen.getByLabelText(/^password$/i)).toHaveAccessibleDescription(
+      'Enter your password.',
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fireEvent.change(identifier, { target: { value: 'ops' } });
+    expect(screen.queryByText('Enter your username or email.')).not.toBeInTheDocument();
+  });
+
   it('reveals the password on request and warns while Caps Lock is on', () => {
     renderPage();
     const password = screen.getByLabelText(/^password$/i);

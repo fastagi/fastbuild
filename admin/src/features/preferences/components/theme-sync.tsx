@@ -5,11 +5,12 @@ export function ThemeSync() {
   const dark = useResolvedTheme();
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
-    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+    const root = document.documentElement;
+    root.classList.toggle('dark', dark);
+    root.style.colorScheme = dark ? 'dark' : 'light';
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', dark ? '#171717' : '#0061ce');
+      ?.setAttribute('content', getComputedStyle(root).getPropertyValue('--theme-color').trim());
   }, [dark]);
 
   return null;

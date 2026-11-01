@@ -14,7 +14,7 @@ interface SectionCardProps {
   actions?: ReactNode;
   /** Controls placed below the heading, such as a filter form. */
   toolbar?: ReactNode;
-  className?: string;
+  className?: string | undefined;
   contentClassName?: string;
   children: ReactNode;
 }

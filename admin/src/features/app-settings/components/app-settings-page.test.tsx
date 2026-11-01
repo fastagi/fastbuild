@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@/i18n';
 import { AppSettingsPage } from '@/features/app-settings/components/app-settings-page';
 
@@ -117,7 +117,113 @@ describe('AppSettingsPage', () => {
 
     expect(input).toHaveValue('help@example.test');
     expect(screen.queryByText(/^Unsaved:/)).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the draft and the conflict error when the refetch brings a new version', async () => {
+    const latest = { ...setting, value: 'latest@example.test', version: 4 };
+    let conflicted = false;
+    renderPage(
+      vi.fn().mockImplementation((_url: string, init: RequestInit) => {
+        if (init.method === 'PATCH') {
+          conflicted = true;
+          return Promise.resolve(
+            json({ code: 412, error_code: 'SETTING.VERSION_CONFLICT', message: 'stale' }, 412),
+          );
+        }
+        return Promise.resolve(
+          json({ code: 0, message: 'success', data: [conflicted ? latest : setting] }),
+        );
+      }),
+    );
+
+    fireEvent.change(await screen.findByLabelText('app.support_email'), {
+      target: { value: 'mine@example.test' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Version 4')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/changed this setting meanwhile/i);
+    expect(screen.getByLabelText('app.support_email')).toHaveValue('mine@example.test');
+    expect(
+      screen.getByText('Unsaved: latest@example.test → mine@example.test'),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves a cleared integer empty and refuses to save it as zero', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      json({
+        code: 0,
+        message: 'success',
+        data: [{ ...setting, key: 'app.limit', kind: 'integer', value: 5 }],
+      }),
+    );
+    renderPage(fetchMock);
+
+    const input = await screen.findByLabelText('app.limit');
+    fireEvent.change(input, { target: { value: '' } });
+
+    expect(input).toHaveValue(null);
+    expect(screen.getByText('Unsaved: 5 → (empty)')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('This value is not allowed');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves an integer as a number', async () => {
+    const integer = { ...setting, key: 'app.limit', kind: 'integer', value: 5 };
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((_url: string, init: RequestInit) =>
+        Promise.resolve(
+          init.method === 'PATCH'
+            ? json({ code: 0, message: 'success', data: { ...integer, value: 7, version: 4 } })
+            : json({ code: 0, message: 'success', data: [integer] }),
+        ),
+      );
+    renderPage(fetchMock);
+
+    fireEvent.change(await screen.findByLabelText('app.limit'), { target: { value: '7' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      const patch = fetchMock.mock.calls.find(
+        ([, init]) => (init as RequestInit).method === 'PATCH',
+      );
+      expect(JSON.parse(String((patch?.[1] as RequestInit).body))).toEqual({ value: 7 });
+    });
+  });
+
+  it('asks before resetting a live override', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((_url: string, init: RequestInit) =>
+        Promise.resolve(
+          init.method === 'DELETE'
+            ? json({ code: 0, message: 'success', data: { ...setting, source: 'default' } })
+            : json({ code: 0, message: 'success', data: [setting] }),
+        ),
+      );
+    renderPage(fetchMock);
+    const writes = () =>
+      fetchMock.mock.calls.filter(([, init]) => (init as RequestInit).method !== 'GET');
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Reset to default' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('help@example.test');
+    expect(writes()).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(writes()).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to default' }));
+    fireEvent.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset to default' }),
+    );
+    await waitFor(() => expect(writes()).toHaveLength(1));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });

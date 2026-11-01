@@ -1,18 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
 import { Server } from 'lucide-react';
+import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/components/layout/section-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { systemService } from '@/features/system/services/system-service';
+import { useOperatorSystem } from '@/features/system/hooks/use-operator-system';
 
 export function OperatorSystemPanel() {
   const { t } = useTranslation();
-  const system = useQuery({
-    queryKey: ['operator', 'system'],
-    queryFn: ({ signal }) => systemService.operatorSystem(signal),
-    staleTime: 15_000,
-  });
+  const system = useOperatorSystem();
 
   return (
     <SectionCard
@@ -40,12 +36,15 @@ export function OperatorSystemPanel() {
           </div>
           <div className="definition-row">
             <dt>{t('system.build')}</dt>
-            <dd>
-              <code>
-                {system.data.version}
-                {system.data.revision ? ` · ${system.data.revision}` : ''} ·{' '}
-                {system.data.go_version}
-              </code>
+            <dd className="whitespace-normal">
+              {[system.data.version, system.data.revision, system.data.go_version]
+                .filter(Boolean)
+                .map((part, index) => (
+                  <Fragment key={part}>
+                    {index > 0 ? ' · ' : null}
+                    <code className="whitespace-nowrap">{part}</code>
+                  </Fragment>
+                ))}
             </dd>
           </div>
           <div className="definition-row">
