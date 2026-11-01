@@ -31,10 +31,11 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
     {
       id: 'organization',
       header: t('organizations.columns.organization'),
+      role: 'primary',
       cell: (organization) => (
         <>
           <div className="font-medium">{organization.name}</div>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs [overflow-wrap:anywhere] text-muted-foreground">
             {organization.slug} · #{organization.id}
           </div>
         </>
@@ -49,12 +50,13 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
     {
       id: 'created',
       header: t('organizations.columns.created'),
-      className: 'text-muted-foreground',
+      className: 'whitespace-nowrap text-muted-foreground',
       cell: (organization) => dateFormat.format(new Date(organization.created_at)),
     },
     {
       id: 'actions',
       header: t('organizations.columns.actions'),
+      role: 'actions',
       align: 'end',
       cell: (organization) => (
         <Button
@@ -82,7 +84,13 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
         icon={Building2}
         titleId="organizations-title"
         title={t('organizations.listTitle')}
-        description={meta ? t('organizations.total', { count: meta.total }) : t('common.loading')}
+        description={
+          organizations.isSuccess
+            ? t('organizations.total', { count: organizations.data.meta.total })
+            : organizations.isPending
+              ? t('common.loading')
+              : undefined
+        }
         contentClassName="p-0"
         actions={
           <>
@@ -113,8 +121,27 @@ export function OrganizationsPage({ search, onSearchChange, onOpen }: Organizati
           rowKey={(organization) => organization.id}
           status={organizations.status}
           errorMessage={t('organizations.errors.unavailable')}
-          emptyMessage={t('organizations.empty')}
+          error={organizations.error}
+          onRetry={() => void organizations.refetch()}
+          retrying={organizations.isFetching}
+          emptyMessage={t(search.q ? 'organizations.emptyFiltered' : 'organizations.empty')}
+          emptyAction={
+            search.q ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setQuery('');
+                  onSearchChange({});
+                }}
+              >
+                {t('dataTable.clearFilters')}
+              </Button>
+            ) : null
+          }
           minWidthClassName="min-w-[560px]"
+          onRowClick={(organization) => onOpen(organization.id)}
         />
 
         <PagePagination

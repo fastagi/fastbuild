@@ -85,7 +85,11 @@ describe('OrganizationsPage', () => {
     );
 
     fireEvent.click(within(row).getByRole('button', { name: 'Open Acme' }));
+    expect(onOpen).toHaveBeenCalledTimes(1);
     expect(onOpen).toHaveBeenCalledWith(7);
+
+    fireEvent.click(within(row).getByText('Acme'));
+    expect(onOpen).toHaveBeenCalledTimes(2);
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(onSearchChange).toHaveBeenCalledWith({ q: 'ac', page: 2 });
@@ -103,10 +107,38 @@ describe('OrganizationsPage', () => {
       ),
     );
 
-    expect(await screen.findByText(/no organizations match/i)).toBeInTheDocument();
+    expect(await screen.findByText('No organizations yet.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText(/name or slug/i), { target: { value: ' glo ' } });
     fireEvent.submit(screen.getByRole('search'));
     expect(onSearchChange).toHaveBeenCalledWith({ q: 'glo', page: undefined });
+  });
+});
+
+describe('OrganizationsPage filters', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('offers to clear a search that matched nothing', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => Promise.resolve(json(page([])))),
+    );
+    const onSearchChange = vi.fn();
+    render(
+      withQueryClient(
+        <OrganizationsPage
+          search={{ q: 'zzz' }}
+          onSearchChange={onSearchChange}
+          onOpen={vi.fn()}
+        />,
+      ),
+    );
+
+    expect(await screen.findByText(/no organizations match/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(onSearchChange).toHaveBeenCalledWith({});
   });
 });
 
@@ -137,11 +169,43 @@ describe('OrganizationDetailPage', () => {
     );
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Acme' })).toBeInTheDocument();
-    expect(await screen.findByText('owner · owner@example.test')).toBeInTheDocument();
+    expect(await screen.findByText('owner@example.test')).toBeInTheDocument();
     expect(screen.getByText('Olive')).toBeInTheDocument();
     expect(screen.getByText('Owner')).toBeInTheDocument();
     expect(screen.getByText('2 members')).toBeInTheDocument();
     expect(screen.getByText('starter section')).toBeInTheDocument();
+  });
+
+  it('offers a retry and the request ID when the organization fails to load', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          json(
+            {
+              code: 500,
+              error_code: 'COMMON.INTERNAL_ERROR',
+              message: 'failed',
+              request_id: 'req-500',
+            },
+            500,
+          ),
+        ),
+      )
+      .mockImplementation((url: string) =>
+        Promise.resolve(
+          url.includes('/members')
+            ? json(page(members))
+            : json({ code: 0, message: 'success', data: acme }),
+        ),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    render(withQueryClient(<OrganizationDetailPage organizationId={7} onBack={vi.fn()} />));
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Request ID: req-500');
+    fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Acme' })).toBeInTheDocument();
   });
 
   it('explains an unknown organization and loads nothing beneath it', async () => {
@@ -162,7 +226,9 @@ describe('OrganizationDetailPage', () => {
       ),
     );
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/does not exist/i);
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(/does not exist/i);
+    expect(within(alert).queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
     expect(screen.queryByText('starter section')).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
 

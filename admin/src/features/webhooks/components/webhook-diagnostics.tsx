@@ -1,10 +1,12 @@
-import { ListTree, RotateCw, Send, Webhook } from 'lucide-react';
+import { ListTree, RotateCw, Send, TriangleAlert, Webhook } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PagePagination } from '@/components/ui/pagination';
+import { QueryError } from '@/components/ui/query-error';
 import {
   Dialog,
   DialogClose,
@@ -37,13 +39,14 @@ import {
   type WebhookEndpoint,
 } from '@/features/webhooks/types';
 import { replayErrorKey } from '@/features/webhooks/webhook-errors';
+import { cn } from '@/lib/cn';
 
 // Radix Select reserves the empty value, so the unfiltered view uses a sentinel item.
 const ALL = 'all';
 
 const deliveryTone = {
   pending: 'neutral',
-  processing: 'neutral',
+  processing: 'brand',
   delivered: 'success',
   failed: 'danger',
   canceled: 'warning',
@@ -69,6 +72,7 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
     {
       id: 'endpoint',
       header: t('webhooks.endpointColumns.endpoint'),
+      role: 'primary',
       cell: (endpoint) => (
         <>
           <div className="font-medium">
@@ -81,29 +85,43 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
     {
       id: 'status',
       header: t('webhooks.endpointColumns.status'),
-      cell: (endpoint) => (
-        <>
-          <StatusBadge tone={endpoint.status === 'active' ? 'success' : 'warning'}>
-            {t(`webhooks.endpointStatus.${endpoint.status}`)}
-          </StatusBadge>
-          {endpoint.disabled_reason ? (
-            <div className="mt-1 text-xs text-muted-foreground">
-              <code>{endpoint.disabled_reason}</code>
-            </div>
-          ) : null}
-          {endpoint.consecutive_failures > 0 ? (
-            <div className="mt-1 text-xs text-muted-foreground">
-              {t('webhooks.consecutiveFailures', {
-                count: endpoint.consecutive_failures,
-              })}
-            </div>
-          ) : null}
-        </>
-      ),
+      role: 'status',
+      cell: (endpoint) => {
+        // An active endpoint that keeps failing must not read as healthy.
+        const failing = endpoint.status === 'active' && endpoint.consecutive_failures > 0;
+        return (
+          <>
+            <StatusBadge tone={endpoint.status === 'active' && !failing ? 'success' : 'warning'}>
+              {t(`webhooks.endpointStatus.${endpoint.status}`)}
+            </StatusBadge>
+            {endpoint.disabled_reason ? (
+              <div className="mt-1 text-xs text-muted-foreground">
+                <code>{endpoint.disabled_reason}</code>
+              </div>
+            ) : null}
+            {endpoint.consecutive_failures > 0 ? (
+              <div
+                className={cn(
+                  'mt-1 flex items-center gap-1 text-xs sm:whitespace-nowrap',
+                  failing ? 'font-medium text-warning-strong' : 'text-muted-foreground',
+                )}
+              >
+                {failing ? (
+                  <TriangleAlert aria-hidden="true" className="size-3.5 shrink-0" />
+                ) : null}
+                {t('webhooks.consecutiveFailures', {
+                  count: endpoint.consecutive_failures,
+                })}
+              </div>
+            ) : null}
+          </>
+        );
+      },
     },
     {
       id: 'events',
       header: t('webhooks.endpointColumns.events'),
+      cardWide: true,
       className: 'text-xs',
       cell: (endpoint) =>
         endpoint.event_types.map((eventType) => (
@@ -128,6 +146,9 @@ function WebhookEndpoints({ organizationId }: { organizationId: number }) {
         rowKey={(endpoint) => endpoint.id}
         status={endpoints.status}
         errorMessage={t('webhooks.errors.unavailable')}
+        error={endpoints.error}
+        onRetry={() => void endpoints.refetch()}
+        retrying={endpoints.isFetching}
         emptyMessage={t('webhooks.endpointsEmpty')}
         alignTop
         skeletonRows={3}
@@ -165,6 +186,7 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     {
       id: 'event',
       header: t('webhooks.deliveryColumns.event'),
+      role: 'primary',
       cell: (delivery) => (
         <>
           <div className="font-medium">{delivery.event_type}</div>
@@ -177,13 +199,14 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     {
       id: 'status',
       header: t('webhooks.deliveryColumns.status'),
+      role: 'status',
       cell: (delivery) => (
         <>
           <StatusBadge tone={deliveryTone[delivery.status]}>
             {t(`webhooks.deliveryStatus.${delivery.status}`)}
           </StatusBadge>
           {delivery.failure_code || delivery.http_status ? (
-            <div className="mt-1 text-xs text-muted-foreground">
+            <div className="mt-1 text-xs text-muted-foreground sm:whitespace-nowrap">
               <code>
                 {[delivery.http_status, delivery.failure_code].filter(Boolean).join(' · ')}
               </code>
@@ -195,7 +218,7 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     {
       id: 'attempts',
       header: t('webhooks.deliveryColumns.attempts'),
-      className: 'tabular-nums',
+      className: 'whitespace-nowrap tabular-nums',
       cell: (delivery) => (
         <>
           {delivery.attempt_count}
@@ -217,6 +240,7 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
     {
       id: 'actions',
       header: t('webhooks.deliveryColumns.actions'),
+      role: 'actions',
       align: 'end',
       cell: (delivery) => (
         <div className="flex justify-end gap-1">
@@ -229,17 +253,21 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
             <ListTree aria-hidden="true" />
             {t('webhooks.actions.attempts')}
           </Button>
-          {isReplayable(delivery) ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setDialog({ kind: 'replay', delivery })}
-            >
-              <RotateCw aria-hidden="true" />
-              {t('webhooks.actions.replay')}
-            </Button>
-          ) : null}
+          {/* A fixed slot, so Attempts stays aligned on rows that cannot be replayed. */}
+          <div className="sm:w-24">
+            {isReplayable(delivery) ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="w-full"
+                onClick={() => setDialog({ kind: 'replay', delivery })}
+              >
+                <RotateCw aria-hidden="true" />
+                {t('webhooks.actions.replay')}
+              </Button>
+            ) : null}
+          </div>
         </div>
       ),
     },
@@ -250,7 +278,13 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
       icon={Send}
       titleId="webhook-deliveries-title"
       title={t('webhooks.deliveriesTitle')}
-      description={meta ? t('webhooks.deliveryTotal', { count: meta.total }) : t('common.loading')}
+      description={
+        deliveries.isSuccess
+          ? t('webhooks.deliveryTotal', { count: deliveries.data.meta.total })
+          : deliveries.isPending
+            ? t('common.loading')
+            : undefined
+      }
       contentClassName="p-0"
       actions={
         <>
@@ -288,7 +322,25 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
         rowKey={(delivery) => delivery.id}
         status={deliveries.status}
         errorMessage={t('webhooks.errors.unavailable')}
-        emptyMessage={t('webhooks.deliveriesEmpty')}
+        error={deliveries.error}
+        onRetry={() => void deliveries.refetch()}
+        retrying={deliveries.isFetching}
+        emptyMessage={t(status ? 'webhooks.deliveriesEmptyFiltered' : 'webhooks.deliveriesEmpty')}
+        emptyAction={
+          status ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setStatus(undefined);
+                setPage(1);
+              }}
+            >
+              {t('dataTable.clearFilters')}
+            </Button>
+          ) : null
+        }
         minWidthClassName="min-w-[760px]"
         alignTop
         skeletonRows={3}
@@ -317,7 +369,16 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
                 <Button
                   type="button"
                   disabled={replay.isPending}
-                  onClick={() => replay.mutate(dialog.delivery.id, { onSuccess: closeDialog })}
+                  onClick={() =>
+                    replay.mutate(dialog.delivery.id, {
+                      onSuccess: () => {
+                        toast.success(
+                          t('webhooks.replayQueued', { message: dialog.delivery.message_id }),
+                        );
+                        closeDialog();
+                      },
+                    })
+                  }
                 >
                   {t('webhooks.actions.replay')}
                 </Button>
@@ -332,9 +393,13 @@ function WebhookDeliveries({ organizationId }: { organizationId: number }) {
               {attempts.isPending ? (
                 <Skeleton className="h-16 w-full" />
               ) : attempts.isError ? (
-                <p role="alert" className="text-sm text-destructive">
-                  {t('webhooks.errors.unavailable')}
-                </p>
+                <QueryError
+                  className="p-0"
+                  message={t('webhooks.errors.unavailable')}
+                  error={attempts.error}
+                  onRetry={() => void attempts.refetch()}
+                  retrying={attempts.isFetching}
+                />
               ) : attempts.data.data.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('webhooks.attemptsEmpty')}</p>
               ) : (

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@/i18n';
 import { AuditPage } from '@/features/audit/components/audit-page';
 import type { AuditSearch } from '@/features/audit/types';
@@ -79,14 +79,18 @@ describe('AuditPage', () => {
       });
 
     const first = renderWith(page('older-1'));
-    fireEvent.click(await screen.findByRole('button', { name: 'Next' }));
+    const pager = await screen.findByRole('navigation', { name: 'Audit log pages' });
+    fireEvent.click(within(pager).getByRole('button', { name: 'Next' }));
     expect(first.onSearchChange).toHaveBeenLastCalledWith({ cursor: 'older-1' });
-    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled();
+    expect(within(pager).getByRole('button', { name: 'Previous' })).toBeDisabled();
     first.unmount();
 
     const deep = renderWith(page(null), { cursor: 'older-1' });
-    expect(await screen.findByRole('button', { name: 'Next' })).toBeDisabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Previous' }));
+    const compact = await screen.findByRole('navigation', {
+      name: 'Audit log pages, card header',
+    });
+    expect(within(compact).getByRole('button', { name: 'Next' })).toBeDisabled();
+    fireEvent.click(within(compact).getByRole('button', { name: 'Previous' }));
     expect(deep.onSearchChange).toHaveBeenLastCalledWith({ cursor: undefined });
   });
 
@@ -129,6 +133,26 @@ describe('AuditPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Hide details for user.disabled' }));
     expect(screen.queryByText('user · 1042')).not.toBeInTheDocument();
+  });
+
+  it('separates an empty log from a filtered one and clears the filters', async () => {
+    const empty = () =>
+      json({
+        code: 0,
+        message: 'success',
+        data: [],
+        meta: { per_page: 50, has_more: false, next_cursor: null },
+      });
+
+    const plain = renderWith(empty());
+    expect(await screen.findByText('No audit entries in the last 30 days.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+    plain.unmount();
+
+    const { onSearchChange } = renderWith(empty(), { action: 'nothing' });
+    expect(await screen.findByText('No audit entries match these filters.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(onSearchChange).toHaveBeenLastCalledWith({});
   });
 
   it('removes one applied filter and keeps the others', async () => {

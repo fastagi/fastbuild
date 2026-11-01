@@ -1,8 +1,9 @@
-import { Ban, CircleCheck, LogOut, Search, Users } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
+import { Ban, CircleCheck, LogOut, MoreHorizontal, Search, Users } from 'lucide-react';
+import { type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { SectionCard } from '@/components/layout/section-card';
+import { AccountIdentity } from '@/components/ui/account-identity';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
 import { PagePagination } from '@/components/ui/pagination';
@@ -14,6 +15,12 @@ import {
   DialogFooter,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -37,14 +44,62 @@ interface PendingAction {
   user: ManagedUser;
 }
 
+interface UserRowActionsProps {
+  user: ManagedUser;
+  onChoose: (action: UserAction, trigger: HTMLElement | null) => void;
+}
+
+function UserRowActions({ user, onChoose }: UserRowActionsProps) {
+  const { t } = useTranslation();
+  const trigger = useRef<HTMLButtonElement>(null);
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          ref={trigger}
+          type="button"
+          size="icon"
+          variant="ghost"
+          className="size-8"
+          aria-label={t('users.rowActions', { name: user.nickname || user.username })}
+          title={t('users.columns.actions')}
+        >
+          <MoreHorizontal aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {user.status === 'active' ? (
+          <DropdownMenuItem onSelect={() => onChoose('disable', trigger.current)}>
+            <Ban aria-hidden="true" />
+            {t('users.actions.disable')}
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onSelect={() => onChoose('enable', trigger.current)}>
+            <CircleCheck aria-hidden="true" />
+            {t('users.actions.enable')}
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem onSelect={() => onChoose('revokeSessions', trigger.current)}>
+          <LogOut aria-hidden="true" />
+          {t('users.actions.revokeSessions')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function UsersPage({ search, onSearchChange }: UsersPageProps) {
   const { t, i18n } = useTranslation();
   const users = useUsers(search);
   const userAction = useUserAction();
   const [query, setQuery] = useState(search.q ?? '');
   const [pending, setPending] = useState<PendingAction | null>(null);
+  // The menu item that opened the dialog is gone by the time it closes, so focus returns to the
+  // row's menu button rather than falling to the page.
+  const returnFocus = useRef<HTMLElement | null>(null);
   const status = search.status ?? 'all';
   const page = users.data?.meta;
+  const filtered = Boolean(search.q) || status !== 'all';
   const dateFormat = new Intl.DateTimeFormat(i18n.language, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -78,74 +133,53 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
     {
       id: 'account',
       header: t('users.columns.account'),
+      role: 'primary',
       cell: (user) => (
-        <>
-          <div className="font-medium">{user.nickname || user.username}</div>
-          <div className="text-xs text-muted-foreground">
-            {user.username} · {user.email}
-          </div>
-        </>
+        <AccountIdentity
+          name={user.nickname || user.username}
+          email={user.email}
+          identifier={user.username}
+        />
       ),
     },
     {
       id: 'status',
       header: t('users.columns.status'),
+      role: 'status',
       cell: (user) => (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap justify-end gap-1 sm:justify-start">
           <StatusBadge tone={user.status === 'active' ? 'success' : 'warning'}>
             {t(`users.status.${user.status}`)}
           </StatusBadge>
-          {user.is_operator ? <StatusBadge tone="brand">{t('users.operator')}</StatusBadge> : null}
+          {user.is_operator ? (
+            <StatusBadge variant="metadata">{t('users.operator')}</StatusBadge>
+          ) : null}
         </div>
       ),
     },
     {
       id: 'lastLogin',
       header: t('users.columns.lastLogin'),
-      className: 'text-muted-foreground',
+      className: 'whitespace-nowrap text-muted-foreground',
       cell: (user) =>
         user.last_login ? dateFormat.format(new Date(user.last_login)) : t('users.never'),
     },
     {
       id: 'actions',
       header: t('users.columns.actions'),
+      role: 'actions',
       align: 'end',
       cell: (user) =>
         user.is_operator ? (
           <p className="text-right text-xs text-muted-foreground">{t('users.protectedHint')}</p>
         ) : (
-          <div className="flex justify-end gap-1">
-            {user.status === 'active' ? (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setPending({ action: 'disable', user })}
-              >
-                <Ban aria-hidden="true" />
-                {t('users.actions.disable')}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setPending({ action: 'enable', user })}
-              >
-                <CircleCheck aria-hidden="true" />
-                {t('users.actions.enable')}
-              </Button>
-            )}
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setPending({ action: 'revokeSessions', user })}
-            >
-              <LogOut aria-hidden="true" />
-              {t('users.actions.revokeSessions')}
-            </Button>
-          </div>
+          <UserRowActions
+            user={user}
+            onChoose={(action, trigger) => {
+              returnFocus.current = trigger;
+              setPending({ action, user });
+            }}
+          />
         ),
     },
   ];
@@ -162,7 +196,13 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
         icon={Users}
         titleId="users-title"
         title={t('users.listTitle')}
-        description={page ? t('users.total', { count: page.total }) : t('users.loading')}
+        description={
+          users.isSuccess
+            ? t('users.total', { count: users.data.meta.total })
+            : users.isPending
+              ? t('users.loading')
+              : undefined
+        }
         contentClassName="p-0"
         actions={
           <>
@@ -196,7 +236,7 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
                 }}
               >
                 {userStatusFilters.map((value) => (
-                  <ToggleGroupItem key={value} value={value}>
+                  <ToggleGroupItem key={value} value={value} className="flex-auto">
                     {t(`users.status.${value}`)}
                   </ToggleGroupItem>
                 ))}
@@ -211,7 +251,26 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
           rowKey={(user) => user.id}
           status={users.status}
           errorMessage={t('users.errors.unavailable')}
-          emptyMessage={t('users.empty')}
+          error={users.error}
+          onRetry={() => void users.refetch()}
+          retrying={users.isFetching}
+          emptyMessage={t(filtered ? 'users.emptyFiltered' : 'users.empty')}
+          emptyAction={
+            filtered ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setQuery('');
+                  onSearchChange({});
+                }}
+              >
+                {t('dataTable.clearFilters')}
+              </Button>
+            ) : null
+          }
+          minWidthClassName="min-w-[560px]"
         />
 
         <PagePagination
@@ -230,7 +289,14 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent
+          onCloseAutoFocus={(event) => {
+            if (returnFocus.current?.isConnected) {
+              event.preventDefault();
+              returnFocus.current.focus();
+            }
+          }}
+        >
           {pending ? (
             <>
               <DialogTitle>{t(`users.confirm.${pending.action}.title`)}</DialogTitle>
