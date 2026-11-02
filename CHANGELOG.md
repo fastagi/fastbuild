@@ -39,6 +39,8 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   and the Next.js development server forwards `/v1/asset-transfers/<token>` to the API.
 - `POST /v1/webhook-endpoints` returns `422 WEBHOOK.INVALID_TARGET` for a host that does not exist
   instead of a 500.
+- Patched `follow-redirects`, `seroval`, `glob`, and `minimatch` for new advisories. The `minimatch` 3
+  copies in the ESLint toolchain carry a time-boxed exception in `osv-scanner.toml`.
 - `make dev` prints why a migration, seed, or operator grant failed instead of exiting silently.
 - The Web asset upload input has an accessible name.
 
