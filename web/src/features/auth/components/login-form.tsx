@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+import { email as emailFormat } from 'zod/mini';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +20,11 @@ import { useLogin } from '@/features/auth/hooks/use-auth';
 import { hasAuthFieldError, resolveAuthErrorKey } from '@/features/auth/utils/auth-error';
 import { useT } from '@/i18n';
 
+const emailSchema = emailFormat();
+
+const FIELD_ORDER = ['email', 'password'] as const;
+type LoginField = (typeof FIELD_ORDER)[number];
+
 interface LoginFormProps {
   demoCredentials?: {
     email: string;
@@ -32,12 +38,15 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
   const { mutate: login, isPending, error, reset } = useLogin();
   const [email, setEmail] = useState(demoCredentials?.email ?? '');
   const [password, setPassword] = useState(demoCredentials?.password ?? '');
-  const emailError = hasAuthFieldError(error, 'email') ? t.auth('emailInvalid') : undefined;
-  const passwordError = hasAuthFieldError(error, 'password')
-    ? t.auth('passwordInvalid')
-    : undefined;
+  const [clientErrors, setClientErrors] = useState<Partial<Record<LoginField, string>>>({});
+  const emailError =
+    clientErrors.email ?? (hasAuthFieldError(error, 'email') ? t.auth('emailInvalid') : undefined);
+  const passwordError =
+    clientErrors.password ??
+    (hasAuthFieldError(error, 'password') ? t.auth('passwordInvalid') : undefined);
 
-  const clearMutationError = () => {
+  const clearFieldError = (field: LoginField) => {
+    setClientErrors(current => ({ ...current, [field]: undefined }));
     if (error) {
       reset();
     }
@@ -45,6 +54,25 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const errors: Partial<Record<LoginField, string>> = {};
+
+    if (!email) {
+      errors.email = t.auth('emailRequired');
+    } else if (!emailSchema.safeParse(email).success) {
+      errors.email = t.auth('emailInvalid');
+    }
+    // Sign-in checks presence only: existing accounts may predate the current registration rule.
+    if (!password) {
+      errors.password = t.auth('passwordRequired');
+    }
+    setClientErrors(errors);
+
+    const firstInvalidField = FIELD_ORDER.find(field => errors[field]);
+    if (firstInvalidField) {
+      document.getElementById(firstInvalidField)?.focus();
+      return;
+    }
+
     login({ email, password });
   };
 
@@ -55,7 +83,7 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
         <CardDescription>{t.auth('signInToContinue')}</CardDescription>
       </CardHeader>
       <CardContent className="px-0 pt-4">
-        <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending}>
+        <form onSubmit={handleSubmit} className="space-y-4" aria-busy={isPending} noValidate>
           {error && (
             <Alert variant="destructive">
               <AlertCircle aria-hidden="true" className="size-4" />
@@ -73,12 +101,13 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
               placeholder={t.auth('enterEmail')}
               required
               disabled={isPending}
+              root
               className="bg-bg-canvas"
               value={email}
               errorText={emailError}
               onChange={event => {
                 setEmail(event.target.value);
-                clearMutationError();
+                clearFieldError('email');
               }}
             />
           </div>
@@ -98,12 +127,13 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
               autoComplete="current-password"
               required
               disabled={isPending}
+              root
               className="bg-bg-canvas"
               value={password}
               errorText={passwordError}
               onChange={event => {
                 setPassword(event.target.value);
-                clearMutationError();
+                clearFieldError('password');
               }}
             />
           </div>
@@ -120,21 +150,6 @@ export function LoginForm({ demoCredentials }: LoginFormProps) {
             </p>
           </div>
         )}
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              {t.auth('orContinueWith')}
-            </span>
-          </div>
-        </div>
-
-        <Button variant="outline" className="w-full" type="button" disabled>
-          GitHub
-        </Button>
       </CardContent>
       <CardFooter className="px-0 flex flex-wrap items-center justify-center gap-1.5 text-sm text-muted-foreground mt-2">
         {t.auth('noAccount')}

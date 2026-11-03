@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { Activity, ArrowUpRight, Code2, KeyRound, Rocket } from 'lucide-react';
 
+import { PageContainer, PageHeader } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { isDevtoolsEnabled } from '@/config/devtools';
 import { ROUTES } from '@/constants/routes';
-import { getSessionUser } from '@/features/auth/server/session';
 import { getT } from '@/i18n/server';
 
 import { GreetingClock } from './_components/greeting-clock';
@@ -21,7 +21,8 @@ import { GreetingClock } from './_components/greeting-clock';
  * `GreetingClock` which re-renders the wall-clock every minute.
  */
 export default async function ConsoleHomePage() {
-  const [user, t] = await Promise.all([getSessionUser(), getT('console')]);
+  const t = await getT('console');
+  const devtoolsEnabled = isDevtoolsEnabled();
 
   const quickLinks = [
     {
@@ -30,7 +31,7 @@ export default async function ConsoleHomePage() {
       href: ROUTES.CONSOLE.SETTINGS,
       icon: KeyRound,
     },
-    ...(isDevtoolsEnabled()
+    ...(devtoolsEnabled
       ? [
           {
             title: t('home.quickLinks.styleguide.title'),
@@ -49,75 +50,89 @@ export default async function ConsoleHomePage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <GreetingClock name={user?.name ?? user?.email ?? t('home.defaultUser')} />
-          <p className="mt-1 text-sm text-text-muted">{t('home.welcomeDescription')}</p>
-        </div>
-        <Button asChild>
-          <Link href={ROUTES.SITE.HOME}>
-            {t('returnToSite')}
-            <ArrowUpRight className="ml-1.5 h-4 w-4" />
-          </Link>
-        </Button>
-      </header>
+    <PageContainer>
+      <PageHeader
+        title={<GreetingClock />}
+        description={t('home.welcomeDescription')}
+        actions={
+          <Button asChild variant="outline">
+            <Link href={ROUTES.SITE.HOME}>
+              {t('returnToSite')}
+              <ArrowUpRight aria-hidden="true" className="size-4" />
+            </Link>
+          </Button>
+        }
+      />
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {quickLinks.map(({ title, description, href, icon: Icon }) => (
-          <Card key={href} className="transition-colors hover:border-primary/40">
+          <Card
+            key={href}
+            className="group relative transition-colors hover:border-primary/40 has-[a:focus-visible]:ring-[3px] has-[a:focus-visible]:ring-ring/50"
+          >
             <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
               <div>
-                <CardTitle className="text-base">{title}</CardTitle>
+                <CardTitle className="text-base">
+                  {/* The stretched link makes the whole card one target with one accessible name. */}
+                  <Link
+                    href={href}
+                    className="outline-none after:absolute after:inset-0 after:rounded-xl after:content-['']"
+                  >
+                    {title}
+                  </Link>
+                </CardTitle>
                 <CardDescription className="mt-1">{description}</CardDescription>
               </div>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon className="h-4.5 w-4.5" />
+                <Icon aria-hidden="true" className="h-4.5 w-4.5" />
               </div>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="ghost" size="sm" className="-ml-2">
-                <Link href={href} aria-label={`${t('home.open')} ${title}`}>
-                  {t('home.open')}
-                  <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
-                </Link>
-              </Button>
+              <span
+                aria-hidden="true"
+                className="inline-flex items-center gap-1 text-xs font-medium text-text-subtle transition-colors group-hover:text-primary"
+              >
+                {t('home.open')}
+                <ArrowUpRight className="size-3.5" />
+              </span>
             </CardContent>
           </Card>
         ))}
       </section>
 
-      <section className="mt-10 rounded-xl border bg-bg-surface p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Rocket className="h-5 w-5" />
+      {devtoolsEnabled ? (
+        <section className="mt-10 rounded-xl border bg-bg-surface p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Rocket aria-hidden="true" className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold">{t('home.nextSteps')}</h2>
+              <ul className="mt-2 space-y-1 text-sm wrap-anywhere text-text-muted">
+                <li>
+                  {t('home.steps.apiBefore')}{' '}
+                  <code className="font-mono text-xs">NEXT_PUBLIC_API_URL</code>{' '}
+                  {t('home.steps.apiAfter')}
+                </li>
+                <li>
+                  {t('home.steps.replaceBefore')}
+                  <code className="font-mono text-xs">
+                    src/app/(protected)/(console)/console/page.tsx
+                  </code>
+                  {t('home.steps.replaceAfter')}
+                </li>
+                <li>
+                  {t('home.steps.featuresBefore')}{' '}
+                  <code className="font-mono text-xs">src/features/</code>{' '}
+                  {t('home.steps.featuresBetween')}{' '}
+                  <code className="font-mono text-xs">(protected)/(console)/</code>
+                  {t('home.steps.featuresAfter')}
+                </li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold">{t('home.nextSteps')}</h2>
-            <ul className="mt-2 space-y-1 text-sm text-text-muted">
-              <li>
-                {t('home.steps.apiBefore')}{' '}
-                <code className="font-mono text-xs">NEXT_PUBLIC_API_URL</code>{' '}
-                {t('home.steps.apiAfter')}
-              </li>
-              <li>
-                {t('home.steps.replaceBefore')}
-                <code className="font-mono text-xs">
-                  src/app/(protected)/(console)/console/page.tsx
-                </code>
-                {t('home.steps.replaceAfter')}
-              </li>
-              <li>
-                {t('home.steps.featuresBefore')}{' '}
-                <code className="font-mono text-xs">src/features/</code>{' '}
-                {t('home.steps.featuresBetween')}{' '}
-                <code className="font-mono text-xs">(protected)/(console)/</code>
-                {t('home.steps.featuresAfter')}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      ) : null}
+    </PageContainer>
   );
 }

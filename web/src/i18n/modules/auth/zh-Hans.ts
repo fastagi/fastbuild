@@ -7,7 +7,7 @@ const messages = {
   welcomeBack: '欢迎回来',
   signInToContinue: '登录以继续访问您的账户',
   createAccount: '创建账户',
-  getStarted: '开始使用平台',
+  getStarted: '开始使用',
   registrationDisabled: '注册已关闭',
   registrationDisabledMessage: '该平台目前暂不开放注册，请联系管理员获取访问权限。',
   backToSignIn: '返回登录',
@@ -45,9 +45,10 @@ const messages = {
   termsOfService: '服务条款',
   and: '和',
   privacyPolicy: '隐私政策',
-  orContinueWith: '或通过以下方式继续',
+  legalDocumentsUnpublished: '服务条款和隐私政策尚未发布。',
 
   // Password requirements
+  passwordHint: '请使用 8 到 50 个字符。',
   passwordRequirements: '密码要求',
   passwordReqLength: '至少8个字符',
   passwordReqCase: '包含大小写字母',
@@ -57,10 +58,10 @@ const messages = {
   // Decorative panel
   heroTitle: '构建卓越产品',
   heroSubtitle: '现代化Web脚手架，助力快速可靠的产品交付',
-  feature1: '极速开发体验',
-  feature2: '企业级安全保障',
-  feature3: '可扩展架构',
-  feature4: '全天候技术支持',
+  feature1: 'Next.js 与 Go 起步代码',
+  feature2: '登录、会话与受保护路由',
+  feature3: 'Web 与 API 可独立部署',
+  feature4: '内置英文与中文',
 
   // Validation messages
   nameRequired: '请输入姓名',
@@ -74,9 +75,10 @@ const messages = {
   passwordTooLong: '密码过长',
   passwordTooShort: '密码过短',
   passwordInvalid: '请输入有效的密码',
+  passwordLengthInvalid: '密码长度必须为 8 到 50 个字符',
   confirmPasswordRequired: '请确认密码',
   passwordsDoNotMatch: '两次输入的密码不一致',
-  termsRequired: '请同意服务条款和隐私政策',
+  termsRequired: '请同意服务条款和隐私政策后继续',
 
   // Toast messages
   loginSuccess: '登录成功',

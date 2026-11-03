@@ -167,24 +167,29 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Section - Using primary gradient like Auth */}
-      <section className="relative overflow-hidden bg-linear-to-br from-primary via-primary/95 to-primary-deeper py-20 md:py-28">
+      <section className="relative overflow-hidden bg-linear-to-br from-brand-panel to-brand-panel-deep py-20 md:py-28">
         {/* Background decorations */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-white/10 blur-3xl" />
-          <div className="absolute bottom-[-20%] left-[-10%] w-[30%] h-[30%] rounded-full bg-primary-deeper/30 blur-2xl" />
+          <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-brand-panel-foreground/10 blur-3xl" />
+          <div className="absolute bottom-[-20%] left-[-10%] w-[30%] h-[30%] rounded-full bg-brand-panel-deep/30 blur-2xl" />
         </div>
 
-        <div className="container relative text-center text-white">
+        <div className="container relative text-center text-brand-panel-foreground">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
             {t('cta.title')}
           </h2>
-          <p className="mt-4 text-white/80 max-w-xl mx-auto md:text-lg">
+          <p className="mt-4 text-brand-panel-foreground/85 max-w-xl mx-auto md:text-lg">
             {t('cta.description')}
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button asChild size="lg" variant="secondary" className="h-12 px-8 gap-2">
+            <Button
+              asChild
+              size="lg"
+              variant="secondary"
+              className="h-12 px-8 gap-2 bg-brand-panel-action text-brand-panel-action-foreground hover:bg-brand-panel-action/90 focus-visible:ring-brand-panel-foreground! focus-visible:ring-offset-2! focus-visible:ring-offset-brand-panel!"
+            >
               <Link href="/register">
-                {t('cta.primaryAction')}
+                {t('hero.primaryAction')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -192,7 +197,7 @@ export default async function HomePage() {
               asChild
               size="lg"
               variant="outline"
-              className="h-12 px-8 bg-transparent border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="h-12 px-8 bg-transparent border-brand-panel-foreground/40 text-brand-panel-foreground hover:bg-brand-panel-foreground/10 hover:text-brand-panel-foreground dark:bg-transparent dark:border-brand-panel-foreground/40 dark:hover:bg-brand-panel-foreground/10 focus-visible:ring-brand-panel-foreground!"
             >
               <a
                 href="https://github.com/fastagi/fastbuild"

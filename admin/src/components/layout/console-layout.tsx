@@ -1,6 +1,7 @@
 import { Outlet } from '@tanstack/react-router';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { ConsoleHeader } from '@/components/layout/console-header';
+import { ConsoleShellScope } from '@/components/layout/route-failure';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { usePreferencesStore } from '@/features/preferences/store/preferences-store';
 
@@ -14,7 +15,9 @@ export function ConsoleLayout() {
       <SidebarInset className="min-w-0 overflow-hidden bg-background/80">
         <ConsoleHeader />
         <div className="page-container">
-          <Outlet />
+          <ConsoleShellScope>
+            <Outlet />
+          </ConsoleShellScope>
         </div>
       </SidebarInset>
     </SidebarProvider>

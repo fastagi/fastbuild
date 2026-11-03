@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
+import { FilterPanel } from '@/components/ui/filter-panel';
 import { PagePagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,7 +42,7 @@ const ANY = 'any';
 
 const statusTone = {
   pending: 'neutral',
-  processing: 'neutral',
+  processing: 'brand',
   delivered: 'success',
   failed: 'danger',
 } as const;
@@ -70,6 +71,50 @@ export function NotificationDeliveriesPage({
     timeStyle: 'medium',
   });
 
+  const chips = [
+    ...(search.status
+      ? [
+          {
+            id: 'status',
+            label: t('notificationDeliveries.filters.status'),
+            value: t(`notificationDeliveries.status.${search.status}`),
+          },
+        ]
+      : []),
+    ...(search.channel
+      ? [
+          {
+            id: 'channel',
+            label: t('notificationDeliveries.filters.channel'),
+            value: t(`notificationDeliveries.channel.${search.channel}`),
+          },
+        ]
+      : []),
+    ...(search.user_id
+      ? [
+          {
+            id: 'user_id',
+            label: t('notificationDeliveries.filters.userId'),
+            value: String(search.user_id),
+          },
+        ]
+      : []),
+  ];
+
+  const removeFilter = (id: string) => {
+    if (id === 'status') setStatus('');
+    if (id === 'channel') setChannel('');
+    if (id === 'user_id') setUserId('');
+    onSearchChange({ ...search, [id]: undefined, page: undefined });
+  };
+
+  const clearFilters = () => {
+    setStatus('');
+    setChannel('');
+    setUserId('');
+    onSearchChange({});
+  };
+
   const selectStatus = (next: NotificationDeliveryStatus | undefined) => {
     setStatus(next ?? '');
     onSearchChange({ ...search, status: next, page: undefined });
@@ -89,6 +134,7 @@ export function NotificationDeliveriesPage({
   const columns: DataTableColumn<NotificationDelivery>[] = [
     {
       id: 'notification',
+      role: 'primary',
       header: t('notificationDeliveries.columns.notification'),
       cell: (delivery) => (
         <>
@@ -113,6 +159,7 @@ export function NotificationDeliveriesPage({
     },
     {
       id: 'status',
+      role: 'status',
       header: t('notificationDeliveries.columns.status'),
       cell: (delivery) => (
         <>
@@ -133,6 +180,7 @@ export function NotificationDeliveriesPage({
     },
     {
       id: 'updated',
+      cardWide: true,
       header: t('notificationDeliveries.columns.updated'),
       className: 'whitespace-nowrap text-muted-foreground',
       cell: (delivery) => dateFormat.format(new Date(delivery.updated_at)),
@@ -208,11 +256,11 @@ export function NotificationDeliveriesPage({
         }
         contentClassName="p-0"
         toolbar={
-          <>
+          <FilterPanel chips={chips} onRemove={removeFilter} onClear={clearFilters}>
             <form
               role="search"
               onSubmit={submit}
-              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto]"
             >
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="notification-status">
@@ -271,13 +319,13 @@ export function NotificationDeliveriesPage({
                 />
               </div>
               <div className="flex items-end">
-                <Button type="submit" className="w-full">
+                <Button type="submit" variant="outline">
                   <Search aria-hidden="true" />
                   {t('notificationDeliveries.apply')}
                 </Button>
               </div>
             </form>
-          </>
+          </FilterPanel>
         }
       >
         <DataTable
@@ -286,7 +334,21 @@ export function NotificationDeliveriesPage({
           rowKey={(delivery) => delivery.id}
           status={deliveries.status}
           errorMessage={t('notificationDeliveries.errors.unavailable')}
-          emptyMessage={t('notificationDeliveries.empty')}
+          error={deliveries.error}
+          onRetry={() => void deliveries.refetch()}
+          retrying={deliveries.isFetching}
+          emptyMessage={t(
+            chips.length > 0
+              ? 'notificationDeliveries.emptyFiltered'
+              : 'notificationDeliveries.empty',
+          )}
+          emptyAction={
+            chips.length > 0 ? (
+              <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
+                {t('dataTable.clearFilters')}
+              </Button>
+            ) : null
+          }
           minWidthClassName="min-w-[720px]"
           alignTop
           skeletonRows={5}

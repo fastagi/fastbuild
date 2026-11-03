@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@/i18n';
 import { UsersPage } from '@/features/users/components/users-page';
+import type { UserSearch } from '@/features/users/types';
 
 const page = {
   code: 0,
@@ -39,13 +40,20 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function renderPage(onSearchChange = vi.fn()) {
+async function chooseRowAction(row: string, action: string | RegExp) {
+  fireEvent.keyDown(await screen.findByRole('button', { name: `Actions for ${row}` }), {
+    key: 'Enter',
+  });
+  fireEvent.click(await screen.findByRole('menuitem', { name: action }));
+}
+
+function renderPage(onSearchChange = vi.fn(), search: UserSearch = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   render(
     <QueryClientProvider client={queryClient}>
-      <UsersPage search={{}} onSearchChange={onSearchChange} />
+      <UsersPage search={search} onSearchChange={onSearchChange} />
     </QueryClientProvider>,
   );
   return onSearchChange;
@@ -63,12 +71,14 @@ describe('UsersPage', () => {
     );
     renderPage();
 
-    const memberRow = (await screen.findByText('member · member@example.test')).closest('tr');
-    const operatorRow = screen.getByText('ops · ops@example.test').closest('tr');
+    const memberRow = (await screen.findByText('member@example.test')).closest('tr');
+    const operatorRow = screen.getByText('ops@example.test').closest('tr');
     expect(
-      within(memberRow as HTMLElement).getByRole('button', { name: 'Disable' }),
+      within(memberRow as HTMLElement).getByRole('button', { name: 'Actions for Member' }),
     ).toBeInTheDocument();
-    expect(within(operatorRow as HTMLElement).queryByRole('button')).not.toBeInTheDocument();
+    expect(
+      within(operatorRow as HTMLElement).queryByRole('button', { name: /^Actions for/ }),
+    ).not.toBeInTheDocument();
     expect(
       within(operatorRow as HTMLElement).getByText(/managed from the cli/i),
     ).toBeInTheDocument();
@@ -86,7 +96,7 @@ describe('UsersPage', () => {
     vi.stubGlobal('fetch', fetchMock);
     renderPage();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Disable' }));
+    await chooseRowAction('Member', 'Disable');
     const dialog = await screen.findByRole('dialog');
     expect(fetchMock.mock.calls.some(([, init]) => (init as RequestInit).method === 'POST')).toBe(
       false,
@@ -101,6 +111,22 @@ describe('UsersPage', () => {
       ),
     );
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('returns focus to the row menu when the dialog closes', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => Promise.resolve(json(page))),
+    );
+    renderPage();
+
+    await chooseRowAction('Member', 'Disable');
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Actions for Member' })).toHaveFocus(),
+    );
   });
 
   it('explains a protected-target rejection inside the dialog', async () => {
@@ -121,11 +147,67 @@ describe('UsersPage', () => {
     );
     renderPage();
 
-    fireEvent.click(await screen.findByRole('button', { name: /end sessions/i }));
+    await chooseRowAction('Member', /end sessions/i);
     const dialog = await screen.findByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: /end sessions/i }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(/server command line/i);
+  });
+
+  it('keeps the account identifier behind a copy button', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => Promise.resolve(json(page))),
+    );
+    renderPage();
+
+    expect(await screen.findByText('Member')).toBeInTheDocument();
+    expect(screen.queryByText('member')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy member' }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('member'));
+  });
+
+  it('separates an empty list from a filtered one and clears the filters', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() => Promise.resolve(json({ ...page, data: [] }))),
+    );
+    const onSearchChange = vi.fn();
+    renderPage(onSearchChange, { status: 'disabled' });
+
+    expect(await screen.findByText('No accounts match these filters.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(onSearchChange).toHaveBeenCalledWith({});
+  });
+
+  it('says nothing is loading once the list has failed, and retries', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() =>
+        Promise.resolve(
+          json(
+            {
+              code: 500,
+              error_code: 'COMMON.INTERNAL_ERROR',
+              message: 'failed',
+              request_id: 'req-500',
+            },
+            500,
+          ),
+        ),
+      )
+      .mockImplementation(() => Promise.resolve(json(page)));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage();
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Request ID: req-500');
+    expect(screen.queryByText('Loading accounts…')).not.toBeInTheDocument();
+
+    fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByText('2 accounts')).toBeInTheDocument();
   });
 
   it('moves the search into the URL state', async () => {

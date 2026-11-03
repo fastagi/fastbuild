@@ -3,6 +3,8 @@
 
 :root {
   --radius: 0.5rem;
+  /* Browser UI color for the theme-color meta tag; ThemeSync reads it. */
+  --theme-color: var(--brand);
   --background: oklch(0.975 0.002 250);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -61,6 +63,7 @@
 }
 
 .dark {
+  --theme-color: var(--background);
   --background: oklch(0.16 0.005 250);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -76,7 +79,7 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
+  --destructive-foreground: oklch(0.145 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: var(--brand);

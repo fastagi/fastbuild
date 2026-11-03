@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,45 @@ export function Pagination({
           {t('common.next')}
         </Button>
       </div>
+    </nav>
+  );
+}
+
+/** Icon-only previous/next for a card header, so a long list can be paged without scrolling to it. */
+export function CompactPagination({
+  label,
+  hasPrevious,
+  hasNext,
+  onPrevious,
+  onNext,
+}: Omit<PaginationProps, 'summary'>) {
+  const { t } = useTranslation();
+  return (
+    <nav className="flex gap-1" aria-label={label}>
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        className="size-8"
+        aria-label={t('common.previous')}
+        title={t('common.previous')}
+        disabled={!hasPrevious}
+        onClick={onPrevious}
+      >
+        <ChevronLeft aria-hidden="true" />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        className="size-8"
+        aria-label={t('common.next')}
+        title={t('common.next')}
+        disabled={!hasNext}
+        onClick={onNext}
+      >
+        <ChevronRight aria-hidden="true" />
+      </Button>
     </nav>
   );
 }

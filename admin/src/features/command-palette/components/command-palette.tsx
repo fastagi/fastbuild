@@ -151,7 +151,7 @@ export function CommandPalette() {
         className="h-8 gap-2 text-muted-foreground sm:w-56 sm:justify-start"
       >
         <Search aria-hidden="true" />
-        <span className="sr-only sm:not-sr-only sm:flex-1 sm:text-left">
+        <span className="sr-only sm:not-sr-only sm:min-w-0 sm:flex-1 sm:truncate sm:text-left">
           {t('commandPalette.trigger')}
         </span>
         <kbd className="pointer-events-none hidden rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:inline">
@@ -184,7 +184,11 @@ export function CommandPalette() {
               className="h-12 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
-          <div id={listId} role="listbox" className="max-h-80 overflow-y-auto p-1.5">
+          <div
+            id={listId}
+            role="listbox"
+            className="max-h-[min(28rem,60dvh)] overflow-y-auto p-1.5"
+          >
             {groups.map(({ group, items }) => (
               <div key={group} role="group" aria-labelledby={`${listId}-${group}`}>
                 <p

@@ -30,11 +30,13 @@ overrides:
   'nanoid@>=3.0.0 <3.3.18': 3.3.18
   'postcss@<8.5.23': 8.5.23
   'sharp@<0.35.4': 0.35.4
-  'follow-redirects@<1.16.1': 1.16.1
   'undici@>=7.0.0 <7.30.1': 7.30.1
   'vite@>=7.0.0 <7.3.7': 7.3.7
-  'seroval@<1.6.3': 1.6.3
   'source-map-js@<1.2.2': 1.2.2
+  'follow-redirects@<1.16.2': 1.16.2
+  'seroval@<1.6.12': 1.6.12
+  'glob@>=9.0.0 <14.0.2': 14.0.3
+  'minimatch@>=10.0.0 <11.0.1': 11.0.3
 
 allowBuilds:
   '@parcel/watcher@2.6.0': true

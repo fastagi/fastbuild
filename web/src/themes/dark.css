@@ -17,13 +17,13 @@
   --primary: var(--neutral-200);
   --primary-foreground: var(--neutral-900);
   
-  --secondary: var(--neutral-800);
+  --secondary: var(--neutral-750);
   --secondary-foreground: var(--neutral-50);
   
-  --muted: var(--neutral-800);
+  --muted: var(--neutral-750);
   --muted-foreground: var(--neutral-400);
   
-  --accent: var(--neutral-800);
+  --accent: var(--neutral-750);
   --accent-foreground: var(--neutral-50);
   
   --destructive: var(--red-500);
@@ -31,7 +31,7 @@
   
   --border: var(--neutral-700);
   --input: var(--neutral-700);
-  --ring: var(--neutral-500);
+  --ring: var(--neutral-400);
 
   /* --- Semantic Design Tokens --- */
   
@@ -59,6 +59,16 @@
   --brand-main: var(--blue-400);
   --brand-subtle: oklch(from var(--brand-main) l c h / 0.15);
   --brand-strong: var(--blue-200);
+
+  /*
+   * --primary is a light color in dark mode, so a primary gradient would be a glaring light panel.
+   * Brand panels stay dark here; themes inherit this through their own secondary tokens.
+   */
+  --brand-panel: var(--secondary);
+  --brand-panel-deep: var(--secondary-deeper);
+  --brand-panel-foreground: var(--secondary-foreground);
+  --brand-panel-action: var(--primary);
+  --brand-panel-action-foreground: var(--primary-foreground);
   
   /* State Colors */
   --success: var(--green-500);

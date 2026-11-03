@@ -12,6 +12,13 @@ const eslintConfig = [
       'react-hooks/set-state-in-effect': 'off',
     },
   },
+  {
+    // A fixture anchor navigates nowhere, and the console catch-all route matches any console path.
+    files: ['**/*.test.tsx'],
+    rules: {
+      '@next/next/no-html-link-for-pages': 'off',
+    },
+  },
 ];
 
 export default eslintConfig;

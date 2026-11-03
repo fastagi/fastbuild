@@ -6,6 +6,44 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ## Unreleased
 
+### Added
+
+- End-to-end coverage for the main Web and Admin Console flows (registration, organizations,
+  webhook endpoints, API keys, assets, command palette, audit details, route errors), WCAG AA checks
+  with axe in light and dark mode, and screenshot comparison at phone and desktop widths.
+- **Phone layouts.** The Web console has a navigation drawer, reachable tabs, and larger touch
+  targets. Admin Console tables become cards below `sm`, and audit and delivery filters collapse.
+- **Failure states.** Web gets a translated root 404, and Admin Console list errors show a retry and
+  the API `request_id`. Unknown console routes in both shells keep the navigation.
+- Web `PageContainer`, `PageHeader`, `EmptyState`, `ResponsiveTable`, and `UserAvatar` primitives;
+  Admin Console `Button` `loading` prop and `StatusBadge` `metadata` variant.
+
+### Changed
+
+- Sign-in and registration validate inline and state the password rule. Registration takes optional
+  legal links through `RegisterForm`'s `legalLinks` prop; the disabled GitHub button is gone.
+- The Admin Console overview leads with API, Database, and Failed deliveries. Users rows show name
+  and email first, with their actions in a row menu.
+- App settings ask before a reset and keep the draft and conflict error after a refetch.
+
+### Fixed
+
+- Web `max-w-*` utilities and dialog sizes use Tailwind's scale; a theme override had made them far
+  too wide.
+- Dark mode: brand panels are readable, Web menu highlights and skeletons are visible, and the
+  Admin Console destructive button meets AA and no longer paints light first.
+- Web focus rings meet 3:1, reduced motion is honored, and enter and exit animations run again.
+- The Web console shows each user's initials instead of a shared placeholder avatar, and its
+  greeting uses their name.
+- Asset uploads work under `make dev` with the real API: it now sets `APP_URL` to the Web origin,
+  and the Next.js development server forwards `/v1/asset-transfers/<token>` to the API.
+- `POST /v1/webhook-endpoints` returns `422 WEBHOOK.INVALID_TARGET` for a host that does not exist
+  instead of a 500.
+- Patched `follow-redirects`, `seroval`, `glob`, and `minimatch` for new advisories. The `minimatch` 3
+  copies in the ESLint toolchain carry a time-boxed exception in `osv-scanner.toml`.
+- `make dev` prints why a migration, seed, or operator grant failed instead of exiting silently.
+- The Web asset upload input has an accessible name.
+
 ## v0.26.0 — 2026-10-25
 
 ### Added

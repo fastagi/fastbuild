@@ -48,7 +48,6 @@ const messages = {
     title: 'Ready to start building?',
     description:
       'Begin your next project with FastBuild contracts, authentication, and a replaceable console.',
-    primaryAction: 'Start for free',
     githubAction: 'View on GitHub',
   },
 } as const;

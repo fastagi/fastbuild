@@ -52,9 +52,22 @@ func (p *targetPolicy) Normalize(ctx context.Context, value string) (string, str
 		return "", "", err
 	}
 	if _, err := p.resolveAllowed(ctx, parsed.Hostname()); err != nil {
+		if hostDoesNotExist(err) {
+			return "", "", domain.ErrWebhookInvalidTarget
+		}
 		return "", "", err
 	}
 	return normalized, crypto.SHA256Hex(normalized), nil
+}
+
+// hostDoesNotExist separates a target nobody can deliver to, which the caller must correct, from a
+// resolver failure, which is ours. Delivery keeps retrying either: a name can appear later.
+func hostDoesNotExist(err error) bool {
+	if errors.Is(err, errNoWebhookTargetAddress) {
+		return true
+	}
+	var dnsErr *net.DNSError
+	return errors.As(err, &dnsErr) && dnsErr.IsNotFound
 }
 
 func (p *targetPolicy) normalizeSyntax(value string) (string, *url.URL, error) {

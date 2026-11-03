@@ -6,3 +6,8 @@
 id = "GHSA-vfj7-8cjw-p6xm"
 ignoreUntil = 2026-12-31
 reason = "braces 3.0.3 has no fixed release. Web reaches it only through micromatch in @parcel/watcher (next-intl message extraction) and fast-glob in eslint-config-next. Both expand glob patterns from repository configuration, never from request input, so the nested-pattern stack exhaustion is not attacker-reachable. Remove when a patched braces ships."
+
+[[IgnoredVulns]]
+id = "GHSA-g3hv-75wg-m249"
+ignoreUntil = 2026-12-31
+reason = "minimatch 11.0.1 is the only fixed line, and it has no callable default export, which eslint-plugin-jsx-a11y calls, so overriding the 3.x copies would crash lint rules. The remaining 3.1.5 copies are reached only through ESLint and its plugins, which are development dependencies that match glob patterns from repository configuration and source element names, never request input, so the globparts denial of service is not attacker-reachable. All other minimatch copies are overridden to 11. Remove when the ESLint toolchain moves off minimatch 3."

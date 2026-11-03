@@ -83,6 +83,8 @@ api_environment() {
   export FASTBUILD_ENV_FILE=
   export SERVER_HOST=127.0.0.1
   export SERVER_PORT="${API_PORT}"
+  # Asset transfer grants and emailed links point at the Web origin, which forwards transfers.
+  export APP_URL="http://localhost:${WEB_PORT}"
   export DB_ENABLED=true DB_DRIVER=postgres DB_HOST=127.0.0.1 DB_PORT="${FASTBUILD_DB_PORT}"
   export DB_NAME=fastbuild DB_USERNAME=fastbuild DB_PASSWORD=fastbuild-local-only DB_SSLMODE=disable
   export OPTIONAL_STARTERS="${STARTERS}"
@@ -97,6 +99,15 @@ api_environment() {
   export WEBHOOK_ALLOW_PRIVATE_TARGETS=true
 }
 
+# Hide a step's output unless it fails; the CLI reports errors on stdout.
+run_quiet() {
+  local output
+  if ! output="$("$@" 2>&1)"; then
+    printf '%s\n' "${output}" >&2
+    fail "'${*##*/}' failed; see the output above."
+  fi
+}
+
 prepare_api() {
   log "Building the API and preparing the database"
   mkdir -p "${STATE_DIR}/bin" "${STATE_DIR}/objects"
@@ -105,10 +116,10 @@ prepare_api() {
   # The API resolves runtime paths such as storage/logs from its working directory.
   (
     cd "${ROOT_DIR}/api"
-    "${STATE_DIR}/bin/fastbuild" migrate >/dev/null
-    "${STATE_DIR}/bin/fastbuild" seed >/dev/null
+    run_quiet "${STATE_DIR}/bin/fastbuild" migrate
+    run_quiet "${STATE_DIR}/bin/fastbuild" seed
     if [[ ",${STARTERS}," == *",operator,"* ]]; then
-      "${STATE_DIR}/bin/fastbuild" operator:grant admin@example.com >/dev/null
+      run_quiet "${STATE_DIR}/bin/fastbuild" operator:grant admin@example.com
     fi
   )
 }

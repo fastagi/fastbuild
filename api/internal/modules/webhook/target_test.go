@@ -56,6 +56,24 @@ func TestTargetPolicyNormalizesAndRequiresEveryResolvedAddressToBePublic(t *test
 	assert.ErrorIs(t, err, domain.ErrWebhookInvalidTarget)
 }
 
+func TestTargetPolicyReportsAnUnknownHostAsAnInvalidTarget(t *testing.T) {
+	policy := NewTargetPolicy(nil)
+
+	policy.resolver = staticIPResolver{err: &net.DNSError{Err: "no such host", Name: "missing.example.com", IsNotFound: true}}
+	_, _, err := policy.Normalize(context.Background(), "https://missing.example.com/deliver")
+	assert.ErrorIs(t, err, domain.ErrWebhookInvalidTarget)
+
+	policy.resolver = staticIPResolver{addresses: map[string][]net.IPAddr{}}
+	_, _, err = policy.Normalize(context.Background(), "https://missing.example.com/deliver")
+	assert.ErrorIs(t, err, domain.ErrWebhookInvalidTarget)
+
+	// A resolver outage is not the caller's mistake, so it stays an internal failure.
+	policy.resolver = staticIPResolver{err: &net.DNSError{Err: "server misbehaving", Name: "hooks.example.com", IsTemporary: true}}
+	_, _, err = policy.Normalize(context.Background(), "https://hooks.example.com/deliver")
+	assert.Error(t, err)
+	assert.NotErrorIs(t, err, domain.ErrWebhookInvalidTarget)
+}
+
 func TestTargetPolicyRejectsUnsafeURLFormsAndNetworks(t *testing.T) {
 	policy := NewTargetPolicy(nil)
 	unsafe := []string{

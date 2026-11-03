@@ -117,6 +117,8 @@ export function AssetPanel() {
             ref={inputRef}
             type="file"
             className="sr-only"
+            tabIndex={-1}
+            aria-label={t('upload')}
             accept={acceptedAssetTypes}
             onChange={event => {
               const file = event.target.files?.[0];

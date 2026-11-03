@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { ConsoleLayout } from '@/components/layout/console-layout';
+import { NotFoundPage } from '@/components/layout/not-found-page';
 import { isFeatureEnabled } from '@/config/env';
 import {
   isSignedOut,
@@ -22,4 +23,6 @@ export const Route = createFileRoute('/console')({
     }
   },
   component: ConsoleLayout,
+  // Keeps the shell around an unknown console path; __root handles everything outside /console.
+  notFoundComponent: NotFoundPage,
 });

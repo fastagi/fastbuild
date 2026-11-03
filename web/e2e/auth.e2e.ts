@@ -18,7 +18,7 @@ test('a member signs in through the API adapter, sees live account data, and sig
 
   // The nickname comes from the Go API through the server-owned adapter, not from mock state.
   await page.getByRole('banner').getByRole('button', { name: 'Profile', exact: true }).click();
-  await expect(page.getByText(member.nickname)).toBeVisible();
+  await expect(page.getByRole('menu').getByText(member.nickname)).toBeVisible();
 
   await page.getByRole('menuitem').filter({ hasText: 'Sign Out' }).click();
   await expect(page).toHaveURL(/\/login/);

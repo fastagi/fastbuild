@@ -23,6 +23,8 @@ const Checkbox = React.forwardRef<
     ref={ref}
     className={cn(
       "peer h-4 w-4 shrink-0 rounded-sm border border-primary disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus-ring interactive",
+      // A 20px box with a 44px hit area on touch, so rows and labels keep their layout.
+      "relative pointer-coarse:size-5 pointer-coarse:after:absolute pointer-coarse:after:inset-[-13px] pointer-coarse:after:content-['']",
       className
     )}
     {...props}

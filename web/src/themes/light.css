@@ -31,7 +31,7 @@
   
   --border: var(--neutral-200);
   --input: var(--neutral-200);
-  --ring: var(--neutral-400);
+  --ring: var(--neutral-500);
 
   /* --- Semantic Design Tokens --- */
   
@@ -59,6 +59,13 @@
   --brand-main: var(--blue-500);
   --brand-subtle: var(--blue-50);
   --brand-strong: var(--blue-700);
+
+  /* Brand panels follow the theme: a deep primary gradient in light mode. */
+  --brand-panel: var(--primary);
+  --brand-panel-deep: var(--primary-deeper);
+  --brand-panel-foreground: var(--primary-foreground);
+  --brand-panel-action: var(--secondary);
+  --brand-panel-action-foreground: var(--secondary-foreground);
   
   /* State Colors */
   --success: var(--green-700);

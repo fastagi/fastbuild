@@ -1,18 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "../themes/index.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* Container configuration */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-  --container-2xl: 1536px;
-  
-  /* Existing color mappings... */
-  
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
@@ -36,6 +28,13 @@
   --color-brand: var(--brand-main);
   --color-brand-subtle: var(--brand-subtle);
   --color-brand-strong: var(--brand-strong);
+
+  /* Brand panels: full-bleed marketing and auth surfaces */
+  --color-brand-panel: var(--brand-panel);
+  --color-brand-panel-deep: var(--brand-panel-deep);
+  --color-brand-panel-foreground: var(--brand-panel-foreground);
+  --color-brand-panel-action: var(--brand-panel-action);
+  --color-brand-panel-action-foreground: var(--brand-panel-action-foreground);
   
   /* Surfaces (Legacy mapping maintains compatibility) */
   --color-surface-1: var(--surface-1);
@@ -132,19 +131,15 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   body {
     @apply bg-background text-foreground;
   }
 
-  /* Custom Scrollbar - Minimalist Design */
+  /* Thin scrollbars that stay visible, so overflow is discoverable without a pointer. */
   * {
     scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-  }
-
-  *:hover {
     scrollbar-color: var(--muted-foreground) transparent;
   }
 
@@ -159,13 +154,9 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: transparent;
+    background: var(--muted-foreground);
     border-radius: 9999px;
     transition: background 0.2s ease;
-  }
-
-  *:hover::-webkit-scrollbar-thumb {
-    background: var(--muted-foreground);
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -242,8 +233,20 @@
 }
 
 @layer utilities {
+  /*
+   * ui/dialog.tsx centers with the `translate` property, and tw-animate-css slides with `transform`,
+   * so the two add up and the 1/2 and 48% slides would start the dialog far off center. Keep its fade
+   * and zoom only. This selector matches nothing once those slide classes leave the dialog.
+   */
+  [role='dialog'][data-state][class*='slide-in-from-left-1/2'] {
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+  }
+
   .focus-ring {
-    @apply outline-hidden ring-offset-background focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0 aria-invalid:ring-destructive aria-invalid:border-destructive transition-all;
+    @apply outline-hidden ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 aria-invalid:ring-destructive aria-invalid:border-destructive transition-all;
   }
 
   /* Border-only focus for inputs */
@@ -335,5 +338,16 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

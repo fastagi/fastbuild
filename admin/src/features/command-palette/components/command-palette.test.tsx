@@ -47,7 +47,7 @@ describe('CommandPalette', () => {
 
   it('moves with the arrow keys and explains when nothing matches', () => {
     renderPalette();
-    fireEvent.click(screen.getByRole('button', { name: /search or run a command/i }));
+    fireEvent.click(screen.getByRole('button', { name: /search commands…/i }));
     const input = screen.getByRole('combobox', { name: 'Search commands' });
 
     fireEvent.keyDown(input, { key: 'ArrowUp' });

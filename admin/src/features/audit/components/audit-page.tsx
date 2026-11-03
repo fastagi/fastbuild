@@ -1,11 +1,12 @@
-import { ChevronRight, Copy, History, Search, X } from 'lucide-react';
+import { ChevronRight, Copy, History, Search } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { SectionCard } from '@/components/layout/section-card';
 import { Button } from '@/components/ui/button';
 import { DataTable, type DataTableColumn } from '@/components/ui/data-table';
-import { Pagination } from '@/components/ui/pagination';
+import { FilterPanel } from '@/components/ui/filter-panel';
+import { CompactPagination, Pagination } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -65,10 +66,21 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
       toast.error(t('audit.copyFailed'));
     }
   };
+  const clearFilters = () => {
+    setAction('');
+    setUserId('');
+    setFrom('');
+    setTo('');
+    setTrail([]);
+    onSearchChange({});
+  };
   const goTo = (cursor: string | undefined, nextTrail: string[]) => {
     setTrail(nextTrail);
     onSearchChange({ ...search, cursor });
   };
+  const previousPage = () => goTo(trail.at(-1) || undefined, trail.slice(0, -1));
+  const nextPage = (cursor: string | null) =>
+    goTo(cursor ?? undefined, [...trail, search.cursor ?? '']);
   const dateFormat = new Intl.DateTimeFormat(i18n.language, {
     dateStyle: 'medium',
     timeStyle: 'medium',
@@ -93,6 +105,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
   const columns: DataTableColumn<AuditEntry>[] = [
     {
       id: 'details',
+      role: 'actions',
       header: <span className="sr-only">{t('audit.columns.details')}</span>,
       headerClassName: 'w-10 pr-0',
       className: 'w-10 pr-0',
@@ -128,6 +141,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     {
       id: 'actor',
       header: t('audit.columns.actor'),
+      className: 'whitespace-nowrap',
       cell: (entry) =>
         entry.user_id
           ? t('audit.actorUser', { id: entry.user_id })
@@ -135,6 +149,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     },
     {
       id: 'action',
+      role: 'primary',
       header: t('audit.columns.action'),
       cell: (entry) => (
         <>
@@ -145,6 +160,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     },
     {
       id: 'request',
+      cardWide: true,
       header: t('audit.columns.request'),
       cell: (entry) => (
         <>
@@ -159,6 +175,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
     },
     {
       id: 'status',
+      role: 'status',
       header: t('audit.columns.status'),
       cell: (entry) => (
         <StatusBadge tone={httpStatusTone(entry.status_code)}>{entry.status_code}</StatusBadge>
@@ -192,8 +209,8 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
         {entry.request_id ? (
           <>
             <dt className="text-muted-foreground">{t('audit.details.requestId')}</dt>
-            <dd className="flex items-center gap-2">
-              <code>{entry.request_id}</code>
+            <dd className="flex flex-wrap items-center gap-2">
+              <code className="[overflow-wrap:anywhere]">{entry.request_id}</code>
               <Button
                 type="button"
                 size="sm"
@@ -224,12 +241,31 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
         title={t('audit.listTitle')}
         description={t('audit.rangeHint')}
         contentClassName="p-0"
+        actions={
+          meta && (search.cursor || meta.has_more) ? (
+            <CompactPagination
+              label={t('audit.paginationCompact')}
+              hasPrevious={Boolean(search.cursor)}
+              hasNext={Boolean(meta.next_cursor)}
+              onPrevious={previousPage}
+              onNext={() => nextPage(meta.next_cursor)}
+            />
+          ) : null
+        }
         toolbar={
-          <>
+          <FilterPanel
+            chips={activeFilters.map((key) => ({
+              id: key,
+              label: t(filterLabelKey[key]),
+              value: String(search[key]),
+            }))}
+            onRemove={(id) => removeFilter(id as AuditFilter)}
+            onClear={clearFilters}
+          >
             <form
               role="search"
               onSubmit={submit}
-              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5"
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
             >
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="audit-action">{t('audit.filters.action')}</Label>
@@ -269,35 +305,13 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
                 />
               </div>
               <div className="flex items-end">
-                <Button type="submit" className="w-full">
+                <Button type="submit" variant="outline">
                   <Search aria-hidden="true" />
                   {t('audit.apply')}
                 </Button>
               </div>
             </form>
-            {activeFilters.length > 0 ? (
-              <ul className="mt-3 flex flex-wrap gap-2" aria-label={t('audit.activeFilters')}>
-                {activeFilters.map((key) => (
-                  <li
-                    key={key}
-                    className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-subtle pr-1 pl-3 text-xs font-medium text-brand-strong"
-                  >
-                    {t(filterLabelKey[key])}: {String(search[key])}
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="size-5 rounded-full text-brand-strong hover:bg-brand/10"
-                      aria-label={t('audit.removeFilter', { filter: t(filterLabelKey[key]) })}
-                      onClick={() => removeFilter(key)}
-                    >
-                      <X aria-hidden="true" className="size-3" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </>
+          </FilterPanel>
         }
       >
         <DataTable
@@ -308,11 +322,22 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
           errorMessage={
             invalidRange ? t('audit.errors.invalidRange') : t('audit.errors.unavailable')
           }
-          emptyMessage={t('audit.empty')}
+          error={logs.error}
+          onRetry={invalidRange ? undefined : () => void logs.refetch()}
+          retrying={logs.isFetching}
+          emptyMessage={t(activeFilters.length > 0 ? 'audit.emptyFiltered' : 'audit.empty')}
+          emptyAction={
+            activeFilters.length > 0 ? (
+              <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
+                {t('dataTable.clearFilters')}
+              </Button>
+            ) : null
+          }
           minWidthClassName="min-w-[720px]"
           alignTop
           skeletonRows={5}
           details={{ id: detailsId, render: renderDetails }}
+          stickyHeader
         />
 
         {meta && (search.cursor || meta.has_more) ? (
@@ -320,8 +345,8 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
             label={t('audit.pagination')}
             hasPrevious={Boolean(search.cursor)}
             hasNext={Boolean(meta.next_cursor)}
-            onPrevious={() => goTo(trail.at(-1) || undefined, trail.slice(0, -1))}
-            onNext={() => goTo(meta.next_cursor ?? undefined, [...trail, search.cursor ?? ''])}
+            onPrevious={previousPage}
+            onNext={() => nextPage(meta.next_cursor)}
           />
         ) : null}
       </SectionCard>
