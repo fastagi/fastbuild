@@ -1,15 +1,10 @@
 name: CI
 
-# Pull requests run only the halves they change, on the production Node version. Pushes to main,
-# the weekly schedule, and manual runs check everything, including Node 24 and PostgreSQL 15/17/18.
+# The only default CI: pull requests run governance plus the halves they change, on the production
+# Node version and PostgreSQL 16. Manual runs check everything, including Node 24 and PostgreSQL 15/17/18.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: "41 2 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -177,7 +172,7 @@ jobs:
 
   postgres-compatibility:
     name: PostgreSQL ${{ matrix.postgres-version }} compatibility
-    # PostgreSQL 16 runs with the API job on every change; other versions run after merge and weekly.
+    # PostgreSQL 16 runs with the API job on every change; other versions run only on manual runs.
     if: github.event_name != 'pull_request'
     runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
     strategy:
@@ -228,7 +223,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
+        # Node 22 is the production baseline; Node 24 runs only on manual runs.
         node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
     defaults:
       run:
@@ -263,7 +258,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
+        # Node 22 is the production baseline; Node 24 runs only on manual runs.
         node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
     defaults:
       run:

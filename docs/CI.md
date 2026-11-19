@@ -10,8 +10,8 @@ compatible with supported runners, and reviewable without trusting a movable act
 | `ci.yml` | Root governance, OpenAPI lint/generation/route/breaking gates, API build/lint/test/runtime-route/race gates, PostgreSQL 15-18 compatibility, plus Next.js Web and Admin Console type/lint/test/build gates | `contents: read` |
 | `container.yml` | API image identity, smoke test, SBOM/scan evidence, and local Compose lifecycle | `contents: read` |
 | `e2e.yml` | Starts PostgreSQL, the API, and one browser shell with `make dev`, then runs Playwright against one browser shell: its main flows, WCAG AA checks with axe in light and dark mode, and screenshots at phone and desktop widths compared with baselines rendered on the CI runner (refresh them with the `update_snapshots` input and commit the uploaded artifact) | `contents: read` |
-| `perf.yml` | Weekly and on demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
-| `dependency-security.yml` | Scheduled and change-triggered OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
+| `perf.yml` | On demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
+| `dependency-security.yml` | On-demand OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
 | `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans the API, Web, and Admin images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
 | `skill-self-test.yml` | Starter-module skill validators in one job (Skill metadata is validated by `make governance`) | `contents: read` |
 | `plugins.yml` | Installs, integrates, builds, tests, doctors, and removes every registry plugin (`scripts/verify-plugin.sh`) | `contents: read` |
@@ -25,27 +25,21 @@ permission-policy entry in `check-ci-actions.py` and a role in the table above.
 
 ## When Checks Run
 
-A pull request runs only what its change can break; everything else runs after merge, weekly,
-and before a release, so coverage is unchanged while a typical pull request runs five to eight checks.
-Draft pull requests run nothing: open a draft while iterating, and checks start when it is marked
-ready for review. Scheduled runs happen once a week, on Monday between 02:41 and 05:17 UTC.
+Default CI is kept to the minimum: only `ci.yml` runs automatically, and only on non-draft pull
+requests. There is no push-to-`main` run and no schedule. Draft pull requests run nothing: open a
+draft while iterating, and checks start when it is marked ready for review.
 
-| Check | Pull request (not draft) | Push to `main` | Weekly | Release tag |
-|---|---|---|---|---|
-| Governance | Always | Yes | Yes | Via `make release-check` |
-| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `contracts/`, `api/`, `web/`, `admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
-| Web and Admin on Node 24 | No | Yes | Yes | Via `make release-check` |
-| PostgreSQL 15, 17, 18 compatibility | No | Yes | Yes | — |
-| Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
-| API, Web, and Admin containers | When an image input changes (Dockerfile, dependency manifests, container scripts) | No | Yes | Built and scanned by `release.yml` |
-| End-to-end | When a browser shell, sign-in, the operator flow, or the dev stack changes | No | Yes | — |
-| Dependency security | When a dependency manifest changes | No | Yes | — |
-| Skill self-test | When starter modules or skills change | No | — | — |
-| Plugins | When the registry or plugin machinery changes | No | Yes | — |
-| Performance baseline | — | — | Yes | — |
+| Check | Pull request (not draft) | Manual run | Release tag |
+|---|---|---|---|
+| Governance | Always | Yes | Via `make release-check` |
+| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `contracts/`, `api/`, `web/`, `admin/`, `registry/`, or CI changes, per area | Yes | Via `make release-check` |
+| Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | — |
+| Web and Admin on Node 24, PostgreSQL 15/17/18 compatibility | No | `ci.yml` | — |
+| API, Web, and Admin containers | No | Yes | Built and scanned by `release.yml` |
+| End-to-end, dependency security, skill self-test, plugins, performance baseline | No | Yes | — |
 
-Every workflow also has `workflow_dispatch`, so any check can be run on demand from the Actions tab.
-A scheduled failure is fixed like a failing pull request: open a fix before the next release.
+Every other workflow is `workflow_dispatch` only: run it from the Actions tab when a change touches
+its area (images, dependencies, browser flows, skills, plugins) or before a release.
 
 ## Runner Contract
 
@@ -122,7 +116,7 @@ inventory, and uploads that inventory for 14 days. It uses read-only repository 
 not depend on private-repository GitHub Advanced Security availability.
 
 `make governance` checks the tool/version/digest pins, pnpm resolution and build-script policy,
-lockfile integrity coverage, Dependabot ecosystems, CI trigger, and time-bounded OSV exceptions.
+lockfile integrity coverage, Dependabot ecosystems, the manual trigger, and time-bounded OSV exceptions.
 `make dependency-scan` is the live network-backed vulnerability gate. See
 [`DEPENDENCY_SECURITY.md`](DEPENDENCY_SECURITY.md) for update, privacy, license, and exception rules.
 
