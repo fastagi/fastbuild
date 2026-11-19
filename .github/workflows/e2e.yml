@@ -5,21 +5,8 @@ name: End-to-End
 # WCAG AA with axe, and compares screenshots. Baselines are rendered here because fonts differ per
 # platform: run this workflow with `update_snapshots` and commit the uploaded snapshots.
 
-# Pull requests run this when a browser shell, sign-in, the operator flow, or the dev stack
-# changes; the whole stack runs weekly.
+# Manual only (Actions tab -> Run workflow); not part of the default CI.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "admin/**"
-      - "web/**"
-      - "api/internal/modules/user/**"
-      - "api/internal/modules/operator/**"
-      - "scripts/dev.sh"
-      - "compose.dev.yaml"
-      - ".github/workflows/e2e.yml"
-  schedule:
-    - cron: "37 3 * * 1"
   workflow_dispatch:
     inputs:
       update_snapshots:

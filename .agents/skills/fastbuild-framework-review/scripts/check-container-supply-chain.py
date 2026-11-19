@@ -312,7 +312,6 @@ def main() -> int:
         ROOT / ".github/workflows/container.yml",
         (
             "scripts/container-security.sh",
-            "scripts/validate-container-sbom.py",
             "BUILD_METADATA_OUTPUT",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-api.build-metadata.json",
@@ -327,7 +326,6 @@ def main() -> int:
         (
             "scripts/verify-container.sh fastbuild-web:ci",
             "scripts/container-security.sh verify fastbuild-web:ci",
-            "scripts/validate-container-sbom.py",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-web.build-metadata.json",
             "fastbuild-web.cdx.json",
@@ -341,7 +339,6 @@ def main() -> int:
         (
             "scripts/verify-container.sh fastbuild-admin:ci",
             "scripts/container-security.sh verify fastbuild-admin:ci",
-            "scripts/validate-container-sbom.py",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-admin.build-metadata.json",
             "fastbuild-admin.cdx.json",

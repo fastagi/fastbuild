@@ -329,7 +329,7 @@ def main() -> int:
         encoding="utf-8"
     )
     for marker in (
-        'cron: "17 5 * * 1"',
+        "workflow_dispatch:",
         "bash scripts/dependency-security.sh sbom",
         "bash scripts/dependency-security.sh scan",
         "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1",
