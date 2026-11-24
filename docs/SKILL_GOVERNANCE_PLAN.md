@@ -212,13 +212,13 @@ Goal: stop skills from reintroducing old FastBuild vocabulary or old architectur
    - Update API coding skills so `pkg/response` owns transport defaults while internal adapters register
      domain-specific error mappings.
    - Verification: `bash .agents/skills/scripts/validate-skill.sh --all`,
-     `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`.
+     `bash tools/scaffold/check-vocabulary.sh`.
 
 2. **Expand vocabulary guardrails**
    - Status: implemented. The vocabulary checker scans every non-template `SKILL.md`.
    - Keep intentional generic phrases, such as "framework" in third-party skill references, out of
      FastBuild-specific forbidden checks unless they describe FastBuild itself.
-   - Verification: `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`.
+   - Verification: `bash tools/scaffold/check-vocabulary.sh`.
 
 3. **Improve verification failure feedback**
    - Status: implemented. `verification-before-completion/scripts/run-tiers.sh` prints the
@@ -322,7 +322,7 @@ Every scaffold surface should be classified as:
 - example.
 
 Status: implemented in [`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md) and guarded by
-`.agents/skills/fastbuild-framework-review/scripts/check-surface-catalog.py`.
+`tools/scaffold/check-surface-catalog.py`.
 
 For each category, maintain deletion/replacement instructions and verification commands.
 

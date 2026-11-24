@@ -79,4 +79,4 @@ jobs:
       - name: Verify the plugin end to end
         env:
           FASTBUILD_TEST_POSTGRES_DSN: postgres://fastbuild:fastbuild_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/fastbuild_test?sslmode=disable
-        run: scripts/verify-plugin.sh "${{ matrix.plugin }}"
+        run: tools/scaffold/verify-plugin.sh "${{ matrix.plugin }}"

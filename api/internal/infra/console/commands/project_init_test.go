@@ -29,7 +29,7 @@ func projectFixture(t *testing.T) string {
 		"packages/contracts/openapi.yaml": "openapi: 3.1.0\n",
 		"compose.dev.yaml":                "name: " + scaffoldSlug + "-dev\n",
 		"apps/web/Dockerfile":             "ARG OCI_SOURCE=" + scaffoldRepository + "\n",
-		"scripts/dev.sh":                  "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
+		"tools/dev/dev.sh":                "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
 		"docs/untracked-is-ignored.md":    scaffoldModulePath,
 		"api/assets/binary.bin":           "\x00" + scaffoldModulePath,
 		"README.md":                       "FastBuild scaffold docs stay as written.\n",
@@ -81,7 +81,7 @@ func TestInitProjectRewritesIdentityAndSelectsStarters(t *testing.T) {
 	assert.Contains(t, read(t, root, "packages/contracts/package.json"), `"name": "@acme/contracts"`)
 	assert.Equal(t, "name: acme-dev\n", read(t, root, "compose.dev.yaml"))
 	assert.Equal(t, "ARG OCI_SOURCE=https://github.com/example-demo/platform\n", read(t, root, "apps/web/Dockerfile"))
-	dev := read(t, root, "scripts/dev.sh")
+	dev := read(t, root, "tools/dev/dev.sh")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_STARTERS:-organization,webhook,operator}")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_WEB_FEATURES:-organization,webhook}")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_ADMIN_FEATURES:-operator,organization,webhook}")
@@ -109,7 +109,7 @@ func TestInitProjectKeepsStarterDefaultsWhenNoneAreGiven(t *testing.T) {
 	}, "v0.21.1", time.Now())
 	require.NoError(t, err)
 	assert.Equal(t, "APP_NAME=Acme\nOPTIONAL_STARTERS=\n", read(t, root, "api/.env.example"))
-	assert.Contains(t, read(t, root, "scripts/dev.sh"), "${FASTBUILD_DEV_STARTERS:-a,b}")
+	assert.Contains(t, read(t, root, "tools/dev/dev.sh"), "${FASTBUILD_DEV_STARTERS:-a,b}")
 }
 
 func TestInitProjectRejectsInvalidInputWithoutWriting(t *testing.T) {

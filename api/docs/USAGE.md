@@ -98,5 +98,5 @@ go test ./internal/modules/usage ./internal/bootstrap/operatorcommands ./interna
 go test ./...
 go vet ./...
 bash .agents/skills/sql-migration-review/scripts/check-migration.sh database/migrations/2026_07_15_050000_create_usage_tables.go
-cd .. && python3 .agents/skills/fastbuild-framework-review/scripts/check-usage-boundary.py
+cd .. && python3 tools/guards/check-usage-boundary.py
 ```

@@ -115,5 +115,5 @@ lost; `AUDIT_WRITE_MODE=sync` restores a write before every response. Commands a
 ```bash
 go test ./pkg/redact ./pkg/logger ./pkg/errors ./pkg/tracedhttp ./internal/infra/exception ./internal/infra/database ./internal/infra/tracing ./internal/infra/metrics ./internal/bootstrap ./internal/capabilities/workflow ./internal/modules/audit
 go test ./pkg/redact -run '^$' -bench '^BenchmarkMap$' -benchmem -count=5
-python3 ../.agents/skills/fastbuild-framework-review/scripts/check-sensitive-telemetry.py
+python3 ../tools/guards/check-sensitive-telemetry.py
 ```

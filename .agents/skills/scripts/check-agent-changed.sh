@@ -11,9 +11,9 @@ REPO_ROOT=${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
 BASE_REF=${AGENT_CHECK_BASE_REF:-main}
 cd "$REPO_ROOT"
 
-VOCABULARY_CHECK=.agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh
-LINK_CHECK=.agents/skills/fastbuild-framework-review/scripts/check-doc-links.py
-ENGLISH_CHECK=.agents/skills/fastbuild-framework-review/scripts/check-english-source.py
+VOCABULARY_CHECK=tools/scaffold/check-vocabulary.sh
+LINK_CHECK=tools/guards/check-doc-links.py
+ENGLISH_CHECK=tools/guards/check-english-source.py
 SKILL_CHECK=.agents/skills/scripts/validate-skill.sh
 ROUTING_CHECK=.agents/skills/scripts/check-skill-routing.py
 INDEX_CHECK=.agents/skills/scripts/render-skill-index.py
@@ -87,7 +87,7 @@ run_whitespace_checks() {
 
 if [ -n "$FULL_REASON" ]; then
     echo "Changed agent check: using complete scan because $FULL_REASON."
-    bash "$VOCABULARY_CHECK"
+    [ ! -f "$VOCABULARY_CHECK" ] || bash "$VOCABULARY_CHECK"
     PYTHONDONTWRITEBYTECODE=1 python3 "$LINK_CHECK"
     PYTHONDONTWRITEBYTECODE=1 python3 "$ENGLISH_CHECK"
     bash "$SKILL_CHECK" --all
@@ -113,7 +113,7 @@ while IFS= read -r path; do
     esac
 done <"$CHANGED_FILE"
 
-bash "$VOCABULARY_CHECK"
+[ ! -f "$VOCABULARY_CHECK" ] || bash "$VOCABULARY_CHECK"
 if [ ${#MARKDOWN_FILES[@]} -gt 0 ]; then
     PYTHONDONTWRITEBYTECODE=1 python3 "$LINK_CHECK" "${MARKDOWN_FILES[@]}"
 else

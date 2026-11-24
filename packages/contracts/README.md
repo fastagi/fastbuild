@@ -194,4 +194,4 @@ Rate-limited responses must include `Retry-After` when the reset time is known. 
 - Include `request_id` when the API has one in context.
 - Add API and every changed browser-shell test for contract-sensitive changes.
 - Document adapter-owned path or DTO mappings instead of treating unlike endpoints as interchangeable.
-- From the repo root, run `python3 .agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py` after changing scaffold-level HTTP status or `error_code` behavior.
+- From the repo root, run `python3 tools/guards/check-error-contracts.py` after changing scaffold-level HTTP status or `error_code` behavior.

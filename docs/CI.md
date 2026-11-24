@@ -14,7 +14,7 @@ compatible with supported runners, and reviewable without trusting a movable act
 | `dependency-security.yml` | Scheduled and change-triggered OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
 | `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans the API, Web, and Admin images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
 | `skill-self-test.yml` | Starter-module skill validators in one job (Skill metadata is validated by `make governance`) | `contents: read` |
-| `plugins.yml` | Installs, integrates, builds, tests, doctors, and removes every registry plugin (`scripts/verify-plugin.sh`) | `contents: read` |
+| `plugins.yml` | Installs, integrates, builds, tests, doctors, and removes every registry plugin (`tools/scaffold/verify-plugin.sh`) | `contents: read` |
 | `web-container.yml` | Web image identity, smoke test, SBOM, and vulnerability gate | `contents: read` |
 | `admin-container.yml` | Admin Console static image identity, SPA/cache/header smoke test, SBOM, and vulnerability gate | `contents: read` |
 
@@ -37,7 +37,7 @@ once a week, on Monday between 02:41 and 05:17 UTC.
 | HTTP contracts, API (PostgreSQL 16), Web, Admin | When `packages/contracts/`, `api/`, `apps/web/`, `apps/admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
 | Web and Admin on Node 24 | No | Yes | Yes | Via `make release-check` |
 | PostgreSQL 15, 17, 18 compatibility | No | Yes | Yes | — |
-| Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
+| Initialized project (`tools/scaffold/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
 | Dependency security | When a dependency manifest changes | Yes | Yes | — |
 | Skill self-test | When starter modules or skills change | — | Yes | — |
 | End-to-end | No | Yes | Yes | — |
@@ -159,10 +159,10 @@ explicit review and an allowlist update in `check-ci-actions.py`.
 ## Verification
 
 ```bash
-python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py
-python3 .agents/skills/fastbuild-framework-review/scripts/check-dependency-supply-chain.py
-python3 .agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py
-python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py
+python3 tools/guards/check-ci-actions.py
+python3 tools/guards/check-dependency-supply-chain.py
+python3 tools/guards/check-container-supply-chain.py
+python3 tools/guards/check-route-contract-discovery.py
 cd api && make route-catalog-check
 make dependency-scan
 make check

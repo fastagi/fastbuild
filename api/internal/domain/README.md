@@ -29,7 +29,7 @@ configuration, response helpers, or downstream product-specific workflows.
 
 These rules are enforced by
 [`../../docs/PACKAGE_BOUNDARIES.md`](../../docs/PACKAGE_BOUNDARIES.md) and
-`.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`.
+`tools/guards/check-api-boundaries.sh`.
 
 ## Interface Rules
 

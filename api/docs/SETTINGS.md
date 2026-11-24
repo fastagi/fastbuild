@@ -101,5 +101,5 @@ authority documented in [`CONFIGURATION.md`](CONFIGURATION.md).
 go test ./internal/modules/setting ./internal/modules/user
 go test ./internal/infra/console/commands ./internal/starter ./internal/bootstrap
 go run ./cmd/fastbuild route:list
-python3 ../.agents/skills/fastbuild-framework-review/scripts/check-setting-boundary.py
+python3 ../tools/guards/check-setting-boundary.py
 ```

@@ -251,7 +251,7 @@ func projectRewriter(options ProjectOptions) func(relative string, content []byt
 		fileRewrites["apps/web/.env.example"] = setLine("NEXT_PUBLIC_OPTIONAL_FEATURES=", strings.Join(web, ","))
 		fileRewrites["apps/admin/.env.example"] = chain(fileRewrites["apps/admin/.env.example"],
 			setLine("VITE_OPTIONAL_FEATURES=", strings.Join(admin, ",")))
-		fileRewrites["scripts/dev.sh"] = chain(
+		fileRewrites["tools/dev/dev.sh"] = chain(
 			setShellDefault("FASTBUILD_DEV_STARTERS", strings.Join(starters, ",")),
 			setShellDefault("FASTBUILD_DEV_WEB_FEATURES", strings.Join(web, ",")),
 			setShellDefault("FASTBUILD_DEV_ADMIN_FEATURES", strings.Join(admin, ",")),
@@ -335,7 +335,7 @@ func setLine(prefix, value string) func(string) string {
 	}
 }
 
-// setShellDefault rewrites `NAME="${NAME:-default}"`-style defaults in scripts/dev.sh.
+// setShellDefault rewrites `NAME="${NAME:-default}"`-style defaults in tools/dev/dev.sh.
 func setShellDefault(variable, value string) func(string) string {
 	pattern := regexp.MustCompile(`\$\{` + variable + `:-[^}]*\}`)
 	return func(content string) string {

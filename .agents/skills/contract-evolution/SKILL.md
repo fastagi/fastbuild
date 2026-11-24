@@ -72,9 +72,9 @@ Pick the narrowest commands that prove the whole changed contract, then run broa
 multiple deployable units move.
 
 - Contract/docs only:
-  - `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
-  - `python3 .agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`
-  - `python3 .agents/skills/fastbuild-framework-review/scripts/check-auth-contract-boundary.py` for authentication changes
+  - `bash tools/scaffold/check-vocabulary.sh`
+  - `python3 tools/guards/check-error-contracts.py`
+  - `python3 tools/guards/check-auth-contract-boundary.py` for authentication changes
   - `git diff --check`
 - API behavior:
   - `cd api && go test ./internal/modules/<module>/...`

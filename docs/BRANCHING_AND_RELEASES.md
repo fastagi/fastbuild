@@ -60,7 +60,7 @@ main
 Run the branch governance check after changing branch names, deployment branch mappings, or release process guidance:
 
 ```bash
-bash .agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh
+bash tools/scaffold/check-branch-governance.sh
 ```
 
 The check keeps the branch roles in this document explicit and asserts that `release/*` starts from

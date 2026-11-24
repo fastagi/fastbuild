@@ -163,7 +163,8 @@ before merging.
 
 ## Framework Guard Map
 
-All guards live under `fastbuild-framework-review/scripts/`.
+Runtime guards live under `tools/guards/` and scaffold-only guards live under
+`tools/scaffold/`.
 
 | Changed surface | Guard |
 |---|---|

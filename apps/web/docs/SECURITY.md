@@ -73,7 +73,7 @@ the application or ingress rather than emitting conflicting duplicates.
 (cd apps/web && pnpm build)
 (cd apps/web && pnpm proxy:check)
 bash apps/web/scripts/verify-container.sh fastbuild-web:container-check
-python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py
+python3 tools/guards/check-web-security-boundary.py
 make governance
 ```
 

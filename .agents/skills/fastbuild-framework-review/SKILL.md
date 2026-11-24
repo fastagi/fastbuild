@@ -95,7 +95,7 @@ Common routes:
 - CI, dependencies, or containers: the matching supply-chain guard
 - Full release evidence: `make check`
 
-Use `scripts/scaffold-architecture-report.py` only when a multi-candidate report
+Use `tools/scaffold/scaffold-architecture-report.py` only when a multi-candidate report
 or diagram must persist beyond the current turn. Write temporary reports under
 `$TMPDIR` unless the user requests a committed artifact.
 

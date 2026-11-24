@@ -28,7 +28,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   JavaScript/CSS budgets, validates public environment and API responses, and keeps protected auth
   explicitly behind a same-origin browser gateway rather than browser token storage.
 - Error contracts have been aligned around `code`, `error_code`, `message`, optional `errors`, and optional `request_id`.
-- Scaffold-level error contracts are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`, keeping `packages/contracts/README.md`, API response constants, and Web status fallbacks aligned.
+- Scaffold-level error contracts are guarded by `tools/guards/check-error-contracts.py`, keeping `packages/contracts/README.md`, API response constants, and Web status fallbacks aligned.
 - API default HTTP guardrails now include security headers, request body limit, cooperative request timeout, production-default rate limiting, CORS, and standard `error_code` responses for body-limit, timeout, and rate-limit failures. Process-local rate-limit stores are atomically enforced, cardinality-bounded with configurable LRU eviction, exact at window expiry, and own no cleanup goroutines; the misleading unassembled Redis limiter and inert `REDIS_*` runtime config were removed. Opt-in `RATE_LIMIT_STORE=postgres` shares one fixed-window budget per key across replicas for the global limiter and every authentication quota: one atomic upsert per decision on an UNLOGGED table using the database clock, SHA-256 key digests only, bounded opportunistic expiry plus `ratelimit:prune`, and a bounded decision timeout (default 50ms) whose `local` (default), `open`, or `closed` fallback is counted in `rate_limit_store_failures_total` and logged at a rate-limited warn level. The trade-off is one PostgreSQL round trip and pooled connection per rate-limited request and no cardinality cap on shared rows; volumetric and bot protection remain a gateway/WAF responsibility.
 - The optional API cache capability now has one byte-oriented contract across memory and Redis, atomic `Add`/`Take`, explicit positive TTLs, typed JSON helpers, per-store request coalescing, bounded memory cardinality/payloads, and zero persistent cleanup goroutines. Redis requires a namespace and borrowed client; cache remains non-authoritative and unassembled until a downstream business seam owns invalidation and outage policy.
 - API transport configuration now owns the real socket boundary: local defaults bind to `127.0.0.1`,
@@ -144,7 +144,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   full log paths, and configurable log tails for faster repair loops.
 - External GitHub Actions are pinned to reviewed full commit SHAs, use Node 24-compatible releases,
   and run with explicit token permissions. The runner and update contract lives in [`CI.md`](CI.md),
-  while `.agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py` prevents movable refs,
+  while `tools/guards/check-ci-actions.py` prevents movable refs,
   unreviewed action repositories, unsafe triggers, runtime drift, and duplicated pnpm version authority.
 - The root `fastbuild-framework-review` skill now defines the long-running review loop.
 - `fastbuild-framework-review` can now generate optional HTML architecture review reports in `$TMPDIR` for multi-candidate or cross-turn recommendations.
@@ -155,13 +155,13 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
 - Downstream extraction now has a dedicated root `downstream-app-extraction` skill with a product-leakage scan helper for keeping product behavior out of the source scaffold.
 - Scaffold surfaces are cataloged in [`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md) with downstream actions and verification by surface type.
 - Skill governance now has a dedicated 30/60/90-day and long-term plan in [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md).
-- High-signal docs and every non-template `SKILL.md` are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh` and CI.
-- Local Markdown links across docs and agent guidance are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-doc-links.py` and CI.
-- API package boundary drift is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`, with any current exceptions documented in [`../api/docs/PACKAGE_BOUNDARIES.md`](../api/docs/PACKAGE_BOUNDARIES.md).
+- High-signal docs and every non-template `SKILL.md` are guarded by `tools/scaffold/check-vocabulary.sh` and CI.
+- Local Markdown links across docs and agent guidance are guarded by `tools/guards/check-doc-links.py` and CI.
+- API package boundary drift is guarded by `tools/guards/check-api-boundaries.sh`, with any current exceptions documented in [`../api/docs/PACKAGE_BOUNDARIES.md`](../api/docs/PACKAGE_BOUNDARIES.md).
 - API boundary baseline exceptions are currently zero. `internal/domain` is guarded as standard-library-only, starter registry interfaces live in `internal/starter/assembly`, and the grab-bag packages (`pkg/support`, `pkg/utils`, and the `internal/infra/{queue,schedule,retry,http}` compatibility wrappers) are deleted; `make governance` rejects new `support`, `utils`, `common`, or `helpers` packages under `pkg/` and `internal/infra/`. `pkg/response` does not import `internal/domain`, and queue, retry, and scheduler primitives are owned by `internal/capabilities/workflow`.
 - Branch and release governance now lives in [`BRANCHING_AND_RELEASES.md`](BRANCHING_AND_RELEASES.md): `dev` is an optional testing branch, the scaffold deploys nothing from CI, and `release/*` or accepted feature PRs are the normal path to `main`.
-- Branch/release governance is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh` and CI so docs stay aligned with deployment branch mappings.
-- Scaffold surface classification is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-surface-catalog.py` and CI so the catalog, glossary, and downstream extraction workflow stay aligned.
+- Branch/release governance is guarded by `tools/scaffold/check-branch-governance.sh` and CI so docs stay aligned with deployment branch mappings.
+- Scaffold surface classification is guarded by `tools/scaffold/check-surface-catalog.py` and CI so the catalog, glossary, and downstream extraction workflow stay aligned.
 - Starter business readiness is now reviewed in [`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md). Optional `organization` includes the complete ownership/member/invitation/context lifecycle; dependent `permission` adds exact grants and access roles; independent `notification` adds durable user delivery; independent `asset` adds private inspected object lifecycles; dependent `setting` adds finite typed overrides; dependent `usage` adds trusted idempotent metering and atomic quota decisions; dependent `webhook` adds signed durable outbound integration. All seven are ready when explicitly enabled in the API and Next.js Web shell. The optional `operator` starter is the Admin Console's browser gateway and gives platform operators user, audit, app-setting, and system screens plus read-mostly organization, webhook, and notification-delivery support views; tenant self-service stays in Web. Billing and AI workspace remain planned.
 - API assembly is guarded against drift: released migrations are frozen SQL checked against a golden schema, starter names and handlers have one source (`config.Starter*`, `starter.Handlers`), each starter owns its error mappings through `assembly.ErrorModule`, `make wire-check` fails CI on a stale `wire_gen.go`, and `make:module` generates a wired optional starter. The decision to keep Wire and the deferred assembly changes, each with a revisit trigger, are recorded in [`../api/docs/adr/0014-wire-maintenance-posture.md`](../api/docs/adr/0014-wire-maintenance-posture.md) and [`../api/docs/adr/0003-starter-registry.md`](../api/docs/adr/0003-starter-registry.md).
 - Downstream-facing changes from each round are listed by impact in [`../UPGRADING.md`](../UPGRADING.md).
@@ -232,7 +232,7 @@ Verification:
 - red/green tests across `pkg/logger`, `pkg/errors`, `internal/infra/exception`, HTTP tracing,
   database diagnostics, and audit service
 - `cd api && go test ./pkg/redact -run '^$' -bench '^BenchmarkMap$' -benchmem -count=5`
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-sensitive-telemetry.py`
+- `python3 tools/guards/check-sensitive-telemetry.py`
 - `make check`
 
 ### Completed P0 — API Key Revocation And One-Time Secret Boundary
@@ -249,7 +249,7 @@ Verification:
 
 - `cd api && go test ./internal/modules/apikey -count=1`
 - `cd apps/web && pnpm vitest run src/test/api-key-contract.test.ts src/test/api-key-route.test.ts src/test/api-key-ui.test.tsx`
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-api-key-boundary.py`
+- `python3 tools/guards/check-api-key-boundary.py`
 - `make check`
 
 ### Completed P0 — HTTP Listen and Transport Configuration
@@ -321,7 +321,7 @@ green workflow with a runtime-deprecation warning is not considered clean.
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py`
+- `python3 tools/guards/check-ci-actions.py`
 - `make governance`
 - `make check`
 - GitHub CI, Container Contract, and Skill Self-Test runs, including annotation inspection.
@@ -625,7 +625,7 @@ rendered. Routes whose client graph already hydrates `Button` gained 1,133 raw b
 Verification:
 
 - `cd apps/web && pnpm vitest run src/test/button-composition.test.tsx`
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-web-ui-primitive-boundary.py`
+- `python3 tools/guards/check-web-ui-primitive-boundary.py`
 - `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
 - `make governance` and `make check`
 
@@ -671,7 +671,7 @@ Verification:
 - `cd apps/web && pnpm vitest run src/test/security-headers.test.ts src/test/auth-runtime-boundary.test.ts`
 - `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
 - `cd apps/web && bash scripts/verify-container.sh fastbuild-web:container-check`
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py`
+- `python3 tools/guards/check-web-security-boundary.py`
 - `make governance` and `make check`
 
 ### P1 — Measured Performance Baseline
@@ -761,13 +761,13 @@ Problem: scaffold-level HTTP status and `error_code` behavior spans `packages/co
 
 Recommended slice:
 
-1. Keep `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py` aligned with the scaffold-level errors documented in `packages/contracts/README.md`.
+1. Keep `tools/guards/check-error-contracts.py` aligned with the scaffold-level errors documented in `packages/contracts/README.md`.
 2. Add new scaffold-level `error_code` values to the contract first, then API response constants, then Web `ApiErrorCode` and status fallback behavior.
 3. Keep domain-specific codes out of the scaffold-level table until they become shared HTTP contract behavior.
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`
+- `python3 tools/guards/check-error-contracts.py`
 - `cd apps/web && pnpm vitest run src/test/error-code-vocabulary.test.ts src/test/api-error-contract.test.ts`
 - `make check`
 
@@ -793,7 +793,7 @@ OpenAPI Description must be delivered as its own complete and validated slice.
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py`
+- `python3 tools/guards/check-route-contract-discovery.py`
 - `cd api && make route-catalog-check`
 - `cd api && go test ./internal/bootstrap ./internal/infra/console ./internal/infra/console/commands`
 - `cd apps/web && pnpm vitest run src/test/console-public-boundary.test.ts`
@@ -814,8 +814,8 @@ returning to the public README.
 
 Verification:
 
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-doc-links.py`
+- `bash tools/scaffold/check-vocabulary.sh`
+- `python3 tools/guards/check-doc-links.py`
 - `git diff --check`
 
 ### P1 — Branch and Release Discipline
@@ -832,8 +832,8 @@ Recommended slice:
 Verification:
 
 - `make check`
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh`
+- `bash tools/scaffold/check-vocabulary.sh`
+- `bash tools/scaffold/check-branch-governance.sh`
 - Inspect the workflow triggers in [`CI.md`](CI.md) when changing branch names or what runs on pull requests.
 
 ### Completed P1 — Additive Optional Starter Assembly
@@ -1090,7 +1090,7 @@ Enforcement:
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-database-boundary.py`
+- `python3 tools/guards/check-database-boundary.py`
 - `cd api && go test ./...`
 - PostgreSQL integration tier against a disposable database
 - `make check`
@@ -1134,7 +1134,7 @@ the `pkg/support` item of the package-deepening candidate is closed by deletion.
 
 Verification:
 
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`
+- `bash tools/guards/check-api-boundaries.sh`
 - `cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./...`
 - `cd apps/web && corepack pnpm type-check && corepack pnpm vitest run`
 
@@ -1307,8 +1307,8 @@ deprecated `ROLE.NOT_FOUND` code was removed under the new process.
 
 Verification:
 
-- `bash scripts/release-check.sh vX.Y.Z` failure paths
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py`
+- `bash tools/scaffold/release-check.sh vX.Y.Z` failure paths
+- `python3 tools/guards/check-ci-actions.py`
 
 ### P1 — Starter Business Readiness
 
@@ -1318,18 +1318,18 @@ Recommended slice:
 
 1. Use [`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md) as the starter readiness matrix before adding new route-owning behavior.
 2. Keep the complete optional `organization` lifecycle and its production/mock adapter parity under executable contract and browser regression coverage.
-3. Keep the delivered `permission` starter optional, organization-dependent, exact-match, fail-closed, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-permission-boundary.py`.
-4. Keep the delivered `notification` starter user-scoped, idempotent, lease-driven, privacy-minimized, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-notification-boundary.py`.
-5. Keep the delivered `asset` starter user-scoped, private, bounded, provider-neutral, cleanup-safe, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-asset-boundary.py`.
-6. Keep the delivered `setting` starter finite, typed, versioned, privacy-aware, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-setting-boundary.py`; split the app/user base from its organization extension and converge integration tests on PostgreSQL before considering default promotion.
-7. Keep the delivered `usage` starter finite, trusted, idempotent, atomic, retention-bounded, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-usage-boundary.py`.
-8. Keep the delivered `webhook` starter organization-owned, finite, signed, SSRF-resistant, lease-safe, privacy-minimized, and covered by `.agents/skills/fastbuild-framework-review/scripts/check-webhook-boundary.py`.
+3. Keep the delivered `permission` starter optional, organization-dependent, exact-match, fail-closed, and covered by `tools/guards/check-permission-boundary.py`.
+4. Keep the delivered `notification` starter user-scoped, idempotent, lease-driven, privacy-minimized, and covered by `tools/guards/check-notification-boundary.py`.
+5. Keep the delivered `asset` starter user-scoped, private, bounded, provider-neutral, cleanup-safe, and covered by `tools/guards/check-asset-boundary.py`.
+6. Keep the delivered `setting` starter finite, typed, versioned, privacy-aware, and covered by `tools/guards/check-setting-boundary.py`; split the app/user base from its organization extension and converge integration tests on PostgreSQL before considering default promotion.
+7. Keep the delivered `usage` starter finite, trusted, idempotent, atomic, retention-bounded, and covered by `tools/guards/check-usage-boundary.py`.
+8. Keep the delivered `webhook` starter organization-owned, finite, signed, SSRF-resistant, lease-safe, privacy-minimized, and covered by `tools/guards/check-webhook-boundary.py`.
 9. Run semantic discovery for an optional AI workspace next; promote any starter into the default scaffold only after its deletion path, contract, security defaults, and downstream value are proven.
 
 Verification:
 
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
-- `PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-doc-links.py`
+- `bash tools/scaffold/check-vocabulary.sh`
+- `PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-doc-links.py`
 - `make governance`
 
 ### P2 — Architecture Vocabulary Cleanup
@@ -1344,7 +1344,7 @@ Recommended slice:
 
 Verification:
 
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
+- `bash tools/scaffold/check-vocabulary.sh`
 - `git diff --check`
 - Targeted `rg` scans for old terminology.
 
@@ -1362,7 +1362,7 @@ Recommended slice:
 
 Verification:
 
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`
+- `bash tools/guards/check-api-boundaries.sh`
 - Targeted tests for the selected seam.
 - Full affected-half type/lint/test command.
 
@@ -1395,7 +1395,7 @@ Recommended slice:
 Verification:
 
 - `bash .agents/skills/scripts/validate-skill.sh --all`
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
+- `bash tools/scaffold/check-vocabulary.sh`
 - `git diff --check`
 
 ### P2 — Root Governance Entry Point
@@ -1421,13 +1421,13 @@ Problem: FastBuild relies on AGENTS files, skills, architecture docs, and featur
 
 Recommended slice:
 
-1. Keep `.agents/skills/fastbuild-framework-review/scripts/check-doc-links.py` aligned with the docs and generated/vendor exclusions.
+1. Keep `tools/guards/check-doc-links.py` aligned with the docs and generated/vendor exclusions.
 2. Run it whenever Markdown docs, skill bodies, AGENTS files, or README navigation change.
 3. Prefer fixing stale links over widening exclusions, except for intentional templates and generated/vendor trees.
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-doc-links.py`
+- `python3 tools/guards/check-doc-links.py`
 - `bash .agents/skills/scripts/validate-skill.sh --all`
 - `git diff --check`
 
@@ -1443,9 +1443,9 @@ Recommended slice:
 
 Verification:
 
-- `python3 .agents/skills/fastbuild-framework-review/scripts/check-surface-catalog.py`
+- `python3 tools/scaffold/check-surface-catalog.py`
 - `bash .agents/skills/scripts/validate-skill.sh --all`
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
+- `bash tools/scaffold/check-vocabulary.sh`
 - `bash .agents/skills/downstream-app-extraction/scripts/check-downstream-contamination.sh --expected-origin git@github.com:fastagi/fastbuild.git --pattern "<task-product-identifier>"`
 
 ### P2 — Architecture Review Reports
@@ -1462,7 +1462,7 @@ Verification:
 
 - generate a sample report in `$TMPDIR`
 - `bash .agents/skills/scripts/validate-skill.sh --all`
-- `bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh`
+- `bash tools/scaffold/check-vocabulary.sh`
 
 ## Iteration Rules
 

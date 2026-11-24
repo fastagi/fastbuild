@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+
+"""Keep repository documentation and source comments in English."""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+HAN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff]")
+COMMENT_WITH_HAN = re.compile(r"(?://|#|/\*|\*)[^\n]*[\u3400-\u4dbf\u4e00-\u9fff]")
+SOURCE_SUFFIXES = {".css", ".go", ".js", ".mjs", ".py", ".sh", ".ts", ".tsx", ".yaml", ".yml"}
+IGNORED_PARTS = {".git", ".next", "coverage", "dist", "node_modules"}
+
+
+PLUGIN_FILES = re.compile(r"^registry/plugins/[^/]+/files/")
+
+
+def installed_path(path: Path) -> str:
+    """Return the repository path a file has once installed; plugin files keep the core rules."""
+    return PLUGIN_FILES.sub("", path.relative_to(ROOT).as_posix())
+
+
+def is_localization_source(path: Path) -> bool:
+    relative = installed_path(path)
+    return (
+        relative == "apps/admin/src/i18n/resources.ts"
+        or relative == "apps/web/src/i18n/locales.ts"
+        or (relative.startswith("apps/web/src/i18n/modules/") and relative.endswith("/zh-Hans.ts"))
+    )
+
+
+def is_test_source(path: Path) -> bool:
+    relative = installed_path(path)
+    return path.name.endswith("_test.go") or "/src/test/" in f"/{relative}"
+
+
+def candidate_files(arguments: list[str]) -> list[Path]:
+    if not arguments:
+        return sorted(ROOT.rglob("*"))
+
+    selected: set[Path] = set()
+    for argument in arguments:
+        candidate = Path(argument)
+        if not candidate.is_absolute():
+            candidate = ROOT / candidate
+        candidate = candidate.resolve()
+
+        if not candidate.is_relative_to(ROOT) or not candidate.exists():
+            continue
+        if candidate.is_dir():
+            selected.update(candidate.rglob("*"))
+        else:
+            selected.add(candidate)
+
+    return sorted(selected)
+
+
+def main() -> int:
+    failures: list[str] = []
+
+    for path in candidate_files(sys.argv[1:]):
+        if not path.is_file() or any(part in IGNORED_PARTS for part in path.parts):
+            continue
+        if path.relative_to(ROOT).as_posix().startswith(".claude/worktrees/"):
+            continue  # local agent worktrees are separate checkouts
+        if path.suffix != ".md" and path.suffix not in SOURCE_SUFFIXES and path.name != ".editorconfig":
+            continue
+
+        content = path.read_text(encoding="utf-8")
+        relative = path.relative_to(ROOT).as_posix()
+
+        if path.suffix == ".md" or path.name == ".editorconfig":
+            matcher = HAN
+        elif is_localization_source(path):
+            continue
+        elif is_test_source(path):
+            matcher = COMMENT_WITH_HAN
+        else:
+            matcher = HAN
+
+        for number, line in enumerate(content.splitlines(), start=1):
+            if matcher.search(line):
+                failures.append(f"{relative}:{number}: translate documentation or comments to English")
+
+    if failures:
+        for failure in failures:
+            print(f"English source check failed: {failure}", file=sys.stderr)
+        return 1
+
+    print("English source check passed (locales and Unicode test values preserved).")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -33,7 +33,7 @@ jobs:
         run: bash scripts/verify-container.sh fastbuild-web:ci
 
       - name: Export SBOM and scan production image
-        run: bash ../../scripts/container-security.sh verify fastbuild-web:ci "${RUNNER_TEMP}/fastbuild-web.cdx.json"
+        run: bash ../../tools/ci/container-security.sh verify fastbuild-web:ci "${RUNNER_TEMP}/fastbuild-web.cdx.json"
 
       - name: Upload Web container evidence
         if: ${{ !cancelled() }}

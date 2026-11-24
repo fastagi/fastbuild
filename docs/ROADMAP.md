@@ -24,7 +24,7 @@ Review this roadmap at every minor release and move finished items into the chan
 | Stage | Done | Remaining |
 |---|---|---|
 | 1 Plugin registry | Everything, released in v0.25.0; initialized projects verified by the **Initialized project** CI job | — |
-| 2 Full-stack plugins and lifecycle | Slots, `plugin:update` / `remove` / `doctor` / `pack`, knowledge-base Web UI, `scripts/verify-plugin.sh` | Plugin authoring guide and a `make:plugin` generator |
+| 2 Full-stack plugins and lifecycle | Slots, `plugin:update` / `remove` / `doctor` / `pack`, knowledge-base Web UI, `tools/scaffold/verify-plugin.sh` | Plugin authoring guide and a `make:plugin` generator |
 | 3 Themes and blocks | 3 themes, 8 blocks, contrast and registry guards, `plugin:add` for every kind | Screenshot and accessibility tests for each installed theme |
 | 4 Official plugins | `knowledge-base`, `tags`, `comments`; weekly Plugins workflow | `ai-gateway`, `knowledge-vector`, `billing-stripe`, `forms`, `pages`, `import-export` |
 | 5 v1.0 enterprise ready | Shared rate limiting, `project:upgrade`, compatibility promise | OIDC, MFA, email verification, current GORM, external security review, documentation site, three production projects |

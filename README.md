@@ -155,7 +155,7 @@ database and `make dev-reset` also deletes its data.
 | API | `http://127.0.0.1:8025` | `POST /v1/login` |
 
 Ports and the starter selection are environment variables, for example
-`FASTBUILD_API_PORT=18025 make dev`; run `scripts/dev.sh help` for the full list. The seeded accounts and
+`FASTBUILD_API_PORT=18025 make dev`; run `tools/dev/dev.sh help` for the full list. The seeded accounts and
 local secrets are for development only.
 
 With the stack running, `cd apps/admin && corepack pnpm e2e` drives the Admin Console against the API in

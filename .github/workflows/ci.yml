@@ -54,7 +54,7 @@ jobs:
           flag web '^(apps/web/|packages/contracts/)'
           flag admin '^(apps/admin/|packages/contracts/)'
           # What a new project inherits: project:init, ignore rules, root docs, and repository checks.
-          flag project '^(api/internal/infra/console/|api/\.gitignore|\.gitignore|Makefile|README\.md|scripts/|packages/contracts/scripts/|\.agents/skills/fastbuild-framework-review/scripts/)'
+          flag project '^(api/internal/infra/console/|api/\.gitignore|\.gitignore|Makefile|README\.md|tools/|packages/contracts/scripts/)'
           echo "Changed files:"; echo "$changed"
 
   governance:
@@ -327,4 +327,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Initialize a project and run its checks
-        run: scripts/verify-init-project.sh
+        run: tools/scaffold/verify-init-project.sh

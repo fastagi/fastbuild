@@ -15,18 +15,18 @@ init-project:
 # Verify main is ready to tag; see docs/VERSIONING.md.
 release-check:
 	@test -n "$(VERSION)" || { echo 'usage: make release-check VERSION=v0.22.0' >&2; exit 2; }
-	@bash scripts/release-check.sh "$(VERSION)"
+	@[ ! -d tools/scaffold ] || bash tools/scaffold/release-check.sh "$(VERSION)"
 
 # One-command local stack: PostgreSQL in Docker, API, Web, and Admin on the host.
 # Override ports with FASTBUILD_API_PORT, FASTBUILD_WEB_PORT, FASTBUILD_ADMIN_PORT, FASTBUILD_DB_PORT.
 dev:
-	@bash scripts/dev.sh up
+	@bash tools/dev/dev.sh up
 
 dev-down:
-	@bash scripts/dev.sh down
+	@bash tools/dev/dev.sh down
 
 dev-reset:
-	@bash scripts/dev.sh reset
+	@bash tools/dev/dev.sh reset
 
 check: governance contract-check api-check web-check admin-check
 
@@ -39,12 +39,12 @@ contract-generate:
 	cd packages/contracts && corepack pnpm generate
 
 agent-check:
-	@bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh
-	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-doc-links.py
-	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-english-source.py
+	@[ ! -d tools/scaffold ] || bash tools/scaffold/check-vocabulary.sh
+	@PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-doc-links.py
+	@PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-english-source.py
 	@bash .agents/skills/scripts/validate-skill.sh --all
 	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/scripts/render-skill-index.py --check
-	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-tracked-artifacts.py
+	@PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-tracked-artifacts.py
 	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/scripts/check-skill-routing.py
 	@git diff --check
 
@@ -55,35 +55,35 @@ skill-routing-check:
 	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/scripts/check-skill-routing.py
 
 governance: agent-check
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-auth-contract-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-rate-limit-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-cache-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-database-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-performance-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-ui-primitive-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-error-contracts.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-route-contract-discovery.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-auth-contract-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-rate-limit-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-cache-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-database-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-web-performance-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-web-security-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-web-ui-primitive-boundary.py
 	node apps/admin/scripts/check-architecture.mjs
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-api-key-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-audit-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-permission-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-notification-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-asset-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-setting-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-usage-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-webhook-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-ai-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-sensitive-telemetry.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-config-authority.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-email-boundary.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-dependency-supply-chain.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-surface-catalog.py
-	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-starter-catalog.py
-	bash .agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh
-	bash .agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-api-key-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-audit-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-permission-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-notification-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-asset-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-setting-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-usage-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-webhook-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-ai-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-sensitive-telemetry.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-config-authority.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-email-boundary.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-ci-actions.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-dependency-supply-chain.py
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-container-supply-chain.py
+	[ ! -d tools/scaffold ] || PYTHONDONTWRITEBYTECODE=1 python3 tools/scaffold/check-surface-catalog.py
+	[ ! -d tools/scaffold ] || PYTHONDONTWRITEBYTECODE=1 python3 tools/scaffold/check-starter-catalog.py
+	bash tools/guards/check-api-boundaries.sh
+	[ ! -d tools/scaffold ] || bash tools/scaffold/check-branch-governance.sh
 
 api-check:
 	cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
@@ -96,18 +96,18 @@ admin-check:
 	cd apps/admin && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
 
 dependency-scan:
-	bash scripts/dependency-security.sh scan
+	bash tools/ci/dependency-security.sh scan
 
 sbom:
-	bash scripts/dependency-security.sh sbom "$${SBOM_OUTPUT:-$${TMPDIR:-/tmp}/fastbuild.cdx.json}"
+	bash tools/ci/dependency-security.sh sbom "$${SBOM_OUTPUT:-$${TMPDIR:-/tmp}/fastbuild.cdx.json}"
 
 container-scan:
 	@test -n "$${IMAGE:-}" || { echo "IMAGE is required (for example, IMAGE=fastbuild-api:container-check)" >&2; exit 2; }
-	bash scripts/container-security.sh scan "$${IMAGE}"
+	bash tools/ci/container-security.sh scan "$${IMAGE}"
 
 container-sbom:
 	@test -n "$${IMAGE:-}" || { echo "IMAGE is required (for example, IMAGE=fastbuild-api:container-check)" >&2; exit 2; }
-	bash scripts/container-security.sh sbom "$${IMAGE}" "$${SBOM_OUTPUT:-$${TMPDIR:-/tmp}/fastbuild-container.cdx.json}"
+	bash tools/ci/container-security.sh sbom "$${IMAGE}" "$${SBOM_OUTPUT:-$${TMPDIR:-/tmp}/fastbuild-container.cdx.json}"
 
 # Remove generated build, test, log, and language-tool output while preserving
 # installed dependencies and reusable scanner caches.

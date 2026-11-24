@@ -33,7 +33,7 @@ jobs:
         run: bash scripts/verify-container.sh fastbuild-api:ci
 
       - name: Export SBOM and scan production image
-        run: bash ../../scripts/container-security.sh verify fastbuild-api:ci "${RUNNER_TEMP}/fastbuild-api.cdx.json"
+        run: bash ../tools/ci/container-security.sh verify fastbuild-api:ci "${RUNNER_TEMP}/fastbuild-api.cdx.json"
 
       - name: Upload API container evidence
         if: ${{ !cancelled() }}

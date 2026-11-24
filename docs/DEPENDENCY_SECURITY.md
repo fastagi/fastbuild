@@ -13,7 +13,7 @@ inventories and scans every lock surface.
 | pnpm resolution policy | All three `pnpm-workspace.yaml` files | New versions wait 24 hours, recent trust evidence cannot downgrade, and transitive exotic sources are blocked. |
 | Dependency scripts | All three `pnpm-workspace.yaml` files | Unreviewed install scripts fail; only five exact native/build package versions may execute them. |
 | Locked content | `packages/contracts/pnpm-lock.yaml`, `apps/web/pnpm-lock.yaml`, `apps/admin/pnpm-lock.yaml` | Every registry package carries integrity evidence and frozen installs are required in CI. |
-| Vulnerability source | `scripts/dependency-security.sh` | OSV-Scanner 2.3.8 binaries are selected per platform and verified against reviewed SHA-256 digests. |
+| Vulnerability source | `tools/ci/dependency-security.sh` | OSV-Scanner 2.3.8 binaries are selected per platform and verified against reviewed SHA-256 digests. |
 | Inventory | `make sbom` | A validated CycloneDX 1.5 document contains both Go modules and npm packages. |
 | Continuous review | `.github/workflows/dependency-security.yml` | Dependency changes, weekly schedules, and manual runs scan every lock surface and retain the SBOM for 14 days. |
 | Update discovery | `.github/dependabot.yml` | Monthly grouped version updates cover Go, all pnpm projects, GitHub Actions, and both Dockerfiles; security updates are grouped separately and major version updates remain separate review units. |

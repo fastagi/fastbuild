@@ -140,7 +140,7 @@ import.
   truly belongs in one of these documented homes — and to point
   to this ADR when justifying the choice.
 - The boundary lint lives at
-  `.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`
+  `tools/guards/check-api-boundaries.sh`
   from the repository root. It blocks new reverse imports while any current
   baseline exceptions, if they exist, are tracked in
   [`../PACKAGE_BOUNDARIES.md`](../PACKAGE_BOUNDARIES.md).

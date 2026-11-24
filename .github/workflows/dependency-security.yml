@@ -16,7 +16,7 @@ on:
       - "apps/admin/pnpm-lock.yaml"
       - "apps/admin/pnpm-workspace.yaml"
       - "osv-scanner.toml"
-      - "scripts/dependency-security.sh"
+      - "tools/ci/dependency-security.sh"
       - ".github/dependabot.yml"
       - ".github/workflows/dependency-security.yml"
   schedule:
@@ -43,10 +43,10 @@ jobs:
           persist-credentials: false
 
       - name: Export CycloneDX 1.5 SBOM
-        run: bash scripts/dependency-security.sh sbom "${RUNNER_TEMP}/fastbuild.cdx.json"
+        run: bash tools/ci/dependency-security.sh sbom "${RUNNER_TEMP}/fastbuild.cdx.json"
 
       - name: Scan dependency lockfiles
-        run: bash scripts/dependency-security.sh scan
+        run: bash tools/ci/dependency-security.sh scan
 
       - name: Upload SBOM
         if: ${{ !cancelled() }}

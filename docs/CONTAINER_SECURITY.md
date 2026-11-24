@@ -87,7 +87,7 @@ SBOM_OUTPUT="$PWD/fastbuild-web.cdx.json" IMAGE=fastbuild-web:container-check ma
 IMAGE=fastbuild-admin:container-check make container-scan
 ```
 
-`scripts/container-security.sh` downloads the official Trivy 0.72.0 archive over HTTPS, verifies a
+`tools/ci/container-security.sh` downloads the official Trivy 0.72.0 archive over HTTPS, verifies a
 reviewed platform-specific SHA-256, and re-extracts the executable from that verified archive on
 every run. The vulnerability database remains live by design; do not describe a successful scan as
 permanent evidence against advisories published later.

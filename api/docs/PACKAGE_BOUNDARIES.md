@@ -33,7 +33,7 @@ by starter modules and selected assembly code, but it does not depend on FastBui
 Run from the repository root:
 
 ```bash
-bash .agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh
+bash tools/guards/check-api-boundaries.sh
 ```
 
 The check uses `go list` direct imports. It blocks new reverse imports and reports the current
@@ -79,5 +79,5 @@ None.
 Do not add a new exception without also updating:
 
 - this document,
-- `.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`,
+- `tools/guards/check-api-boundaries.sh`,
 - and the rationale in an ADR or roadmap entry.
