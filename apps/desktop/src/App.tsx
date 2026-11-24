@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
+  AuthenticationMFAChallenge,
   AuthenticationUser,
   FastBuildClient,
   TokenStore,
@@ -41,6 +42,17 @@ const INITIAL_HEALTH: HealthSnapshot = {
   version: null,
   error: null,
 };
+
+function isMfaChallenge(value: unknown): value is AuthenticationMFAChallenge {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'mfa_required' in value &&
+    (value as { mfa_required?: unknown }).mfa_required === true &&
+    'challenge_token' in value &&
+    typeof (value as { challenge_token?: unknown }).challenge_token === 'string'
+  );
+}
 
 export function App({ bridge: bridgeProp, tokenStore: tokenStoreProp, fetchImpl }: AppProps) {
   const bridge = useMemo(
@@ -200,7 +212,22 @@ export function App({ bridge: bridgeProp, tokenStore: tokenStoreProp, fetchImpl 
 
   const handleSignIn = useCallback(
     async (credentials: { username: string; password: string }) => {
-      const session = await client.auth.login(credentials, NATIVE_AUTH_PATHS.login);
+      const result = await client.auth.login(credentials, NATIVE_AUTH_PATHS.login);
+      if (isMfaChallenge(result)) {
+        return { mfaChallenge: result };
+      }
+      setUser(result.user);
+      return { mfaChallenge: null };
+    },
+    [client],
+  );
+
+  const handleVerifyMfa = useCallback(
+    async (payload: { challengeToken: string; code: string }) => {
+      const session = await client.auth.mfa.verifyChallenge({
+        challenge_token: payload.challengeToken,
+        code: payload.code,
+      });
       setUser(session.user);
     },
     [client],
@@ -259,6 +286,7 @@ export function App({ bridge: bridgeProp, tokenStore: tokenStoreProp, fetchImpl 
         storageModeLabel={storageMode}
         onApiBaseUrlChange={handleApiBaseUrlChange}
         onSignIn={handleSignIn}
+        onVerifyMfa={handleVerifyMfa}
       />
     );
   }

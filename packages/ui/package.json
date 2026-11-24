@@ -22,13 +22,26 @@
   "exports": {
     ".": "./src/index.ts",
     "./cn": "./src/cn.ts",
+    "./alert": "./src/alert.tsx",
+    "./badge": "./src/badge.tsx",
     "./brand-mark": "./src/brand-mark.tsx",
     "./button": "./src/button.tsx",
     "./card": "./src/card.tsx",
+    "./dialog": "./src/dialog.tsx",
+    "./empty-state": "./src/empty-state.tsx",
     "./input": "./src/input.tsx",
-    "./badge": "./src/badge.tsx",
+    "./label": "./src/label.tsx",
+    "./mfa-code-input": "./src/mfa-code-input.tsx",
+    "./recovery-codes-grid": "./src/recovery-codes-grid.tsx",
+    "./section-header": "./src/section-header.tsx",
+    "./separator": "./src/separator.tsx",
+    "./skeleton": "./src/skeleton.tsx",
+    "./stat-card": "./src/stat-card.tsx",
     "./status-dot": "./src/status-dot.tsx",
-    "./section-header": "./src/section-header.tsx"
+    "./switch": "./src/switch.tsx",
+    "./table": "./src/table.tsx",
+    "./tabs": "./src/tabs.tsx",
+    "./textarea": "./src/textarea.tsx"
   },
   "files": [
     "src"

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import type { AuthenticationMFAChallenge } from '@fastbuild/api-client';
 import {
   isApiError,
   normalizeApiError,
@@ -7,6 +8,9 @@ import {
   type ApiError,
 } from '@fastbuild/core';
 import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
   Badge,
   BrandMark,
   Button,
@@ -17,17 +21,25 @@ import {
   CardHeader,
   CardTitle,
   Input,
+  Label,
+  MfaCodeInput,
+  Separator,
   StatusDot,
 } from '@fastbuild/ui';
-import { Globe, Lock, User } from 'lucide-react';
+import { ArrowLeft, Globe, KeyRound, Lock, ShieldCheck, User } from 'lucide-react';
 import { normalizeApiBaseUrl } from '@/lib/api.ts';
+
+export interface SignInResult {
+  readonly mfaChallenge: AuthenticationMFAChallenge | null;
+}
 
 export interface SignInScreenProps {
   readonly apiBaseUrl: string;
   readonly runtimeLabel: string;
   readonly storageModeLabel: string;
   readonly onApiBaseUrlChange: (nextUrl: string) => void;
-  readonly onSignIn: (credentials: { username: string; password: string }) => Promise<void>;
+  readonly onSignIn: (credentials: { username: string; password: string }) => Promise<SignInResult | void>;
+  readonly onVerifyMfa?: (payload: { challengeToken: string; code: string }) => Promise<void>;
 }
 
 const VALIDATION_MESSAGES: Record<string, string> = {
@@ -57,11 +69,16 @@ export function SignInScreen({
   storageModeLabel,
   onApiBaseUrlChange,
   onSignIn,
+  onVerifyMfa,
 }: SignInScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorState, setErrorState] = useState<{ message: string; detail?: string } | null>(null);
+  const [mfaChallenge, setMfaChallenge] = useState<AuthenticationMFAChallenge | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
   const [editingEndpoint, setEditingEndpoint] = useState(false);
   const [endpointDraft, setEndpointDraft] = useState(apiBaseUrl);
   const [endpointError, setEndpointError] = useState<string | null>(null);
@@ -92,12 +109,53 @@ export function SignInScreen({
 
     setSubmitting(true);
     try {
-      await onSignIn({ username: username.trim(), password });
+      const result = await onSignIn({ username: username.trim(), password });
+      if (result && result.mfaChallenge) {
+        setMfaChallenge(result.mfaChallenge);
+        setMfaCode('');
+        setRecoveryCode('');
+        setUseRecoveryCode(false);
+      }
     } catch (error) {
       setErrorState(formatAuthError(error));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleMfaSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!mfaChallenge || !onVerifyMfa) {
+      return;
+    }
+    setErrorState(null);
+
+    const code = useRecoveryCode ? recoveryCode.trim() : mfaCode.trim();
+    if (!useRecoveryCode && code.length !== 6) {
+      setErrorState({ message: 'Enter the 6-digit verification code from your authenticator app.' });
+      return;
+    }
+    if (useRecoveryCode && code.length < 6) {
+      setErrorState({ message: 'Enter a valid one-time recovery code.' });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await onVerifyMfa({ challengeToken: mfaChallenge.challenge_token, code });
+    } catch (error) {
+      setErrorState(formatAuthError(error));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function handleCancelMfa() {
+    setMfaChallenge(null);
+    setMfaCode('');
+    setRecoveryCode('');
+    setUseRecoveryCode(false);
+    setErrorState(null);
   }
 
   function handleSaveEndpoint() {
@@ -129,118 +187,204 @@ export function SignInScreen({
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Sign in to your workspace</CardTitle>
-            <CardDescription>
-              Authenticate against the FastBuild native bearer endpoint. Tokens are stored via{' '}
-              <span className="font-mono text-xs text-foreground">{storageModeLabel}</span>.
-            </CardDescription>
-          </CardHeader>
+          {mfaChallenge ? (
+            <>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="size-4 text-brand" aria-hidden="true" />
+                  <CardTitle>Two-factor verification</CardTitle>
+                </div>
+                <CardDescription>
+                  {useRecoveryCode
+                    ? 'Enter one of your unused recovery codes to complete sign-in.'
+                    : 'Enter the 6-digit code from your authenticator app to finish signing in.'}
+                </CardDescription>
+              </CardHeader>
 
-          <form onSubmit={handleSubmit} noValidate>
-            <CardContent className="space-y-4">
-              {errorState ? (
-                <div
-                  role="alert"
-                  className="rounded-lg border border-danger/30 bg-danger-subtle px-3.5 py-2.5 text-sm text-danger-strong"
-                >
-                  <p className="font-medium">{errorState.message}</p>
-                  {errorState.detail ? (
-                    <p className="mt-0.5 font-mono text-xs opacity-80">{errorState.detail}</p>
+              <form onSubmit={handleMfaSubmit} noValidate>
+                <CardContent className="space-y-4">
+                  {errorState ? (
+                    <Alert variant="destructive">
+                      <AlertTitle>{errorState.message}</AlertTitle>
+                      {errorState.detail ? (
+                        <AlertDescription className="font-mono">{errorState.detail}</AlertDescription>
+                      ) : null}
+                    </Alert>
                   ) : null}
-                </div>
-              ) : null}
 
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="desktop-username"
-                  className="flex items-center gap-1.5 text-xs font-medium text-foreground"
-                >
-                  <User className="size-3.5 text-muted-foreground" aria-hidden="true" />
-                  Username
-                </label>
-                <Input
-                  id="desktop-username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  disabled={submitting}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="desktop-password"
-                  className="flex items-center gap-1.5 text-xs font-medium text-foreground"
-                >
-                  <Lock className="size-3.5 text-muted-foreground" aria-hidden="true" />
-                  Password
-                </label>
-                <Input
-                  id="desktop-password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={submitting}
-                  required
-                />
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex flex-col items-stretch gap-3">
-              <Button type="submit" loading={submitting} className="w-full">
-                Sign in
-              </Button>
-
-              <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <Globe className="size-3.5 shrink-0" aria-hidden="true" />
-                    <span className="truncate font-mono text-foreground">{apiBaseUrl}</span>
-                  </span>
-                  <button
-                    type="button"
-                    className="shrink-0 font-medium text-brand hover:underline"
-                    onClick={() => {
-                      setEndpointDraft(apiBaseUrl);
-                      setEndpointError(null);
-                      setEditingEndpoint((prev) => !prev);
-                    }}
-                  >
-                    {editingEndpoint ? 'Cancel' : 'Change'}
-                  </button>
-                </div>
-
-                {editingEndpoint ? (
-                  <div className="mt-2.5 space-y-2 border-t border-border pt-2.5">
-                    <Input
-                      aria-label="API base URL"
-                      type="url"
-                      value={endpointDraft}
-                      onChange={(event) => setEndpointDraft(event.target.value)}
-                      placeholder="http://127.0.0.1:8025"
-                      className="h-8 text-xs font-mono"
-                    />
-                    {endpointError ? (
-                      <p className="text-xs text-danger-strong">{endpointError}</p>
-                    ) : null}
-                    <div className="flex justify-end">
-                      <Button size="sm" variant="secondary" onClick={handleSaveEndpoint}>
-                        Save endpoint
-                      </Button>
+                  {useRecoveryCode ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="desktop-recovery-code">
+                        <KeyRound className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                        Recovery code
+                      </Label>
+                      <Input
+                        id="desktop-recovery-code"
+                        name="recovery_code"
+                        type="text"
+                        autoComplete="one-time-code"
+                        placeholder="XXXX-XXXX"
+                        value={recoveryCode}
+                        onChange={(event) => setRecoveryCode(event.target.value)}
+                        disabled={submitting}
+                        className="font-mono"
+                      />
                     </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Label htmlFor="desktop-mfa-code">Verification code</Label>
+                      <MfaCodeInput
+                        id="desktop-mfa-code"
+                        value={mfaCode}
+                        onChange={setMfaCode}
+                        disabled={submitting}
+                        invalid={Boolean(errorState)}
+                      />
+                    </div>
+                  )}
+                </CardContent>
+
+                <CardFooter className="flex flex-col items-stretch gap-3">
+                  <Button type="submit" loading={submitting} className="w-full">
+                    Verify code
+                  </Button>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between text-xs">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={handleCancelMfa}
+                      disabled={submitting}
+                    >
+                      <ArrowLeft className="size-3.5" aria-hidden="true" />
+                      Back to sign in
+                    </button>
+                    <button
+                      type="button"
+                      className="font-medium text-brand hover:underline"
+                      onClick={() => {
+                        setErrorState(null);
+                        setUseRecoveryCode((prev) => !prev);
+                      }}
+                      disabled={submitting}
+                    >
+                      {useRecoveryCode ? 'Use authenticator code' : 'Use recovery code'}
+                    </button>
                   </div>
-                ) : null}
-              </div>
-            </CardFooter>
-          </form>
+                </CardFooter>
+              </form>
+            </>
+          ) : (
+            <>
+              <CardHeader>
+                <CardTitle>Sign in to your workspace</CardTitle>
+                <CardDescription>
+                  Authenticate against the FastBuild native bearer endpoint. Tokens are stored via{' '}
+                  <span className="font-mono text-xs text-foreground">{storageModeLabel}</span>.
+                </CardDescription>
+              </CardHeader>
+
+              <form onSubmit={handleSubmit} noValidate>
+                <CardContent className="space-y-4">
+                  {errorState ? (
+                    <Alert variant="destructive">
+                      <AlertTitle>{errorState.message}</AlertTitle>
+                      {errorState.detail ? (
+                        <AlertDescription className="font-mono">{errorState.detail}</AlertDescription>
+                      ) : null}
+                    </Alert>
+                  ) : null}
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="desktop-username">
+                      <User className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                      Username
+                    </Label>
+                    <Input
+                      id="desktop-username"
+                      name="username"
+                      type="text"
+                      autoComplete="username"
+                      placeholder="Enter your username"
+                      value={username}
+                      onChange={(event) => setUsername(event.target.value)}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label htmlFor="desktop-password">
+                      <Lock className="size-3.5 text-muted-foreground" aria-hidden="true" />
+                      Password
+                    </Label>
+                    <Input
+                      id="desktop-password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={submitting}
+                      required
+                    />
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex flex-col items-stretch gap-3">
+                  <Button type="submit" loading={submitting} className="w-full">
+                    Sign in
+                  </Button>
+
+                  <Separator />
+
+                  <div className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <Globe className="size-3.5 shrink-0" aria-hidden="true" />
+                        <span className="truncate font-mono text-foreground">{apiBaseUrl}</span>
+                      </span>
+                      <button
+                        type="button"
+                        className="shrink-0 font-medium text-brand hover:underline"
+                        onClick={() => {
+                          setEndpointDraft(apiBaseUrl);
+                          setEndpointError(null);
+                          setEditingEndpoint((prev) => !prev);
+                        }}
+                      >
+                        {editingEndpoint ? 'Cancel' : 'Change'}
+                      </button>
+                    </div>
+
+                    {editingEndpoint ? (
+                      <div className="mt-2.5 space-y-2 border-t border-border pt-2.5">
+                        <Input
+                          aria-label="API base URL"
+                          type="url"
+                          value={endpointDraft}
+                          onChange={(event) => setEndpointDraft(event.target.value)}
+                          placeholder="http://127.0.0.1:8025"
+                          className="h-8 font-mono text-xs"
+                        />
+                        {endpointError ? (
+                          <p className="text-xs text-danger-strong">{endpointError}</p>
+                        ) : null}
+                        <div className="flex justify-end">
+                          <Button size="sm" variant="secondary" onClick={handleSaveEndpoint}>
+                            Save endpoint
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                </CardFooter>
+              </form>
+            </>
+          )}
         </Card>
 
         <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">

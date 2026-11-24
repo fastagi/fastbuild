@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ApiVersionHealth, AuthenticationUser, HealthReport } from '@fastbuild/api-client';
 import {
+  Alert,
+  AlertDescription,
   Badge,
   BrandMark,
   Button,
@@ -10,16 +12,26 @@ import {
   CardHeader,
   CardTitle,
   Input,
+  Label,
   SectionHeader,
+  Separator,
+  StatCard,
   StatusDot,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   type StatusTone,
 } from '@fastbuild/ui';
 import {
   Activity,
+  Cpu,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Monitor,
   Moon,
+  Package,
   RefreshCw,
   Settings,
   ShieldCheck,
@@ -228,6 +240,29 @@ export function WorkspaceShell({
                 }
               />
 
+              <div className="grid gap-4 sm:grid-cols-3">
+                <StatCard
+                  label="App Version"
+                  value={runtimeInfo?.appVersion ?? '0.1.0'}
+                  subtext={runtimeInfo ? `Electron ${runtimeInfo.electronVersion}` : 'Browser Preview'}
+                  icon={<Package />}
+                />
+                <StatCard
+                  label="Platform"
+                  value={runtimeInfo?.platform ?? 'web'}
+                  subtext="Context isolated · Sandboxed"
+                  icon={<Cpu />}
+                />
+                <StatCard
+                  label="Token Storage"
+                  value={storageMode}
+                  subtext="Rotating bearer credentials"
+                  icon={<KeyRound />}
+                />
+              </div>
+
+              <Separator />
+
               <div className="grid gap-4 md:grid-cols-2">
                 <Card>
                   <CardHeader className="pb-3">
@@ -244,9 +279,9 @@ export function WorkspaceShell({
                   </CardHeader>
                   <CardContent className="space-y-2 text-sm">
                     {health.error ? (
-                      <p className="rounded-md border border-danger/25 bg-danger-subtle px-3 py-2 text-xs text-danger-strong">
-                        {health.error}
-                      </p>
+                      <Alert variant="destructive">
+                        <AlertDescription>{health.error}</AlertDescription>
+                      </Alert>
                     ) : (
                       <dl className="grid grid-cols-2 gap-y-2 text-xs">
                         <dt className="text-muted-foreground">Status</dt>
@@ -258,7 +293,7 @@ export function WorkspaceShell({
                           {health.version?.version ?? 'v1'}
                         </dd>
                         <dt className="text-muted-foreground">Last checked</dt>
-                        <dd className="font-mono text-foreground">
+                        <dd className="font-mono text-foreground tabular-nums">
                           {health.report?.timestamp
                             ? new Date(health.report.timestamp).toLocaleTimeString()
                             : '—'}
@@ -291,42 +326,6 @@ export function WorkspaceShell({
                   </CardContent>
                 </Card>
               </div>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-base">Desktop Runtime Status</CardTitle>
-                    <Badge variant="outline">
-                      {runtimeInfo ? `Electron ${runtimeInfo.electronVersion}` : 'Browser Preview'}
-                    </Badge>
-                  </div>
-                  <CardDescription>
-                    Process isolation and OS keychain credential storage state.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <dl className="grid gap-3 sm:grid-cols-3 text-xs">
-                    <div className="rounded-lg border border-border bg-muted/40 p-3">
-                      <dt className="text-muted-foreground">App Version</dt>
-                      <dd className="mt-1 font-mono text-sm font-medium text-foreground">
-                        {runtimeInfo?.appVersion ?? '0.1.0'}
-                      </dd>
-                    </div>
-                    <div className="rounded-lg border border-border bg-muted/40 p-3">
-                      <dt className="text-muted-foreground">Platform</dt>
-                      <dd className="mt-1 font-mono text-sm font-medium text-foreground">
-                        {runtimeInfo?.platform ?? 'web'}
-                      </dd>
-                    </div>
-                    <div className="rounded-lg border border-border bg-muted/40 p-3">
-                      <dt className="text-muted-foreground">Token Storage</dt>
-                      <dd className="mt-1 font-mono text-sm font-medium text-foreground">
-                        {storageMode}
-                      </dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
             </>
           ) : (
             <>
@@ -336,91 +335,107 @@ export function WorkspaceShell({
                 description="Configure appearance, API connection target, and active desktop session."
               />
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Appearance</CardTitle>
-                  <CardDescription>
-                    Switches between Alabaster light, Obsidian dark, or OS theme synced with
-                    Electron nativeTheme.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="inline-flex rounded-lg border border-border bg-muted/50 p-1">
-                    {THEME_OPTIONS.map((option) => {
-                      const Icon = option.icon;
-                      const active = themeMode === option.value;
-                      return (
-                        <Button
-                          key={option.value}
-                          variant={active ? 'default' : 'ghost'}
-                          size="sm"
-                          aria-pressed={active}
-                          onClick={() => onThemeModeChange(option.value)}
+              <Tabs defaultValue="appearance">
+                <TabsList aria-label="Settings sections">
+                  <TabsTrigger value="appearance">Appearance</TabsTrigger>
+                  <TabsTrigger value="connection">Connection</TabsTrigger>
+                  <TabsTrigger value="session">Session</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="appearance">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Appearance</CardTitle>
+                      <CardDescription>
+                        Switches between Alabaster light, Obsidian dark, or OS theme synced with
+                        Electron nativeTheme.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="inline-flex rounded-lg border border-border bg-muted/50 p-1">
+                        {THEME_OPTIONS.map((option) => {
+                          const Icon = option.icon;
+                          const active = themeMode === option.value;
+                          return (
+                            <Button
+                              key={option.value}
+                              variant={active ? 'default' : 'ghost'}
+                              size="sm"
+                              aria-pressed={active}
+                              onClick={() => onThemeModeChange(option.value)}
+                            >
+                              <Icon className="size-3.5" aria-hidden="true" />
+                              {option.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="connection">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">API Base URL</CardTitle>
+                      <CardDescription>
+                        Target FastBuild API origin used for native bearer authentication and health
+                        checks.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="desktop-settings-api-url">Endpoint origin</Label>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <Input
+                            id="desktop-settings-api-url"
+                            aria-label="API Base URL"
+                            type="url"
+                            value={endpointDraft}
+                            onChange={(event) => setEndpointDraft(event.target.value)}
+                            placeholder={DEFAULT_API_BASE_URL}
+                            className="font-mono text-xs"
+                          />
+                          <div className="flex shrink-0 gap-2">
+                            <Button onClick={handleSaveEndpoint}>Save</Button>
+                            <Button variant="outline" onClick={handleResetEndpoint}>
+                              Reset
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      {endpointNotice ? (
+                        <Alert
+                          variant={endpointNotice.kind === 'error' ? 'destructive' : 'success'}
                         >
-                          <Icon className="size-3.5" aria-hidden="true" />
-                          {option.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
+                          <AlertDescription>{endpointNotice.text}</AlertDescription>
+                        </Alert>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">API Base URL</CardTitle>
-                  <CardDescription>
-                    Target FastBuild API origin used for native bearer authentication and health
-                    checks.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <Input
-                      aria-label="API Base URL"
-                      type="url"
-                      value={endpointDraft}
-                      onChange={(event) => setEndpointDraft(event.target.value)}
-                      placeholder={DEFAULT_API_BASE_URL}
-                      className="font-mono text-xs"
-                    />
-                    <div className="flex shrink-0 gap-2">
-                      <Button onClick={handleSaveEndpoint}>Save</Button>
-                      <Button variant="outline" onClick={handleResetEndpoint}>
-                        Reset
+                <TabsContent value="session">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Session</CardTitle>
+                      <CardDescription>
+                        Signed in as{' '}
+                        <span className="font-medium text-foreground">{user.username}</span> (
+                        {user.email}). Signing out revokes the refresh token and clears OS keychain
+                        storage.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Separator />
+                      <Button variant="destructive" loading={signingOut} onClick={onSignOut}>
+                        <LogOut className="size-4" aria-hidden="true" />
+                        Sign out
                       </Button>
-                    </div>
-                  </div>
-                  {endpointNotice ? (
-                    <p
-                      className={`text-xs ${
-                        endpointNotice.kind === 'error'
-                          ? 'text-danger-strong'
-                          : 'text-success-strong'
-                      }`}
-                    >
-                      {endpointNotice.text}
-                    </p>
-                  ) : null}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Session</CardTitle>
-                  <CardDescription>
-                    Signed in as <span className="font-medium text-foreground">{user.username}</span>{' '}
-                    ({user.email}). Signing out revokes the refresh token and clears OS keychain
-                    storage.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="destructive" loading={signingOut} onClick={onSignOut}>
-                    <LogOut className="size-4" aria-hidden="true" />
-                    Sign out
-                  </Button>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </>
           )}
         </div>

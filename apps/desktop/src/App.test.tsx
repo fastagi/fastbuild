@@ -170,4 +170,100 @@ describe('Desktop App sign-in, workspace, and settings flow', () => {
     expect(alert).toHaveTextContent('AUTH.INVALID_CREDENTIALS');
     expect(alert).toHaveTextContent('req-desktop-42');
   });
+
+  it('completes the desktop MFA challenge flow when native login returns mfa_required', async () => {
+    const bridge = createBridgeStub();
+    const tokenStore = new DesktopTokenStore(bridge);
+
+    const fetchMock = vi.fn<typeof globalThis.fetch>(async (input, init) => {
+      const url = typeof input === 'string' ? input : input.toString();
+
+      if (url.endsWith('/v1/auth/native/login') && init?.method === 'POST') {
+        return jsonResponse({
+          code: 0,
+          message: 'mfa required',
+          data: {
+            mfa_required: true,
+            challenge_token: 'mfa-challenge-xyz',
+            challenge_expires_in: 300,
+            method: 'totp',
+          },
+        });
+      }
+
+      if (url.endsWith('/v1/auth/mfa/challenge/verify') && init?.method === 'POST') {
+        const body = JSON.parse(String(init.body ?? '{}')) as {
+          challenge_token?: string;
+          code?: string;
+        };
+        if (body.challenge_token === 'mfa-challenge-xyz' && body.code === '654321') {
+          return jsonResponse({
+            code: 0,
+            message: 'success',
+            data: {
+              access_token: 'mfa-access-token',
+              refresh_token: 'mfa-refresh-token',
+              token_type: 'Bearer',
+              expires_in: 900,
+              user: DEMO_USER,
+            },
+          });
+        }
+        return jsonResponse(
+          {
+            code: 401,
+            error_code: 'AUTH.MFA_INVALID_CODE',
+            message: 'Invalid verification code',
+          },
+          401,
+        );
+      }
+
+      if (url.endsWith('/health')) {
+        return jsonResponse({ status: 'up', timestamp: '2026-11-24T17:00:00Z' });
+      }
+
+      if (url.endsWith('/v1/health')) {
+        return jsonResponse({ status: 'ok', version: 'v1' });
+      }
+
+      return jsonResponse({ code: 404, error_code: 'COMMON.NOT_FOUND', message: 'Not found' }, 404);
+    });
+
+    render(<App bridge={bridge} tokenStore={tokenStore} fetchImpl={fetchMock} />);
+
+    expect(await screen.findByText('Sign in to your workspace')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'alice' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    // Transitions into MFA challenge step with MfaCodeInput
+    expect(await screen.findByText('Two-factor verification')).toBeInTheDocument();
+
+    const digit1 = screen.getByLabelText('Digit 1 of 6');
+    fireEvent.paste(digit1, {
+      clipboardData: {
+        getData: () => '654321',
+      },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Verify code' }));
+
+    // Transitions to authenticated Overview shell after MFA verification
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument();
+    expect(bridge.tokens.set).toHaveBeenCalledWith(
+      expect.objectContaining({
+        accessToken: 'mfa-access-token',
+        refreshToken: 'mfa-refresh-token',
+      }),
+    );
+
+    // Settings tabs render Connection and Session panels cleanly
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(await screen.findByRole('tab', { name: 'Appearance' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    fireEvent.click(screen.getByRole('tab', { name: 'Connection' }));
+    expect(screen.getByLabelText('API Base URL')).toBeInTheDocument();
+  });
 });
