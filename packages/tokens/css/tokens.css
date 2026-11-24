@@ -1,0 +1,126 @@
+/* FastBuild shared design tokens: pure zero-chroma alabaster (:root) and obsidian (.dark). */
+
+:root {
+  --radius: 0.5rem;
+  --theme-color: var(--background);
+
+  /* Pure zero-chroma alabaster neutral palette */
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.145 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.955 0 0);
+  --secondary-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.48 0 0);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: oklch(0.56 0.235 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.915 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.439 0 0);
+
+  /* Sidebar & surface aliases */
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--brand-subtle);
+  --sidebar-accent-foreground: var(--brand-strong);
+  --sidebar-border: oklch(0.915 0 0);
+  --sidebar-ring: var(--ring);
+  --sidebar-muted: var(--muted-foreground);
+  --surface: var(--card);
+  --subtle: var(--muted-foreground);
+
+  /* FastBuild Rhine blue accent & semantic status colors */
+  --brand: oklch(0.5 0.2 250);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-strong: oklch(0.28 0.06 250);
+  --brand-subtle: oklch(0.955 0.008 250);
+  --success: oklch(0.55 0.14 150);
+  --success-strong: oklch(0.41 0.12 150);
+  --success-subtle: oklch(0.95 0.04 150);
+  --warning: oklch(0.68 0.14 78);
+  --warning-strong: oklch(0.46 0.12 70);
+  --warning-subtle: oklch(0.96 0.04 82);
+  --danger: var(--destructive);
+  --danger-strong: oklch(0.48 0.2 27);
+  --danger-subtle: oklch(0.96 0.035 25);
+  --info: oklch(0.55 0.15 230);
+  --info-subtle: oklch(0.95 0.03 230);
+
+  /* Materials & motion */
+  --material: oklch(0.985 0 0 / 92%);
+  --material-strong: oklch(0.985 0 0 / 96%);
+  --material-edge: oklch(1 0 0 / 60%);
+  --material-shadow: 0 1px 2px oklch(0 0 0 / 4%);
+  --motion-response: 220ms;
+  --motion-curve: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dark {
+  --theme-color: var(--background);
+
+  /* Pure zero-chroma obsidian neutral palette */
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.175 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.145 0 0);
+  --secondary: oklch(0.205 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.205 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.205 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.145 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.708 0 0);
+
+  /* Sidebar & surface aliases */
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--brand-subtle);
+  --sidebar-accent-foreground: var(--brand-strong);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: var(--ring);
+  --sidebar-muted: var(--muted-foreground);
+  --surface: var(--card);
+  --subtle: var(--muted-foreground);
+
+  /* FastBuild Rhine blue accent & semantic status colors */
+  --brand: oklch(0.65 0.15 250);
+  --brand-foreground: oklch(0.145 0 0);
+  --brand-strong: oklch(0.94 0.015 250);
+  --brand-subtle: oklch(0.21 0.01 250);
+  --success: oklch(0.7 0.13 150);
+  --success-strong: oklch(0.75 0.12 150);
+  --success-subtle: oklch(0.24 0.04 150);
+  --warning: oklch(0.77 0.13 78);
+  --warning-strong: oklch(0.8 0.12 78);
+  --warning-subtle: oklch(0.25 0.04 78);
+  --danger: oklch(0.7 0.17 27);
+  --danger-strong: oklch(0.75 0.16 27);
+  --danger-subtle: oklch(0.25 0.05 27);
+  --info: oklch(0.7 0.14 230);
+  --info-subtle: oklch(0.24 0.04 230);
+
+  /* Materials */
+  --material: oklch(0.1 0 0 / 92%);
+  --material-strong: oklch(0.1 0 0 / 96%);
+  --material-edge: oklch(1 0 0 / 6%);
+  --material-shadow: 0 1px 2px oklch(0 0 0 / 28%);
+}

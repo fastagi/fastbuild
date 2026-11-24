@@ -1,0 +1,26 @@
+{
+  "name": "@fastbuild/api-client",
+  "version": "0.1.0",
+  "description": "Platform-neutral typed FastBuild HTTP client supporting cookie (Web/Admin) and rotating bearer (Desktop/Mobile) auth.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0",
+    "pnpm": "10.34.5"
+  },
+  "dependencies": {
+    "@fastbuild/core": "workspace:*"
+  },
+  "scripts": {
+    "test": "node --test src/client.test.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./types": "./src/types.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

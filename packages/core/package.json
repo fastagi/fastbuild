@@ -1,0 +1,24 @@
+{
+  "name": "@fastbuild/core",
+  "version": "0.1.0",
+  "description": "Platform-neutral FastBuild core primitives: canonical API errors, validation helpers, and shared i18n keys.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0",
+    "pnpm": "10.34.5"
+  },
+  "scripts": {
+    "test": "node --test src/core.test.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./errors": "./src/errors.ts",
+    "./validation": "./src/validation.ts",
+    "./i18n": "./src/i18n.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

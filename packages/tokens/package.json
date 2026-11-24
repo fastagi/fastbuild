@@ -1,0 +1,26 @@
+{
+  "name": "@fastbuild/tokens",
+  "version": "0.1.0",
+  "description": "Platform-neutral FastBuild design tokens, brand geometry, CSS variables, and React Native theme.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0",
+    "pnpm": "10.34.5"
+  },
+  "scripts": {
+    "test": "node --test src/tokens.test.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens.ts",
+    "./brand": "./src/brand.ts",
+    "./rn-theme": "./src/rn-theme.ts",
+    "./tokens.css": "./css/tokens.css"
+  },
+  "files": [
+    "src",
+    "css"
+  ]
+}

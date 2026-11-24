@@ -1,0 +1,36 @@
+{
+  "name": "@fastbuild/ui",
+  "version": "0.1.0",
+  "description": "Shared React 19 and Tailwind 4 web UI primitives for FastBuild Web, Admin, and Desktop.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0",
+    "pnpm": "10.34.5"
+  },
+  "dependencies": {
+    "@fastbuild/tokens": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./cn": "./src/cn.ts",
+    "./brand-mark": "./src/brand-mark.tsx",
+    "./button": "./src/button.tsx",
+    "./card": "./src/card.tsx",
+    "./input": "./src/input.tsx",
+    "./badge": "./src/badge.tsx",
+    "./status-dot": "./src/status-dot.tsx",
+    "./section-header": "./src/section-header.tsx"
+  },
+  "files": [
+    "src"
+  ]
+}
