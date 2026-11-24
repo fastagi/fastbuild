@@ -41,9 +41,7 @@ function json(body: unknown, status = 200) {
 }
 
 async function chooseRowAction(row: string, action: string | RegExp) {
-  fireEvent.keyDown(await screen.findByRole('button', { name: `Actions for ${row}` }), {
-    key: 'Enter',
-  });
+  fireEvent.click(await screen.findByRole('button', { name: `Actions for ${row}` }));
   fireEvent.click(await screen.findByRole('menuitem', { name: action }));
 }
 

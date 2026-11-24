@@ -290,12 +290,7 @@ export function UsersPage({ search, onSearchChange }: UsersPageProps) {
         }}
       >
         <DialogContent
-          onCloseAutoFocus={(event) => {
-            if (returnFocus.current?.isConnected) {
-              event.preventDefault();
-              returnFocus.current.focus();
-            }
-          }}
+          finalFocus={() => (returnFocus.current?.isConnected ? returnFocus.current : undefined)}
         >
           {pending ? (
             <>

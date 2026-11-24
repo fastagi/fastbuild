@@ -1,54 +1,74 @@
 import * as React from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
+import * as DialogPrimitive from '@ui-sdk/react/dialog';
 
 import { cn } from '@/lib/cn';
+import { asChildProps } from '@/components/ui/slot';
 
-const Dialog = DialogPrimitive.Root;
-const DialogClose = DialogPrimitive.Close;
+type WithClassName<T> = Omit<T, 'className'> & { className?: string };
 
-const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        'fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg',
-        className,
-      )}
+const Dialog = DialogPrimitive.Dialog;
+
+type DialogCloseProps = React.ComponentProps<typeof DialogPrimitive.DialogClose> & {
+  asChild?: boolean;
+};
+
+function DialogClose({ asChild, children, ...props }: DialogCloseProps) {
+  return (
+    <DialogPrimitive.DialogClose
       {...props}
-    >
-      {children}
-    </DialogPrimitive.Content>
-  </DialogPrimitive.Portal>
-));
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+      {...asChildProps(asChild, children as React.ReactNode)}
+    />
+  );
+}
 
-const DialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn('text-base font-semibold leading-none', className)}
-    {...props}
-  />
-));
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
+/**
+ * The dialog renders in the browser's top layer, so it needs no portal or z-index; the backdrop
+ * sits beside it inside the same root.
+ */
+function DialogContent({
+  className,
+  children,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.DialogContent>>) {
+  return (
+    <>
+      <DialogPrimitive.DialogBackdrop className="fixed inset-0 bg-black/60 transition-opacity duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0 motion-reduce:transition-none" />
+      <DialogPrimitive.DialogContent
+        className={cn(
+          'fixed bottom-auto left-1/2 right-auto top-1/2 m-0 grid w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 text-foreground shadow-lg transition-[opacity,scale] duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 motion-reduce:transition-none',
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </DialogPrimitive.DialogContent>
+    </>
+  );
+}
 
-const DialogDescription = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn('text-sm text-muted-foreground', className)}
-    {...props}
-  />
-));
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+function DialogTitle({
+  className,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.DialogTitle>>) {
+  return (
+    <DialogPrimitive.DialogTitle
+      className={cn('text-base font-semibold leading-none', className)}
+      {...props}
+    />
+  );
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: WithClassName<React.ComponentProps<typeof DialogPrimitive.DialogDescription>>) {
+  return (
+    <DialogPrimitive.DialogDescription
+      className={cn('text-sm text-muted-foreground', className)}
+      {...props}
+    />
+  );
+}
 
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (

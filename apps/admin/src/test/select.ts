@@ -1,7 +1,7 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, within } from '@testing-library/react';
 
-/** Opens a shadcn/Radix Select from the keyboard and picks the option with the given name. */
+/** Picks the option with the given name in a native Select, as a user choosing from the list. */
 export async function chooseOption(trigger: HTMLElement, option: string | RegExp) {
-  fireEvent.keyDown(trigger, { key: 'Enter' });
-  fireEvent.click(await screen.findByRole('option', { name: option }));
+  const choice = await within(trigger).findByRole<HTMLOptionElement>('option', { name: option });
+  fireEvent.change(trigger, { target: { value: choice.value } });
 }

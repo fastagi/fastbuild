@@ -41,9 +41,8 @@ const dependencies = {
 };
 
 for (const dependency of [
-  '@radix-ui/react-dialog',
-  '@radix-ui/react-separator',
-  '@radix-ui/react-tooltip',
+  '@ui-sdk/core',
+  '@ui-sdk/react',
   '@tanstack/react-query',
   '@tanstack/react-router',
   '@tanstack/router-plugin',
@@ -52,6 +51,12 @@ for (const dependency of [
 ]) {
   if (!dependencies[dependency]) {
     failures.push(`package.json must retain ${dependency}`);
+  }
+}
+
+for (const dependency of Object.keys(dependencies)) {
+  if (dependency.startsWith('@radix-ui/')) {
+    failures.push(`package.json must not add ${dependency}; UI primitives come from @ui-sdk/react`);
   }
 }
 
