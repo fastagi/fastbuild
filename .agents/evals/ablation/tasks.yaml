@@ -1,0 +1,35 @@
+tasks:
+  - id: 01-api-module-endpoint
+    title: "Add validated Gin endpoint with error_code and unit test"
+    unit: api
+    prompt: "Add a validated read-only Gin endpoint in an existing module under api/internal/modules/ following FastBuild's shared HTTP envelope and ApiErrorCode conventions, and add a focused unit test covering both success and validation failure paths."
+    verify_cmd: "cd api && go test ./internal/modules/... ./internal/interfaces/http/..."
+    max_minutes: 15
+
+  - id: 02-contract-evolution
+    title: "Add optional response field in OpenAPI contract and sync"
+    unit: contracts
+    prompt: "Add a backwards-compatible optional field to a response schema in packages/contracts/openapi.yaml, update the owning contract doc under packages/contracts/, and ensure contract checks pass."
+    verify_cmd: "make contract-check"
+    max_minutes: 15
+
+  - id: 03-web-component-test
+    title: "Add Web component test without server-only import leakage"
+    unit: web
+    prompt: "Add a Vitest and React Testing Library test under apps/web/src/test/ for a client component using accessible roles and labels, keeping client code free of server-only imports."
+    verify_cmd: "cd apps/web && corepack pnpm type-check && corepack pnpm vitest run"
+    max_minutes: 15
+
+  - id: 04-admin-surface-guard
+    title: "Update Admin Console view preserving static-SPA architecture guard"
+    unit: admin
+    prompt: "Add or update a route view in apps/admin/ using TanStack Router and TanStack Query conventions while preserving the static-SPA architecture guard (no SSR, Node, Next.js, or cross-app imports)."
+    verify_cmd: "cd apps/admin && corepack pnpm type-check && node scripts/check-architecture.mjs"
+    max_minutes: 15
+
+  - id: 05-api-regression-tdd
+    title: "Add red/green regression test and fix for API boundary input"
+    unit: api
+    prompt: "Add a failing unit test reproducing a boundary-input validation edge case in api/internal/, implement a narrow fix aligned with FastBuild error_code conventions, and verify the regression test passes."
+    verify_cmd: "cd api && go test ./internal/..."
+    max_minutes: 15

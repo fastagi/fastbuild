@@ -26,3 +26,7 @@ __pycache__/
 
 # make dev build output and local object storage
 .fastbuild-dev/
+
+# Local agent workflow friction logs and ablation run results
+.agents/papercuts/
+.agents/evals/ablation/results/

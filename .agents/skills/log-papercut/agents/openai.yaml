@@ -1,0 +1,7 @@
+interface:
+  display_name: "Log Papercut"
+  short_description: "Record and summarize local agent workflow friction"
+  default_prompt: "Use $log-papercut to record or summarize workflow friction in .agents/papercuts/."
+
+policy:
+  allow_implicit_invocation: true
