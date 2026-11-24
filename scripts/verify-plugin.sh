@@ -19,13 +19,13 @@ step() { printf '\n==> %s\n' "$*"; }
 step "Copying the checkout to $scratch"
 rsync -a --exclude node_modules --exclude .git --exclude .next --exclude dist \
   --exclude .fastbuild-dev --exclude coverage "$repo/" "$scratch/"
-for half in contracts web admin; do
+for half in packages/contracts apps/web apps/admin; do
   if [[ -d "$repo/$half/node_modules" ]]; then
     ln -s "$repo/$half/node_modules" "$scratch/$half/node_modules"
   fi
 done
 
-fastbuild() { (cd "$scratch/api" && go run ./cmd/fastbuild "$@"); }
+fastbuild() { (cd "$scratch/apps/api" && go run ./cmd/fastbuild "$@"); }
 
 info=$(fastbuild plugin:info "$name" --format=json)
 field() {
@@ -48,29 +48,29 @@ fastbuild plugin:add "$name"
 
 if [[ -n "$(field fragment)" ]]; then
   step "Regenerating contract types"
-  (cd "$scratch/contracts" && corepack pnpm -s generate && corepack pnpm -s check)
+  (cd "$scratch/packages/contracts" && corepack pnpm -s generate && corepack pnpm -s check)
 fi
 
 if [[ "$(field api)" == true ]]; then
   starter=$(field starter)
   step "Building and testing the API"
   if [[ -n "$starter" ]]; then
-    (cd "$scratch/api" && make -s wire)
+    (cd "$scratch/apps/api" && make -s wire)
   fi
-  (cd "$scratch/api" && go build ./... && go vet ./...)
+  (cd "$scratch/apps/api" && go build ./... && go vet ./...)
   if [[ -n "$starter" ]]; then
-    (cd "$scratch/api" && go test -count=1 "./internal/modules/$starter/...")
+    (cd "$scratch/apps/api" && go test -count=1 "./internal/modules/$starter/...")
   fi
 fi
 
 if [[ "$(field web)" == true || "$(field webWiring)" == true ]]; then
   step "Checking the Web application"
-  (cd "$scratch/web" && corepack pnpm -s type-check && corepack pnpm -s lint && corepack pnpm -s vitest run)
+  (cd "$scratch/apps/web" && corepack pnpm -s type-check && corepack pnpm -s lint && corepack pnpm -s vitest run)
 fi
 
 if [[ "$(field admin)" == true ]]; then
   step "Checking the Admin Console"
-  (cd "$scratch/admin" && corepack pnpm -s type-check && corepack pnpm -s build)
+  (cd "$scratch/apps/admin" && corepack pnpm -s type-check && corepack pnpm -s build)
 fi
 
 step "plugin:doctor"

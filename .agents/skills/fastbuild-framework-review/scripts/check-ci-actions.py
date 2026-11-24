@@ -230,7 +230,7 @@ def main() -> int:
     )
     for marker in (
         "bash scripts/verify-container.sh fastbuild-web:ci",
-        "bash ../scripts/container-security.sh verify fastbuild-web:ci",
+        "bash ../../scripts/container-security.sh verify fastbuild-web:ci",
         "fastbuild-web-container-security-${{ github.sha }}",
     ):
         if marker not in web_container_workflow:
@@ -241,7 +241,7 @@ def main() -> int:
     )
     for marker in (
         "bash scripts/verify-container.sh fastbuild-admin:ci",
-        "bash ../scripts/container-security.sh verify fastbuild-admin:ci",
+        "bash ../../scripts/container-security.sh verify fastbuild-admin:ci",
         "fastbuild-admin-container-security-${{ github.sha }}",
     ):
         if marker not in admin_container_workflow:
