@@ -91,10 +91,16 @@ test('a failed session check shows the route error page, and retry recovers', as
 
 test('the theme preference applies and survives a reload', async ({ page }) => {
   await page.goto('/console/preferences');
-  await page.getByRole('radio', { name: /dark/i }).click();
+  // The theme choice is a single-select toggle group: buttons that report aria-pressed.
+  const theme = page.getByRole('group', { name: 'Theme' });
+  await theme.getByRole('button', { name: 'Dark', exact: true }).click();
+  await expect(theme.getByRole('button', { name: 'Dark', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await expect(page.locator('html')).toHaveClass(/dark/);
   await page.reload();
   await expect(page.locator('html')).toHaveClass(/dark/);
-  await page.getByRole('radio', { name: /light/i }).click();
+  await theme.getByRole('button', { name: 'Light', exact: true }).click();
   await expect(page.locator('html')).not.toHaveClass(/dark/);
 });
