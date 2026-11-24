@@ -143,7 +143,7 @@ def check_ignore_policy(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
 
-    api_dockerfile = ROOT / "apps/api/Dockerfile"
+    api_dockerfile = ROOT / "api/Dockerfile"
     api_content = require_markers(
         failures,
         api_dockerfile,
@@ -161,7 +161,7 @@ def main() -> int:
         ),
     )
     if api_content.splitlines()[0] != FRONTEND:
-        failures.append("apps/api/Dockerfile must pin the reviewed frontend on line 1")
+        failures.append("api/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, api_dockerfile, api_content)
 
     web_dockerfile = ROOT / "apps/web/Dockerfile"
@@ -217,7 +217,7 @@ def main() -> int:
 
     for relative, expected_materials, expected_inputs in (
         (
-            "apps/api/scripts/verify-container.sh",
+            "api/scripts/verify-container.sh",
             3,
             (FRONTEND, API_BUILDER, API_RUNTIME),
         ),

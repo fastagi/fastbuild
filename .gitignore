@@ -1,5 +1,5 @@
 # Top-level FastBuild monorepo .gitignore
-# Deployable-unit gitignores live under apps/api/, apps/web/, and admin/.
+# Deployable-unit gitignores live under api/, apps/web/, and admin/.
 
 # OS / editor cruft
 .DS_Store

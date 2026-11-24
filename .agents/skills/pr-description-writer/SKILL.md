@@ -29,7 +29,7 @@ Why this change exists. Link the issue / incident / discussion. State the proble
 
 ### What Changed (bullets)
 
-Concrete list of files / modules / behaviors touched. Group by area when the diff spans multiple subtrees (`apps/api/`, `apps/web/`, `packages/contracts/`).
+Concrete list of files / modules / behaviors touched. Group by area when the diff spans multiple subtrees (`api/`, `apps/web/`, `packages/contracts/`).
 
 ### Test Plan (checklist)
 
@@ -74,7 +74,7 @@ Do not invent rationale not present in code, commits, or the user's intent.
 
 - Lead with what changed, not the implementation.
 - Use the active voice: "Adds the X handler" not "The X handler has been added".
-- Mention specific file paths when they aid review (`apps/api/internal/modules/user/handler.go`).
+- Mention specific file paths when they aid review (`api/internal/modules/user/handler.go`).
 - Keep total length under one screen unless the change is genuinely large.
 - Use the project's PR template if `.github/pull_request_template.md` exists; otherwise use this skill's structure.
 

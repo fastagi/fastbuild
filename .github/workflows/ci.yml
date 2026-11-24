@@ -49,12 +49,12 @@ jobs:
           flag() {
             if grep -Eq "$2|$shared" <<<"$changed"; then echo "$1=true"; else echo "$1=false"; fi >> "$GITHUB_OUTPUT"
           }
-          flag api '^(apps/api/|Makefile)'
-          flag contracts '^(packages/contracts/|apps/api/)'
+          flag api '^(api/|Makefile)'
+          flag contracts '^(packages/contracts/|api/)'
           flag web '^(apps/web/|packages/contracts/)'
           flag admin '^(apps/admin/|packages/contracts/)'
           # What a new project inherits: project:init, ignore rules, root docs, and repository checks.
-          flag project '^(apps/api/internal/infra/console/|apps/api/\.gitignore|\.gitignore|Makefile|README\.md|scripts/|packages/contracts/scripts/|\.agents/skills/fastbuild-framework-review/scripts/)'
+          flag project '^(api/internal/infra/console/|api/\.gitignore|\.gitignore|Makefile|README\.md|scripts/|packages/contracts/scripts/|\.agents/skills/fastbuild-framework-review/scripts/)'
           echo "Changed files:"; echo "$changed"
 
   governance:
@@ -94,8 +94,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version-file: apps/api/go.mod
-          cache-dependency-path: apps/api/go.sum
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
 
       - name: Install contract tooling
         working-directory: packages/contracts
@@ -146,7 +146,7 @@ jobs:
           --health-retries 5
     defaults:
       run:
-        working-directory: apps/api
+        working-directory: api
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
@@ -154,8 +154,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version-file: apps/api/go.mod
-          cache-dependency-path: apps/api/go.sum
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
 
       # Install only; run-tiers.sh owns the lint invocation and its arguments.
       - name: Install golangci-lint
@@ -164,7 +164,7 @@ jobs:
           version: v2.14.0
           install-only: true
 
-      - name: Verification — Tier 1 (build + lint + test) on the whole apps/api/ tree
+      - name: Verification — Tier 1 (build + lint + test) on the whole api/ tree
         # The whole tree is now lint clean (golangci-lint run ./...). New
         # debt anywhere blocks CI here.
         env:
@@ -211,15 +211,15 @@ jobs:
           --health-retries 5
     defaults:
       run:
-        working-directory: apps/api
+        working-directory: api
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version-file: apps/api/go.mod
-          cache-dependency-path: apps/api/go.sum
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
       - name: Verify migrations, repositories, locks, and durable tasks
         env:
           FASTBUILD_TEST_POSTGRES_DSN: postgres://fastbuild:fastbuild_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/fastbuild_test?sslmode=disable
@@ -319,8 +319,8 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
         with:
-          go-version-file: apps/api/go.mod
-          cache-dependency-path: apps/api/go.sum
+          go-version-file: api/go.mod
+          cache-dependency-path: api/go.sum
 
       - name: Install contract tooling
         working-directory: packages/contracts

@@ -2,7 +2,7 @@
 
 FastBuild is a multi-deployable scaffold:
 
-- `apps/api/` is the Go backend. It owns persistence, domain rules, HTTP routes, migrations, seeders, and operational integrations.
+- `api/` is the Go backend. It owns persistence, domain rules, HTTP routes, migrations, seeders, and operational integrations.
 - `apps/web/` is the customer-facing Next.js application. It owns public and account
   journeys, user workspace UI, SSR, client state, mock BFF route handlers, and
   server-owned browser adapters.
@@ -28,7 +28,7 @@ other's source; shared TypeScript lives in packages that follow the layers below
 
 | Path | Role |
 |---|---|
-| `apps/api/` | Go backend |
+| `api/` | Go backend |
 | `apps/web/` | Next.js SSR; cookie-based browser auth through server-owned adapters |
 | `apps/admin/` | Vite SPA; static assets; HttpOnly operator session |
 | `packages/contracts/` | OpenAPI contract, fragments, and contract tooling; the single source of HTTP truth |
@@ -57,7 +57,7 @@ a bearer credential.
 
 ## API Shape
 
-The API uses DDD-flavored starter modules under `apps/api/internal/modules/`.
+The API uses DDD-flavored starter modules under `api/internal/modules/`.
 
 Default starter modules:
 
@@ -82,7 +82,7 @@ Handler -> Service -> Repository -> Database
 DTO -> Domain -> PO
 ```
 
-Infrastructure capabilities live under `apps/api/internal/infra/` and `apps/api/internal/capabilities/`.
+Infrastructure capabilities live under `api/internal/infra/` and `api/internal/capabilities/`.
 For the starter readiness matrix and next reusable business starters, see
 [`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md).
 
@@ -90,7 +90,7 @@ For the starter readiness matrix and next reusable business starters, see
 
 Most starter operations own their transaction inside one repository. When an invariant spans two
 active starters on the same database, the transaction owner may bind its GORM transaction to a
-callback-only context through `apps/api/internal/infra/database/transaction_context.go`. Cooperating
+callback-only context through `api/internal/infra/database/transaction_context.go`. Cooperating
 repositories resolve that context before falling back to their configured database.
 
 - The transaction context must not escape its callback or be stored for later work.
@@ -232,7 +232,7 @@ For the full list of scaffold surfaces and downstream keep/delete/replace rules,
 For a vertical feature:
 
 1. Update or add the HTTP contract under `packages/contracts/`.
-2. Implement the API module or endpoint in `apps/api/`.
+2. Implement the API module or endpoint in `api/`.
 3. Add service, hook, UI, and tests in each browser shell the downstream app supports.
 4. Run verification in each changed deployable unit, or `make check` at the repo root.
 

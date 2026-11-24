@@ -111,11 +111,11 @@ run_quiet() {
 prepare_api() {
   log "Building the API and preparing the database"
   mkdir -p "${STATE_DIR}/bin" "${STATE_DIR}/objects"
-  (cd "${ROOT_DIR}/apps/api" && go build -o "${STATE_DIR}/bin/fastbuild" ./cmd/fastbuild)
+  (cd "${ROOT_DIR}/api" && go build -o "${STATE_DIR}/bin/fastbuild" ./cmd/fastbuild)
   api_environment
   # The API resolves runtime paths such as storage/logs from its working directory.
   (
-    cd "${ROOT_DIR}/apps/api"
+    cd "${ROOT_DIR}/api"
     run_quiet "${STATE_DIR}/bin/fastbuild" migrate
     run_quiet "${STATE_DIR}/bin/fastbuild" seed
     if [[ ",${STARTERS}," == *",operator,"* ]]; then
@@ -186,7 +186,7 @@ up() {
   trap stop_processes EXIT
   trap 'stop_processes; exit 0' INT TERM
   if wants api; then
-    run_prefixed api bash -c "cd '${ROOT_DIR}/apps/api' && exec '${STATE_DIR}/bin/fastbuild' serve"
+    run_prefixed api bash -c "cd '${ROOT_DIR}/api' && exec '${STATE_DIR}/bin/fastbuild' serve"
     wait_for API "http://127.0.0.1:${API_PORT}/health/ready"
   fi
   if wants web; then

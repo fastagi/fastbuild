@@ -11,7 +11,7 @@ with its own decorative icon and tone:
 | `no-access` | Missing permission (403) | Labelled region |
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add block-empty-state
+cd api && go run ./cmd/fastbuild plugin:add block-empty-state
 ```
 
 Installs `apps/web/src/components/blocks/empty-state/` (component and test). It is a Server

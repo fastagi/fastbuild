@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[3]
 README = ROOT / ".agents" / "skills" / "README.md"
 SCOPES = (
     ("Root", ROOT / ".agents" / "skills"),
-    ("API", ROOT / "apps" / "api" / ".agents" / "skills"),
+    ("API", ROOT / "api" / ".agents" / "skills"),
     ("Web", ROOT / "apps" / "web" / ".agents" / "skills"),
 )
 SHORT_DESCRIPTION = re.compile(r'^\s*short_description:\s*"(?P<text>[^"]+)"\s*$', re.MULTILINE)
@@ -50,7 +50,7 @@ def render() -> dict[str, str]:
             "| Working directory | Repository skills available |",
             "|---|---|",
             f"| Repository root | {root} root skills |",
-            f"| `apps/api/` | {root} root + {api} API skills |",
+            f"| `api/` | {root} root + {api} API skills |",
             f"| `apps/web/` | {root} root + {web} Web skills |",
             f"| `apps/admin/` | {root} root skills + local `AGENTS.md` |",
             "",

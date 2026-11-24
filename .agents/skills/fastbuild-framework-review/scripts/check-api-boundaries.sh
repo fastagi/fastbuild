@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)
-API_ROOT="$ROOT/apps/api"
+API_ROOT="$ROOT/api"
 
 cd "$API_ROOT"
 
@@ -22,7 +22,7 @@ assert_absent_path() {
   local message=$2
 
   if [ -e "$API_ROOT/$relative_path" ]; then
-    echo "apps/api/$relative_path is reserved against reuse; $message" >&2
+    echo "api/$relative_path is reserved against reuse; $message" >&2
     exit 1
   fi
 }
@@ -133,7 +133,7 @@ if [ "$new_violation_count" -gt 0 ]; then
   for violation in "${new_violations[@]}"; do
     printf '  - %s\n' "$violation" >&2
   done
-  echo "See apps/api/docs/PACKAGE_BOUNDARIES.md and apps/api/docs/adr/0005-package-boundaries.md." >&2
+  echo "See api/docs/PACKAGE_BOUNDARIES.md and api/docs/adr/0005-package-boundaries.md." >&2
   exit 1
 fi
 

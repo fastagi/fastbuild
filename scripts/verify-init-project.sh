@@ -23,7 +23,7 @@ for half in packages/contracts apps/web apps/admin; do
 done
 
 step "make init-project"
-starters=$(cd "$scratch/apps/api" && go run ./cmd/fastbuild starter:list --format=json |
+starters=$(cd "$scratch/api" && go run ./cmd/fastbuild starter:list --format=json |
   node -e 'const c = JSON.parse(require("fs").readFileSync(0, "utf8"));
     process.stdout.write(c.starters.filter(s => s.mode === "optional").map(s => s.name).join(","))')
 (cd "$scratch" && make -s init-project NAME="Example Project" SLUG=example-project \
@@ -34,6 +34,6 @@ step "Governance and contracts in the new project"
 (cd "$scratch" && make -s governance && make -s contract-check)
 
 step "API packages that reference the scaffold"
-(cd "$scratch/apps/api" && go build ./... && go test -count=1 ./internal/infra/... ./internal/starter/... ./pkg/...)
+(cd "$scratch/api" && go build ./... && go test -count=1 ./internal/infra/... ./internal/starter/... ./pkg/...)
 
 printf '\nInitialized project verified.\n'

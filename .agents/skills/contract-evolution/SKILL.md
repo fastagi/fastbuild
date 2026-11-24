@@ -7,7 +7,7 @@ description: Evolve public HTTP behavior across a contract and multiple FastBuil
 
 ## Purpose
 
-Keep FastBuild HTTP behavior aligned across `packages/contracts/`, `apps/api/`, selected browser-shell services, and
+Keep FastBuild HTTP behavior aligned across `packages/contracts/`, `api/`, selected browser-shell services, and
 the development mock BFF. Use this skill when a change can alter request shape, response shape,
 HTTP status, `error_code`, `request_id`, pagination, validation errors, or mock production
 guardrails.
@@ -39,7 +39,7 @@ Read only the authorities touched by the change:
    - For validation, keep malformed JSON at `400 COMMON.INVALID_INPUT` and schema or field failures at `422 COMMON.VALIDATION_FAILED` with `errors`.
 
 3. **Update the API behavior**
-   - Keep API code in `apps/api/`; never import a browser shell.
+   - Keep API code in `api/`; never import a browser shell.
    - Use response helpers and central error mapping instead of ad hoc response shapes.
    - Add or update tests at the handler or public module seam for success and at least one error path.
    - If adding an `error_code`, update the API domain/response mapping and any API contract tests that assert codes.
@@ -77,7 +77,7 @@ multiple deployable units move.
   - `python3 .agents/skills/fastbuild-framework-review/scripts/check-auth-contract-boundary.py` for authentication changes
   - `git diff --check`
 - API behavior:
-  - `cd apps/api && go test ./internal/modules/<module>/...`
+  - `cd api && go test ./internal/modules/<module>/...`
   - `make api-check` (tier 1 plus the route catalog)
 - Web behavior or mock BFF:
   - `cd apps/web && pnpm vitest run src/test/mock-bff-route-contract.test.ts`

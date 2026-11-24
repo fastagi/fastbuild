@@ -30,7 +30,7 @@ diffs.
 ## Commands
 
 ```bash
-# Network-backed vulnerability gate for apps/api/go.mod and all pnpm lockfiles
+# Network-backed vulnerability gate for api/go.mod and all pnpm lockfiles
 make dependency-scan
 
 # Write a CycloneDX 1.5 inventory outside the repository by default

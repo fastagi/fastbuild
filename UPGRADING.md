@@ -15,14 +15,14 @@ entries in order.
 
 ### High — Deployable units moved under `apps/` and `packages/`
 
-The repository root now holds `apps/api`, `apps/web`, `apps/admin`, and `packages/contracts`
+The repository root now holds `api`, `apps/web`, `apps/admin`, and `packages/contracts`
 instead of `api/`, `web/`, `admin/`, and `contracts/`. Behavior is unchanged: the Go module path
 stays `github.com/fastagi/fastbuild/api`, each unit keeps its own lockfile and pnpm policies, and
 Docker build contexts are still the unit directory. A fork adopts the layout before merging:
 
 ```bash
 mkdir -p apps packages
-git mv api apps/api
+git mv api api
 git mv web apps/web
 git mv admin apps/admin
 git mv contracts packages/contracts
@@ -34,7 +34,7 @@ touch: CI `working-directory`, path filters and cache paths, deploy scripts, Doc
 contexts called from outside the unit, editor settings, and docs links (sibling apps stay `../web/` from a unit root, while
 the contracts move from `../contracts/` to `../../packages/contracts/`).
 
-`fastbuild project:upgrade` and `fastbuild plugin:add` look for `apps/api/go.mod` and
+`fastbuild project:upgrade` and `fastbuild plugin:add` look for `api/go.mod` and
 `packages/contracts/openapi.yaml`, so run them only after the move. Registry plugin payloads now
 ship under `files/apps/...` and `files/packages/contracts/...`; a project on an older release keeps
 reading the registry from its own release tag and is unaffected until it upgrades.

@@ -5,7 +5,7 @@ A sortable, paginated table shell, generic over the row type. Headers become sor
 state spans all columns. Sorting and pagination run on the rows you pass in.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add block-data-table
+cd api && go run ./cmd/fastbuild plugin:add block-data-table
 ```
 
 Installs `apps/web/src/components/blocks/data-table/` (component and test). It is a Client Component

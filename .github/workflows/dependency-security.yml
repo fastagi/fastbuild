@@ -4,8 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - "apps/api/go.mod"
-      - "apps/api/go.sum"
+      - "api/go.mod"
+      - "api/go.sum"
       - "packages/contracts/package.json"
       - "packages/contracts/pnpm-lock.yaml"
       - "packages/contracts/pnpm-workspace.yaml"

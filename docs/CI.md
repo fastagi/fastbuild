@@ -34,7 +34,7 @@ once a week, on Monday between 02:41 and 05:17 UTC.
 | Check | Pull request (not draft) | Weekly | On demand | Release tag |
 |---|---|---|---|---|
 | Governance | Always | Yes | Yes | Via `make release-check` |
-| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `packages/contracts/`, `apps/api/`, `apps/web/`, `apps/admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
+| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `packages/contracts/`, `api/`, `apps/web/`, `apps/admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
 | Web and Admin on Node 24 | No | Yes | Yes | Via `make release-check` |
 | PostgreSQL 15, 17, 18 compatibility | No | Yes | Yes | — |
 | Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
@@ -95,7 +95,7 @@ interpret either lockfile.
 The API job runs `make wire-check` after its build/lint/test tier. It regenerates the Wire graph
 and fails when the committed `internal/wiring/wire_gen.go` is stale, so a provider-set edit cannot
 merge without its generated output (see
-[`../apps/api/docs/adr/0014-wire-maintenance-posture.md`](../apps/api/docs/adr/0014-wire-maintenance-posture.md)).
+[`../api/docs/adr/0014-wire-maintenance-posture.md`](../api/docs/adr/0014-wire-maintenance-posture.md)).
 
 The API job then runs `make route-catalog-check`. That command assembles
 the real configured runtime, emits schema-versioned JSON, validates its closed shape and ordering,
@@ -108,7 +108,7 @@ migrations, repositories, transaction and locking behavior, optional starter per
 PostgreSQL durable tasks without repeating unrelated browser or pure-Go checks. On every supported
 version, `database/migrations` compares the schema a fresh database receives from all migrations
 with `testdata/schema.golden.sql`, and proves that a full reset rolls back to an empty schema. The support window
-is documented in [`../apps/api/docs/DATABASE.md`](../apps/api/docs/DATABASE.md) and must move forward before an
+is documented in [`../api/docs/DATABASE.md`](../api/docs/DATABASE.md) and must move forward before an
 upstream major version reaches end of life.
 
 The HTTP Contracts job validates OpenAPI 3.1, checks committed TypeScript output in both browser
@@ -121,7 +121,7 @@ when the target commit has no schema.
 
 The Dependency Security workflow calls the same root script available to developers. It downloads
 OSV-Scanner 2.3.8 from the official release, verifies the platform asset by SHA-256, scans
-`apps/api/go.mod` plus the contracts, Web, and Admin Console pnpm lockfiles, validates a CycloneDX 1.5
+`api/go.mod` plus the contracts, Web, and Admin Console pnpm lockfiles, validates a CycloneDX 1.5
 inventory, and uploads that inventory for 14 days. It uses read-only repository permission and does
 not depend on private-repository GitHub Advanced Security availability.
 
@@ -163,7 +163,7 @@ python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-dependency-supply-chain.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py
-cd apps/api && make route-catalog-check
+cd api && make route-catalog-check
 make dependency-scan
 make check
 ```

@@ -36,7 +36,7 @@ registry format); runtime installation from the Admin Console (never: code is ad
 embeddings and vector search for the knowledge base (phase 2, behind an adapter); themes, blocks,
 and templates.
 
-**Deployable units.** `apps/api/` (CLI, registry tooling, plugin code once installed) and `packages/contracts/`
+**Deployable units.** `api/` (CLI, registry tooling, plugin code once installed) and `packages/contracts/`
 (fragment merge). `apps/web/` and `apps/admin/` are unchanged.
 
 **Success signal.** In a project created with `make init-project`, an agent runs
@@ -77,7 +77,7 @@ sequenceDiagram
   B->>P: make check
 ```
 
-1. **Preconditions.** The command runs inside a FastBuild checkout (`apps/api/go.mod` and
+1. **Preconditions.** The command runs inside a FastBuild checkout (`api/go.mod` and
    `packages/contracts/openapi.yaml` exist). The source resolves: `--source` when given; otherwise the local
    `registry/` when present; otherwise `github:fastagi/fastbuild@<scaffold_version>` from
    `.fastbuild-project.json`.
@@ -147,7 +147,7 @@ code and never modifies files outside the checkout.
       "version": "0.1.0",
       "source": "github:fastagi/fastbuild@v0.25.0",
       "starter": "knowledge",
-      "files": { "apps/api/internal/modules/knowledge/service.go": "<sha256>" }
+      "files": { "api/internal/modules/knowledge/service.go": "<sha256>" }
     }
   }
 }

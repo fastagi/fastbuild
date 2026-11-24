@@ -43,7 +43,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             "type StarterConfig struct",
             'env.GetSlice("OPTIONAL_STARTERS", []string{})',
@@ -53,7 +53,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/starter/catalog.go",
+        "api/internal/starter/catalog.go",
         (
             "canonical lowercase name",
             "duplicate optional starter",
@@ -63,7 +63,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/starter/defaults.go",
+        "api/internal/starter/defaults.go",
         (
             "func NewConfiguredRegistry(",
             "func OptionalManifests(",
@@ -74,12 +74,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/starter/assembly/starter_manifest.go",
+        "api/internal/starter/assembly/starter_manifest.go",
         ("isNilModule", "reflect.ValueOf(module)"),
     )
     require_all(
         failures,
-        "apps/api/internal/starter/registry.go",
+        "api/internal/starter/registry.go",
         (
             "migrationOwners",
             "seederOwners",
@@ -88,17 +88,17 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/migrate.go",
+        "api/internal/infra/console/commands/migrate.go",
         ("starter.ConfiguredMigrations(cfg)",),
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/db.go",
+        "api/internal/infra/console/commands/db.go",
         ("bootstrap.RunConfiguredSeeders(db, cfg)",),
     )
 
     try:
-        defaults = read("apps/api/internal/starter/defaults.go")
+        defaults = read("api/internal/starter/defaults.go")
     except FileNotFoundError:
         defaults = ""
     default_segment = between(
@@ -111,7 +111,7 @@ def main() -> int:
         r"([a-z][a-z0-9_]*)\.NewStarterManifest", optional_segment
     )
     # Read the module path from go.mod so the check survives `make init-project` renames.
-    go_module = re.search(r"(?m)^module\s+(\S+)", (ROOT / "apps/api/go.mod").read_text()).group(1)
+    go_module = re.search(r"(?m)^module\s+(\S+)", (ROOT / "api/go.mod").read_text()).group(1)
     module_imports = {
         (alias or module_name): module_name
         for alias, module_name in re.findall(
@@ -132,10 +132,10 @@ def main() -> int:
         failures.append("organization must not be part of DefaultManifests")
 
     try:
-        starter_vocabulary = read("apps/api/internal/infra/config/starters.go")
+        starter_vocabulary = read("api/internal/infra/config/starters.go")
     except FileNotFoundError:
         starter_vocabulary = ""
-        failures.append("apps/api/internal/infra/config/starters.go must define the starter name vocabulary")
+        failures.append("api/internal/infra/config/starters.go must define the starter name vocabulary")
     starter_constants = {
         value: constant
         for constant, value in re.findall(
@@ -144,7 +144,7 @@ def main() -> int:
     }
 
     for package_name in optional_packages:
-        provider_path = f"apps/api/internal/modules/{package_name}/provider.go"
+        provider_path = f"api/internal/modules/{package_name}/provider.go"
         try:
             provider = read(provider_path)
         except FileNotFoundError:
@@ -153,7 +153,7 @@ def main() -> int:
         constant = starter_constants.get(package_name)
         if constant is None:
             failures.append(
-                f"apps/api/internal/infra/config/starters.go must define a constant for starter {package_name!r}"
+                f"api/internal/infra/config/starters.go must define a constant for starter {package_name!r}"
             )
         elif f"config.{constant}" not in provider:
             failures.append(
@@ -167,7 +167,7 @@ def main() -> int:
             failures.append(f"{provider_path} must register at least one migration")
         for migration_name in migration_names:
             migration_path = (
-                ROOT / "apps" / "api" / "database" / "migrations" / f"{migration_name}.go"
+                ROOT / "api" / "database" / "migrations" / f"{migration_name}.go"
             )
             if not migration_path.exists():
                 failures.append(
@@ -380,7 +380,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/error_codes.go",
+        "api/internal/domain/error_codes.go",
         (
             '"ORGANIZATION.NOT_FOUND"',
             '"ORGANIZATION.CONTEXT_REQUIRED"',
@@ -399,7 +399,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/error_mappings.go",
+        "api/internal/modules/organization/error_mappings.go",
         (
             "ErrOrganizationContextRequired, http.StatusBadRequest",
             "ErrOrganizationContextInvalid, http.StatusBadRequest",
@@ -415,7 +415,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_14_000000_create_organizations_tables.go",
+        "api/database/migrations/2026_07_14_000000_create_organizations_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE organizations (',
@@ -424,7 +424,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_000000_create_organization_invitations_table.go",
+        "api/database/migrations/2026_07_15_000000_create_organization_invitations_table.go",
         (
             "UseTransaction: true",
             'CREATE TABLE organization_invitations (',
@@ -433,7 +433,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/organization.go",
+        "api/internal/domain/organization.go",
         (
             'TokenHash      string           `json:"-"`',
             "type OrganizationInvitationRepository interface",
@@ -448,7 +448,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/model.go",
+        "api/internal/modules/organization/model.go",
         (
             'TokenHash      string     `gorm:"size:64;not null;uniqueIndex"`',
             'PendingKey     *string    `gorm:"size:64;uniqueIndex"`',
@@ -456,7 +456,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/routes.go",
+        "api/internal/modules/organization/routes.go",
         (
             'MiddlewareGroup("organization_context"',
             'WithMiddleware("organization_context")',
@@ -474,7 +474,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/domain/organization_context.go",
+        "api/internal/domain/organization_context.go",
         (
             "type OrganizationContext struct",
             "func WithOrganizationContext(",
@@ -484,7 +484,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/context_repository.go",
+        "api/internal/modules/organization/context_repository.go",
         (
             "func (r *repository) ResolveContext(",
             'Table("organization_memberships AS memberships")',
@@ -495,7 +495,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/context_resolver.go",
+        "api/internal/modules/organization/context_resolver.go",
         (
             'OrganizationIDHeader = "Organization-Id"',
             "c.Request.Header.Values(OrganizationIDHeader)",
@@ -507,7 +507,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/router/router.go",
+        "api/internal/infra/router/router.go",
         (
             'panic(fmt.Sprintf("router: middleware %q is not registered", name))',
             "authorization typos cannot fail open",
@@ -515,13 +515,13 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/tests/integration/router_test.go",
+        "api/tests/integration/router_test.go",
         ("TestRouter_WithMiddlewareFailsForUnknownName",),
     )
 
     require_all(
         failures,
-        "apps/api/internal/modules/organization/membership_repository.go",
+        "api/internal/modules/organization/membership_repository.go",
         (
             "func (r *repository) ListMembers(",
             "func (r *repository) ChangeMemberRole(",
@@ -533,7 +533,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/database/transaction_context.go",
+        "api/internal/infra/database/transaction_context.go",
         (
             "func ContextWithTransaction(",
             "func TransactionFromContext(",
@@ -543,7 +543,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/repository.go",
+        "api/internal/modules/user/repository.go",
         (
             "func (r *repository) DeleteAccount(",
             'clause.Locking{Strength: "UPDATE"}',
@@ -554,7 +554,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/service.go",
+        "api/internal/modules/user/service.go",
         (
             "s.repo.DeleteAccount(ctx, userID",
             "s.deletionPolicy.Prepare(transactionContext, userID)",
@@ -562,17 +562,17 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/repository.go",
+        "api/internal/modules/organization/repository.go",
         ("findUndeletedUserForUpdate(tx, owner.UserID)",),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/invitation_repository.go",
+        "api/internal/modules/organization/invitation_repository.go",
         ("findUndeletedUserForUpdate(tx, userID)",),
     )
     try:
         organization_repository = read(
-            "apps/api/internal/modules/organization/repository.go"
+            "api/internal/modules/organization/repository.go"
         )
     except FileNotFoundError:
         organization_repository = ""
@@ -594,7 +594,7 @@ def main() -> int:
 
     try:
         invitation_repository = read(
-            "apps/api/internal/modules/organization/invitation_repository.go"
+            "api/internal/modules/organization/invitation_repository.go"
         )
     except FileNotFoundError:
         invitation_repository = ""
@@ -615,7 +615,7 @@ def main() -> int:
             )
     try:
         membership_repository = read(
-            "apps/api/internal/modules/organization/membership_repository.go"
+            "api/internal/modules/organization/membership_repository.go"
         )
     except FileNotFoundError:
         membership_repository = ""
@@ -637,17 +637,17 @@ def main() -> int:
             )
     require_all(
         failures,
-        "apps/api/internal/modules/organization/invitation_mailer.go",
+        "api/internal/modules/organization/invitation_mailer.go",
         ("html.EscapeString", "email.ErrNotConfigured"),
     )
 
     try:
         invitation_service = read(
-            "apps/api/internal/modules/organization/invitation_service.go"
+            "api/internal/modules/organization/invitation_service.go"
         )
     except FileNotFoundError:
         failures.append(
-            "apps/api/internal/modules/organization/invitation_service.go is missing"
+            "api/internal/modules/organization/invitation_service.go is missing"
         )
     else:
         persist_at = invitation_service.find("s.invitationRepo.CreateInvitation(")
@@ -658,9 +658,9 @@ def main() -> int:
             )
 
     try:
-        organization_dto = read("apps/api/internal/modules/organization/dto.go")
+        organization_dto = read("api/internal/modules/organization/dto.go")
     except FileNotFoundError:
-        failures.append("apps/api/internal/modules/organization/dto.go is missing")
+        failures.append("api/internal/modules/organization/dto.go is missing")
     else:
         invitation_response = between(
             organization_dto,
@@ -685,7 +685,7 @@ def main() -> int:
             )
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         (
             "OPTIONAL_STARTERS=",
             "organization, permission, notification, asset, setting, usage, webhook",
@@ -697,21 +697,21 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'env.GetSlice("CORS_ALLOW_HEADERS", []string{"Origin", "Content-Type", "Accept", "Authorization", "Organization-Id", "Idempotency-Key", "If-Match", "X-Request-ID"})',
         ),
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/http.go",
+        "api/internal/bootstrap/http.go",
         (
             '[]string{"Origin", "Content-Type", "Accept", "Authorization", "Organization-Id", "Idempotency-Key", "If-Match", "X-Request-ID"}',
         ),
     )
     require_all(
         failures,
-        "apps/api/docker-compose.yml",
+        "api/docker-compose.yml",
         (
             "OPTIONAL_STARTERS: ${OPTIONAL_STARTERS:-}",
             "ORGANIZATION_INVITATION_TTL: ${ORGANIZATION_INVITATION_TTL:-168h}",
@@ -720,7 +720,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             "*,organization,*)",
             "/v1/organizations/${organization_id}/invitations",
@@ -742,7 +742,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/CONFIGURATION.md",
+        "api/docs/CONFIGURATION.md",
         (
             "Optional Starter Activation",
             "OPTIONAL_STARTERS=organization",
@@ -794,7 +794,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/.agents/skills/module-creation/SKILL.md",
+        "api/.agents/skills/module-creation/SKILL.md",
         ("OptionalManifests", "OPTIONAL_STARTERS=<name>"),
     )
     require_all(

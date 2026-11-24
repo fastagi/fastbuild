@@ -6,7 +6,7 @@ complete these checks in order.
 
 1. **Confirm the imports.** `apps/web/src/themes/index.css` imports `./presets/warm.css` after
    `./dark.css`, and `apps/admin/src/styles/globals.css` imports `./themes/warm.css` after
-   `./tokens.css`. `cd apps/api && go run ./cmd/fastbuild plugin:doctor` reports no problems.
+   `./tokens.css`. `cd api && go run ./cmd/fastbuild plugin:doctor` reports no problems.
 2. **Check contrast and the build.**
    `cd apps/web && corepack pnpm lint && corepack pnpm type-check`, then
    `cd apps/admin && corepack pnpm lint && corepack pnpm build`. Both contrast guards print the pairs they

@@ -34,13 +34,13 @@ Always read:
 Read additional authorities only when their boundary is active:
 
 - `packages/contracts/README.md` when public HTTP behavior changes.
-- `apps/api/docs/ADDING_MODULE.md` for retained or added API starter behavior.
+- `api/docs/ADDING_MODULE.md` for retained or added API starter behavior.
 - `apps/web/docs/ADDING_FEATURE.md` or `apps/admin/docs/ADDING_FEATURE.md` for the
   downstream audience being implemented.
 - `apps/web/docs/MOCK_BFF.md`, `packages/contracts/AUTHENTICATION.md`, and
   [references/mock-bff-auth.md](references/mock-bff-auth.md) when replacing
   mock routes or authentication adapters.
-- `packages/contracts/ASSETS.md`, `apps/api/docs/ASSETS.md`, `apps/web/docs/ASSETS.md`, and the
+- `packages/contracts/ASSETS.md`, `api/docs/ASSETS.md`, `apps/web/docs/ASSETS.md`, and the
   asset reference below only when asset behavior is retained or removed.
 
 For a retained optional starter, read only its matching reference:

@@ -17,7 +17,7 @@ and design semantics, never source code or runtime state.
 | Public and customer-facing routes | Project operator and administrator workflows |
 | Registration, sign-in, account, and workspace journeys | API domain rules or PostgreSQL persistence |
 | SEO, SSR, Server Components, and server adapters | Static OSS/CDN-only delivery |
-| Customer UI state and development mock BFF behavior | Source code from `apps/api/` or `apps/admin/` |
+| Customer UI state and development mock BFF behavior | Source code from `api/` or `apps/admin/` |
 
 ## Stack
 
@@ -84,7 +84,7 @@ src/
 │   ├── (auth)/             # Public auth routes
 │   ├── (protected)/        # Authenticated route groups
 │   ├── (site)/             # Public site pages
-│   └── apps/api/                # Browser HTTP routes: mock behavior + fixed production adapters
+│   └── api/                # Browser HTTP routes: mock behavior + fixed production adapters
 ├── components/             # Shared UI and layout components
 ├── features/               # Feature-first folders
 ├── http/                   # Axios wrapper and error normalization

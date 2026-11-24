@@ -5,7 +5,7 @@ installed into a project with one command; from then on the project owns the cod
 remembers exactly what the plugin added so it can be updated or removed later.
 
 ```bash
-cd apps/api
+cd api
 go run ./cmd/fastbuild plugin:search knowledge      # find (also: --format=json for agents)
 go run ./cmd/fastbuild plugin:info knowledge-base   # decide: requirements, files, integration steps
 go run ./cmd/fastbuild plugin:add knowledge-base    # install (--dry-run previews every change)
@@ -31,8 +31,8 @@ speak the Model Context Protocol can use the read-only tools of `fastbuild mcp` 
 `plugin_slots`); installing stays an explicit CLI step the builder sees.
 
 ```bash
-claude mcp add fastbuild -- sh -c 'cd apps/api && go run ./cmd/fastbuild mcp'   # Claude Code
-codex mcp add fastbuild -- sh -c 'cd apps/api && go run ./cmd/fastbuild mcp'    # Codex
+claude mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'   # Claude Code
+codex mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'    # Codex
 ```
 
 ## Kinds
@@ -81,8 +81,8 @@ registry/
 1. Write or edit the plugin under `plugins/<name>/` and raise its `version` when users would notice.
 2. Develop it installed: `plugin:add <name>`, finish its integration steps, edit the installed files,
    then `plugin:pack <name>` copies edited files back here (add new files by hand).
-3. Regenerate the index: `cd apps/api && go run ./cmd/fastbuild plugin:index`.
-4. Prove it: `cd apps/api && go test ./internal/infra/console/commands -run 'Plugin|Slots'` installs every
+3. Regenerate the index: `cd api && go run ./cmd/fastbuild plugin:index`.
+4. Prove it: `cd api && go test ./internal/infra/console/commands -run 'Plugin|Slots'` installs every
    plugin into a copy of the project, builds and tests it, and removes it again;
    `make contract-check` merges, lints, and removes every contract fragment.
 5. `plugin:remove <name> --force` so the scaffold itself does not keep the plugin installed.

@@ -9,7 +9,7 @@ skill metadata first and loads a full `SKILL.md` only after selecting it.
 | Working directory | Repository skills available |
 |---|---|
 | Repository root | 12 root skills |
-| `apps/api/` | 12 root + 9 API skills |
+| `api/` | 12 root + 9 API skills |
 | `apps/web/` | 12 root + 13 Web skills |
 | `apps/admin/` | 12 root skills + local `AGENTS.md` |
 
@@ -107,7 +107,7 @@ Each row comes from the skill's `agents/openai.yaml` `short_description`.
 | `webapp-testing` | Verify a running UI in a browser |
 <!-- skill-index:tables:end -->
 
-Routine coding standards live in `apps/api/AGENTS.md`; explicit diff review uses the
+Routine coding standards live in `api/AGENTS.md`; explicit diff review uses the
 root `fastbuild-code-review`. Separate duplicate skills for those concerns were
 removed so API tasks do not load overlapping rulebooks.
 

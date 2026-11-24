@@ -264,7 +264,7 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   retention CronJobs, validated against Kubernetes 1.30.
 - `make perf` and a nightly `perf.yml` run a k6 baseline against a release build and PostgreSQL,
   failing when login, readiness, profile, API key, or audit log reads leave their p95 budgets; see
-  [`api/docs/PERFORMANCE.md`](apps/api/docs/PERFORMANCE.md).
+  [`api/docs/PERFORMANCE.md`](api/docs/PERFORMANCE.md).
 - `make:module` writes an OpenAPI fragment for the generated routes; `corepack pnpm
   merge-fragment` adds it to `contracts/openapi.yaml` without reformatting the file, so a new
   starter passes the two-way route check without hand-written contract entries.

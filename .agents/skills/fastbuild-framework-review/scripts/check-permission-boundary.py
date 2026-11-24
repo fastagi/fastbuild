@@ -47,12 +47,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/starter/assembly/starter_manifest.go",
+        "api/internal/starter/assembly/starter_manifest.go",
         ("Dependencies() []string", "WithStarterDependencies"),
     )
     require_all(
         failures,
-        "apps/api/internal/starter/catalog.go",
+        "api/internal/starter/catalog.go",
         (
             "validateDependencies",
             "dependency cycle",
@@ -62,7 +62,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/permission/provider.go",
+        "api/internal/modules/permission/provider.go",
         (
             'config.StarterPermission',
             'WithStarterDependencies(config.StarterOrganization)',
@@ -72,7 +72,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/permission.go",
+        "api/internal/domain/permission.go",
         (
             "type PermissionKey string",
             "PermissionKey) IsValid() bool",
@@ -83,7 +83,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/permission/catalog.go",
+        "api/internal/modules/permission/catalog.go",
         (
             '"permission.roles.read"',
             '"permission.roles.manage"',
@@ -94,7 +94,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/permission/service.go",
+        "api/internal/modules/permission/service.go",
         (
             "persisted permission %q is not registered",
             "permission %q is not registered",
@@ -107,7 +107,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/permission/repository.go",
+        "api/internal/modules/permission/repository.go",
         (
             "effectiveForUpdate",
             'memberships.organization_id = ? AND memberships.user_id = ?',
@@ -119,7 +119,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/permission/routes.go",
+        "api/internal/modules/permission/routes.go",
         (
             'WithMiddleware("auth", "organization_context")',
             'GET("/permission-context"',
@@ -130,7 +130,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_010000_create_permission_tables.go",
+        "api/database/migrations/2026_07_15_010000_create_permission_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE permission_roles (',
@@ -194,7 +194,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             'permission_flow="skipped"',
             'permission_migration_flow="skipped"',

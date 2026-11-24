@@ -89,7 +89,7 @@ printf "  %-${SCOPE_W}s %-${NAME_W}s %-${EXTRAS_W}s %s\n" "scope" "name" "extras
 printf "  %-${SCOPE_W}s %-${NAME_W}s %-${EXTRAS_W}s %s\n" "$(dim "-----")" "$(dim "----")" "$(dim "------")" "$(dim "-----------")"
 
 for_scope "root" ".agents/skills"
-for_scope "api"  "apps/api/.agents/skills"
+for_scope "api"  "api/.agents/skills"
 for_scope "web"  "apps/web/.agents/skills"
 
 echo ""

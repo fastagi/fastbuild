@@ -69,7 +69,7 @@ src/config/
 
 Route files import feature pages. Features may import shared core modules.
 Shared core modules never import a feature. No SPA source imports `apps/web/` or
-`apps/api/` source.
+`api/` source.
 
 ## Data Flow
 

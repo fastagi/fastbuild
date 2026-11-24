@@ -56,7 +56,7 @@ together. A digest-only update still requires release-note and image-diff review
 Build and exercise each runtime contract:
 
 ```bash
-cd apps/api && make container-check
+cd api && make container-check
 cd apps/web && bash scripts/verify-container.sh fastbuild-web:container-check
 cd apps/admin && bash scripts/verify-container.sh fastbuild-admin:container-check
 ```

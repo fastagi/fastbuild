@@ -1,7 +1,7 @@
 # Asset Retention
 
 Read this reference only when the downstream app retains the optional `asset`
-starter. Also read `packages/contracts/ASSETS.md`, `apps/api/docs/ASSETS.md`, and
+starter. Also read `packages/contracts/ASSETS.md`, `api/docs/ASSETS.md`, and
 `apps/web/docs/ASSETS.md`.
 
 - Keep user ownership and lifecycle in the starter while provider byte

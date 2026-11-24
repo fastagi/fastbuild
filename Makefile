@@ -7,10 +7,10 @@
 init-project:
 	@test -n "$(NAME)" && test -n "$(SLUG)" && test -n "$(MODULE)" || \
 		{ echo 'usage: make init-project NAME="Acme Platform" SLUG=acme MODULE=github.com/acme/platform/api [REPOSITORY=...] [STARTERS=...] [TEMPLATE=...]' >&2; exit 2; }
-	cd apps/api && go run ./cmd/fastbuild project:init --name="$(NAME)" --slug="$(SLUG)" --module="$(MODULE)" \
+	cd api && go run ./cmd/fastbuild project:init --name="$(NAME)" --slug="$(SLUG)" --module="$(MODULE)" \
 		$(if $(REPOSITORY),--repository="$(REPOSITORY)") $(if $(STARTERS),--starters="$(STARTERS)") \
 		$(if $(TEMPLATE),--template="$(TEMPLATE)")
-	cd apps/api && go mod tidy
+	cd api && go mod tidy
 
 # Verify main is ready to tag; see docs/VERSIONING.md.
 release-check:
@@ -86,8 +86,8 @@ governance: agent-check
 	bash .agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh
 
 api-check:
-	cd apps/api && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
-	cd apps/api && make route-catalog-check
+	cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
+	cd api && make route-catalog-check
 
 web-check:
 	cd apps/web && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
@@ -112,9 +112,9 @@ container-sbom:
 # Remove generated build, test, log, and language-tool output while preserving
 # installed dependencies and reusable scanner caches.
 clean:
-	$(MAKE) -C apps/api clean
-	rm -f apps/api/*.test
-	find apps/api -type d -path '*/storage/logs' -prune -exec rm -rf {} +
+	$(MAKE) -C api clean
+	rm -f api/*.test
+	find api -type d -path '*/storage/logs' -prune -exec rm -rf {} +
 	cd apps/web && corepack pnpm clean
 	rm -f apps/web/next-env.d.ts
 	cd apps/admin && corepack pnpm clean

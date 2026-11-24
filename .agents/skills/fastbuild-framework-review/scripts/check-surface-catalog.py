@@ -39,7 +39,7 @@ REQUIRED_REFERENCES = [
     "../CONTEXT.md",
     "../packages/contracts/README.md",
     "../apps/web/docs/MOCK_BFF.md",
-    "../apps/api/docs/ADDING_MODULE.md",
+    "../api/docs/ADDING_MODULE.md",
     "../apps/web/docs/ADDING_FEATURE.md",
     "../apps/admin/docs/ADDING_FEATURE.md",
     "check-downstream-contamination.sh",

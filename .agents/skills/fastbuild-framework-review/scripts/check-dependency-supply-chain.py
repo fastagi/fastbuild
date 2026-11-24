@@ -49,9 +49,9 @@ DEPENDABOT_TARGETS = {
     ("npm", "/packages/contracts"),
     ("npm", "/apps/web"),
     ("npm", "/apps/admin"),
-    ("gomod", "/apps/api"),
+    ("gomod", "/api"),
     ("github-actions", "/"),
-    ("docker", "/apps/api"),
+    ("docker", "/api"),
     ("docker", "/apps/web"),
 }
 DEPENDABOT_GROUPS = {
@@ -246,7 +246,7 @@ def main() -> int:
         f'OSV_VERSION="{OSV_VERSION}"',
         "--proto '=https' --proto-redir '=https' --tlsv1.2",
         '"--config=${ROOT_DIR}/osv-scanner.toml"',
-        '"--lockfile=${ROOT_DIR}/apps/api/go.mod"',
+        '"--lockfile=${ROOT_DIR}/api/go.mod"',
         '"--lockfile=${ROOT_DIR}/packages/contracts/pnpm-lock.yaml"',
         '"--lockfile=${ROOT_DIR}/apps/web/pnpm-lock.yaml"',
         '"--lockfile=${ROOT_DIR}/apps/admin/pnpm-lock.yaml"',

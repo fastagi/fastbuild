@@ -18,7 +18,7 @@ Console screens.
 passwords, or emails; hard account deletion; impersonation; organization, permission, usage,
 webhook, notification, or asset administration; multi-factor authentication; Web (Next.js) changes.
 
-**Deployable units.** `apps/api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md` and `openapi.yaml`.
+**Deployable units.** `api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md` and `openapi.yaml`.
 
 **Success signal.** With `OPTIONAL_STARTERS=operator`, a user granted by `fastbuild operator:grant`
 signs in to the Admin Console, disables another user (whose next API call fails with

@@ -247,7 +247,7 @@ def main() -> int:
         if marker not in admin_container_workflow:
             failures.append(f"admin-container.yml must contain {marker!r}")
 
-    compose_verifier = (ROOT / "apps/api/scripts/verify-compose.sh").read_text(
+    compose_verifier = (ROOT / "api/scripts/verify-compose.sh").read_text(
         encoding="utf-8"
     )
     for marker in (
@@ -257,7 +257,7 @@ def main() -> int:
     ):
         if marker not in compose_verifier:
             failures.append(
-                f"apps/api/scripts/verify-compose.sh must contain {marker!r}"
+                f"api/scripts/verify-compose.sh must contain {marker!r}"
             )
 
     ci_doc = (ROOT / "docs/CI.md").read_text(encoding="utf-8")

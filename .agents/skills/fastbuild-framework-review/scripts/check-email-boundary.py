@@ -37,7 +37,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             "DefaultEmailRequestTimeout = 10 * time.Second",
             "RequestTimeout time.Duration",
@@ -48,7 +48,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/email/email.go",
+        "api/internal/infra/email/email.go",
         (
             "context.WithTimeout(ctx, s.requestTimeout)",
             "http.NewRequestWithContext(",
@@ -64,7 +64,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/service.go",
+        "api/internal/modules/user/service.go",
         (
             "IsConfigured() bool",
             "SendPasswordResetEmail(ctx context.Context",
@@ -76,7 +76,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/listener.go",
+        "api/internal/modules/user/listener.go",
         (
             "user.welcome_email_delivery_failed",
             '"user_id", user.ID',
@@ -85,7 +85,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/EMAIL.md",
+        "api/docs/EMAIL.md",
         (
             "optional outbound email capability",
             "not a notification starter",
@@ -97,12 +97,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         ("MAIL_FROM=", "RESEND_API_KEY=", "MAIL_REQUEST_TIMEOUT=10s"),
     )
 
     try:
-        email_source = read("apps/api/internal/infra/email/email.go")
+        email_source = read("api/internal/infra/email/email.go")
     except FileNotFoundError:
         email_source = ""
     forbidden = (
@@ -117,7 +117,7 @@ def main() -> int:
     for pattern, description in forbidden:
         if re.search(pattern, email_source):
             failures.append(
-                f"apps/api/internal/infra/email/email.go contains forbidden {description}"
+                f"api/internal/infra/email/email.go contains forbidden {description}"
             )
 
     if failures:

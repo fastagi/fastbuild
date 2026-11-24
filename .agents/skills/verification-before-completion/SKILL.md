@@ -56,7 +56,7 @@ unchanged successful command in the same turn.
 Examples:
 
 ```bash
-cd apps/api
+cd api
 bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/user/...
 
 cd apps/web

@@ -25,14 +25,14 @@ for half in packages/contracts apps/web apps/admin; do
   fi
 done
 
-fastbuild() { (cd "$scratch/apps/api" && go run ./cmd/fastbuild "$@"); }
+fastbuild() { (cd "$scratch/api" && go run ./cmd/fastbuild "$@"); }
 
 info=$(fastbuild plugin:info "$name" --format=json)
 field() {
   node -e 'const p = JSON.parse(require("fs").readFileSync(0, "utf8")).plugin;
     const files = Object.keys(p.files ?? {});
     const value = { kind: p.kind || "feature", starter: p.starter?.directory ?? "", fragment: p.fragment ?? "",
-      api: files.some(f => f.startsWith("apps/api/")), web: files.some(f => f.startsWith("apps/web/")),
+      api: files.some(f => f.startsWith("api/")), web: files.some(f => f.startsWith("apps/web/")),
       admin: files.some(f => f.startsWith("apps/admin/")) || (p.wiring ?? []).some(w => w.slot.startsWith("admin.")),
       webWiring: (p.wiring ?? []).some(w => w.slot.startsWith("web.")) }[process.argv[1]];
     process.stdout.write(String(value));' "$1" <<<"$info"
@@ -55,11 +55,11 @@ if [[ "$(field api)" == true ]]; then
   starter=$(field starter)
   step "Building and testing the API"
   if [[ -n "$starter" ]]; then
-    (cd "$scratch/apps/api" && make -s wire)
+    (cd "$scratch/api" && make -s wire)
   fi
-  (cd "$scratch/apps/api" && go build ./... && go vet ./...)
+  (cd "$scratch/api" && go build ./... && go vet ./...)
   if [[ -n "$starter" ]]; then
-    (cd "$scratch/apps/api" && go test -count=1 "./internal/modules/$starter/...")
+    (cd "$scratch/api" && go test -count=1 "./internal/modules/$starter/...")
   fi
 fi
 

@@ -5,7 +5,7 @@ secondary line, and skeleton cards while loading. The trend is announced in word
 meaning (`positive`), so "error rate up" can be red while "revenue up" is green.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add block-dashboard-stats
+cd api && go run ./cmd/fastbuild plugin:add block-dashboard-stats
 ```
 
 Installs `apps/web/src/components/blocks/dashboard-stats/` (component and test). It is a Server

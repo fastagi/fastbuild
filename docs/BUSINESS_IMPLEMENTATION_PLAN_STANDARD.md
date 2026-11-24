@@ -50,7 +50,7 @@ aggregate data from several owners, but they must not become a second writer.
 
 ### 2.3 Keep deployable units independent
 
-`apps/api/`, `apps/web/`, and `apps/admin/` communicate through reviewed HTTP behavior. They
+`api/`, `apps/web/`, and `apps/admin/` communicate through reviewed HTTP behavior. They
 MUST NOT import one another's source. The plan MUST name every deployable unit
 that changes and the contract joining them.
 

@@ -36,4 +36,4 @@ FastBuild provides secure defaults and executable checks, but a downstream deplo
 - monitoring, incident response, and disclosure obligations;
 - product-specific authorization and data-classification policy.
 
-Read [docs/DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md), [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md), [apps/api/docs/OBSERVABILITY.md](apps/api/docs/OBSERVABILITY.md), and [apps/web/docs/SECURITY.md](apps/web/docs/SECURITY.md) before production deployment.
+Read [docs/DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md), [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md), [api/docs/OBSERVABILITY.md](api/docs/OBSERVABILITY.md), and [apps/web/docs/SECURITY.md](apps/web/docs/SECURITY.md) before production deployment.

@@ -1,6 +1,6 @@
 # HTTP Contracts
 
-This directory documents the contracts shared by `apps/api/`, the customer-facing
+This directory documents the contracts shared by `api/`, the customer-facing
 `apps/web/` application, and the project `apps/admin/` application.
 
 The response envelope, validation classes, `error_code`, and `request_id` semantics are global.
@@ -53,14 +53,14 @@ The API's runtime route catalog complements both contract forms by showing which
 are assembled for one resolved configuration:
 
 ```bash
-cd apps/api
+cd api
 DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild route:list --format=json
 ```
 
 The catalog is deterministic, schema-versioned, and generated through the same core and starter
 route registration seam used by the server. It does not infer payloads, responses, authentication,
 authorization, or middleware. See
-[`../../apps/api/docs/ROUTE_DISCOVERY.md`](../../apps/api/docs/ROUTE_DISCOVERY.md) for its ownership and validation
+[`../../api/docs/ROUTE_DISCOVERY.md`](../../api/docs/ROUTE_DISCOVERY.md) for its ownership and validation
 contract.
 
 ## Success Responses

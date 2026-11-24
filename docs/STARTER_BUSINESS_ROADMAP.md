@@ -93,7 +93,7 @@ undelivered boundary is an intentionally product-sensitive AI workspace.
 
 8. `ai-workspace` optional starter
    - Owns prompt templates, conversation/session records, run history, cost attribution, and evaluation hooks.
-   - Uses the bounded execution contract in [`../apps/api/docs/AI.md`](../apps/api/docs/AI.md) plus workflow, usage, and organization starters.
+   - Uses the bounded execution contract in [`../api/docs/AI.md`](../api/docs/AI.md) plus workflow, usage, and organization starters.
    - Should be optional because many FastBuild downstream apps will not be AI products.
 
 ## Starter Readiness Contract
@@ -103,8 +103,8 @@ A starter is not ready-to-use until it has all of these:
 | Requirement | Evidence |
 |---|---|
 | Clear owner category | Default starter or optional starter decision documented in an ADR or this roadmap |
-| Domain vocabulary | Framework-free entity/value/error seams in `apps/api/internal/domain` only when shared |
-| API implementation | `apps/api/internal/modules/<starter>/` with service, repository, handler, routes, provider, tests |
+| Domain vocabulary | Framework-free entity/value/error seams in `api/internal/domain` only when shared |
+| API implementation | `api/internal/modules/<starter>/` with service, repository, handler, routes, provider, tests |
 | Starter manifest | Migrations, seeders, modules, middleware, and events registered through `internal/starter/assembly` |
 | HTTP contract | Request, response, pagination, `error_code`, and `request_id` behavior documented under `packages/contracts/` before Web integration |
 | Web feature | `apps/web/src/features/<feature>/` service, hooks, types, UI, tests, and route entry points when browser-facing |

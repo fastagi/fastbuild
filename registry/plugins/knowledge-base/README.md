@@ -5,7 +5,7 @@ searches them. Search ranks full-text matches and also finds substrings, so Chin
 languages without word spacing work.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add knowledge-base
+cd api && go run ./cmd/fastbuild plugin:add knowledge-base
 ```
 
 It installs, and `plugin:remove` takes away again:

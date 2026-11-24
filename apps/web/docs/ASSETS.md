@@ -84,7 +84,7 @@ To remove it:
 2. delete `src/features/asset`, the asset management and transfer Route Handlers, asset i18n module,
    console page/navigation contribution, and asset tests;
 3. remove the API starter and provider data through the staged process in
-   [`../../api/docs/ASSETS.md`](../../api/docs/ASSETS.md);
+   [`../../../api/docs/ASSETS.md`](../../../api/docs/ASSETS.md);
 4. update contract, catalog, surface, and governance references in the same change.
 
 ## Verification

@@ -16,17 +16,17 @@ FILES=(
   docs/STARTER_BUSINESS_ROADMAP.md
   docs/SKILL_GOVERNANCE_PLAN.md
   packages/contracts/README.md
-  apps/api/AGENTS.md
-  apps/api/docs/ADDING_MODULE.md
-  apps/api/docs/MIDDLEWARE.md
-  apps/api/docs/PACKAGE_BOUNDARIES.md
-  apps/api/docs/adr/0001-layer-vocabulary.md
-  apps/api/docs/adr/0002-default-starters.md
-  apps/api/docs/adr/0005-package-boundaries.md
-  apps/api/.agents/skills/README.md
-  apps/api/internal/capabilities/README.md
-  apps/api/internal/domain/README.md
-  apps/api/internal/modules/README.md
+  api/AGENTS.md
+  api/docs/ADDING_MODULE.md
+  api/docs/MIDDLEWARE.md
+  api/docs/PACKAGE_BOUNDARIES.md
+  api/docs/adr/0001-layer-vocabulary.md
+  api/docs/adr/0002-default-starters.md
+  api/docs/adr/0005-package-boundaries.md
+  api/.agents/skills/README.md
+  api/internal/capabilities/README.md
+  api/internal/domain/README.md
+  api/internal/modules/README.md
   apps/web/AGENTS.md
   apps/web/README.md
   apps/web/docs/ADDING_FEATURE.md
@@ -42,7 +42,7 @@ FILES=(
 while IFS= read -r skill_file; do
   FILES+=("$skill_file")
 done < <(
-  find .agents apps/api/.agents apps/web/.agents \
+  find .agents api/.agents apps/web/.agents \
     -path '*/.template/*' -prune -o \
     -type f -name 'SKILL.md' -print | sort
 )

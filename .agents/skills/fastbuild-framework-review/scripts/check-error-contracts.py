@@ -12,10 +12,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 CONTRACTS_README = ROOT / "packages" / "contracts" / "README.md"
-API_RESPONSE_CODES = ROOT / "apps" / "api" / "pkg" / "response" / "error_codes.go"
-API_DOMAIN_CODES = ROOT / "apps" / "api" / "internal" / "domain" / "error_codes.go"
+API_RESPONSE_CODES = ROOT / "api" / "pkg" / "response" / "error_codes.go"
+API_DOMAIN_CODES = ROOT / "api" / "internal" / "domain" / "error_codes.go"
 # Plugins keep their codes inside their module, so installing one never edits core files.
-API_MODULE_CODE_FILES = sorted((ROOT / "apps" / "api" / "internal" / "modules").glob("*/errors.go"))
+API_MODULE_CODE_FILES = sorted((ROOT / "api" / "internal" / "modules").glob("*/errors.go"))
 OPENAPI_CONTRACT = ROOT / "packages" / "contracts" / "openapi.yaml"
 BROWSER_CODE_PATHS = {
     "web": ROOT / "apps" / "web" / "src" / "http" / "codes.ts",
@@ -179,7 +179,7 @@ def main() -> int:
 
     missing_api = sorted(contract_codes - api_response_codes)
     if missing_api:
-        failures.append(f"apps/api/pkg/response/error_codes.go is missing contract error_code values: {', '.join(missing_api)}")
+        failures.append(f"api/pkg/response/error_codes.go is missing contract error_code values: {', '.join(missing_api)}")
 
     for name, path in BROWSER_CODE_PATHS.items():
         relative_path = path.relative_to(ROOT)

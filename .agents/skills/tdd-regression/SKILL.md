@@ -93,7 +93,7 @@ Report these in the final answer:
 Typical commands:
 
 ```bash
-cd apps/api && go test ./internal/modules/<module>/... ./internal/interfaces/http/...
+cd api && go test ./internal/modules/<module>/... ./internal/interfaces/http/...
 cd apps/web && pnpm vitest run src/test/<file>.test.ts
 cd apps/web && pnpm type-check && pnpm lint
 ```

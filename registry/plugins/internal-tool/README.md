@@ -17,7 +17,7 @@ Starts a back-office or operations tool: organizations with roles and permission
 ```bash
 make init-project NAME="Acme" SLUG=acme MODULE=github.com/acme/app/api TEMPLATE=internal-tool
 # or, in an existing project:
-cd apps/api && go run ./cmd/fastbuild plugin:add internal-tool
+cd api && go run ./cmd/fastbuild plugin:add internal-tool
 ```
 
 It selects the starters `organization`, `permission`, `operator`. Complete each included plugin's

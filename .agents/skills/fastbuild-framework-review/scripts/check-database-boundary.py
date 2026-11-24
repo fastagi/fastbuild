@@ -120,7 +120,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'DefaultDatabaseQueryExecMode = "simple_protocol"',
             'strictDatabaseInt("DB_MAX_IDLE_CONNS", maxOpen)',
@@ -145,7 +145,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'env.GetInt("DB_MAX_IDLE_CONNS"',
             'env.GetInt("DB_MAX_OPEN_CONNS"',
@@ -155,7 +155,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/infra/database/database.go",
+        "api/internal/infra/database/database.go",
         (
             "cfg.ValidateDatabase()",
             "url.UserPassword",
@@ -173,7 +173,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "apps/api/internal/infra/database/database.go",
+        "api/internal/infra/database/database.go",
         (
             "PrepareStmt",
             "SkipDefaultTransaction",
@@ -183,7 +183,7 @@ def main() -> int:
     )
     require_order(
         failures,
-        "apps/api/internal/infra/database/database.go",
+        "api/internal/infra/database/database.go",
         (
             "sqlDB.SetMaxOpenConns",
             "sqlDB.SetMaxIdleConns",
@@ -195,7 +195,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/modules/user/repository.go",
+        "api/internal/modules/user/repository.go",
         (
             "COUNT(*) OVER() AS page_total",
             'Order("users.id DESC")',
@@ -205,12 +205,12 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "apps/api/internal/modules/user/repository.go",
+        "api/internal/modules/user/repository.go",
         ("users.*", "users.password"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/postgres_profile_test.go",
+        "api/internal/modules/user/postgres_profile_test.go",
         (
             'postgresProfileDSNEnv = "FASTBUILD_TEST_POSTGRES_DSN"',
             'admin.Exec("CREATE SCHEMA " + schema)',
@@ -226,7 +226,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/database/database_test.go",
+        "api/internal/infra/database/database_test.go",
         (
             "TestPostgresDSN_EncodesCredentialsAndConnectionPolicy",
             "TestNewDB_RejectsNonTLSPostgresInProduction",
@@ -237,7 +237,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/repository_test.go",
+        "api/internal/modules/user/repository_test.go",
         (
             "TestRepositoryFindAllUsesStableOrderAndPreservesEmptyPageTotal",
             "assert.NotNil(t, emptyPage)",
@@ -248,17 +248,17 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         (
             "DB_CONN_MAX_IDLE_TIME=15m",
             "DB_CONN_MAX_LIFETIME=1h",
             "DB_CONNECT_TIMEOUT=5s",
         ),
     )
-    require_absent(failures, "apps/api/.env.example", ("DB_CONN_MAX_LIFETIME=3600",))
+    require_absent(failures, "api/.env.example", ("DB_CONN_MAX_LIFETIME=3600",))
     require_all(
         failures,
-        "apps/api/Makefile",
+        "api/Makefile",
         (
             "benchmark-database:",
             "FASTBUILD_TEST_POSTGRES_DSN",
@@ -267,7 +267,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/DATABASE.md",
+        "api/docs/DATABASE.md",
         (
             "Database Runtime",
             "PostgreSQL is the only relational database compatibility target",
@@ -280,7 +280,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/adr/0013-database-runtime-and-query-baseline.md",
+        "api/docs/adr/0013-database-runtime-and-query-baseline.md",
         (
             "Database Runtime And Query Baseline",
             "GORM automatic ping is disabled",
@@ -289,7 +289,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/CONFIGURATION.md",
+        "api/docs/CONFIGURATION.md",
         (
             "Database Runtime Policy",
             "PostgreSQL is the only",
@@ -299,7 +299,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/DEPLOYMENT.md",
+        "api/docs/DEPLOYMENT.md",
         ("a TLS-requiring", "`DB_MAX_OPEN_CONNS` per API", "[`DATABASE.md`](DATABASE.md)"),
     )
     require_all(
@@ -313,7 +313,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/AGENTS.md",
+        "api/AGENTS.md",
         (
             "docs/DATABASE.md",
             "make benchmark-database",
@@ -323,7 +323,7 @@ def main() -> int:
     )
     require_patterns(
         failures,
-        "apps/api/.agents/skills/database-design/SKILL.md",
+        "api/.agents/skills/database-design/SKILL.md",
         (
             r"(?:## Performance Evidence|Measure The Repository Seam)",
             r"make benchmark-database",
@@ -333,7 +333,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/.agents/skills/testing-strategy/SKILL.md",
+        "api/.agents/skills/testing-strategy/SKILL.md",
         (
             "PostgreSQL is the only SQL compatibility target",
             "Never add SQLite",

@@ -47,7 +47,7 @@ def require_absent(
 def main() -> int:
     failures: list[str] = []
 
-    limiter_path = "apps/api/internal/infra/ratelimit/limiter.go"
+    limiter_path = "api/internal/infra/ratelimit/limiter.go"
     require_all(
         failures,
         limiter_path,
@@ -69,16 +69,16 @@ def main() -> int:
     )
 
     for relative_path in (
-        "apps/api/internal/infra/ratelimit/redis_store.go",
-        "apps/api/internal/infra/ratelimit/tokenscript.lua",
-        "apps/api/internal/infra/redis/redis.go",
+        "api/internal/infra/ratelimit/redis_store.go",
+        "api/internal/infra/ratelimit/tokenscript.lua",
+        "api/internal/infra/redis/redis.go",
     ):
         if (ROOT / relative_path).exists():
             failures.append(f"{relative_path} reintroduces the removed unassembled Redis limiter surface")
 
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'env.GetInt("MIDDLEWARE_RATE_LIMIT_MAX_BUCKETS", DefaultRateLimitMaxBuckets)',
             'env.GetInt("AUTH_RATE_LIMIT_MAX_BUCKETS_PER_RULE", DefaultRateLimitMaxBuckets)',
@@ -88,19 +88,19 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         ("type RedisConfig struct", 'env.Get("REDIS_HOST"'),
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/http.go",
+        "api/internal/bootstrap/http.go",
         ("MaxBuckets: cfg.Middleware.RateLimit.MaxBuckets", "stores.New(ratelimit.Rule{"),
     )
 
     # The opt-in shared store must stay atomic, hashed, database-clocked, bounded, and observable.
     require_all(
         failures,
-        "apps/api/internal/infra/ratelimit/postgres.go",
+        "api/internal/infra/ratelimit/postgres.go",
         (
             "ON CONFLICT (key_hash) DO UPDATE",
             "statement_timestamp()",
@@ -113,12 +113,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_10_11_000000_create_rate_limit_buckets_table.go",
+        "api/database/migrations/2026_10_11_000000_create_rate_limit_buckets_table.go",
         ("CREATE UNLOGGED TABLE rate_limit_buckets", "octet_length(key_hash) = 32"),
     )
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'env.Get("RATE_LIMIT_STORE", RateLimitStoreMemory)',
             'env.Get("RATE_LIMIT_STORE_FAILURE", RateLimitStoreFailureLocal)',
@@ -127,12 +127,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/adr/0015-shared-postgresql-rate-limit-store.md",
+        "api/docs/adr/0015-shared-postgresql-rate-limit-store.md",
         ("Shared PostgreSQL Rate-Limit Store", "not the silent fallback"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/auth_abuse_guard.go",
+        "api/internal/modules/user/auth_abuse_guard.go",
         (
             "cfg.MaxBucketsPerRule",
             "MaxBuckets: maxBuckets",
@@ -143,20 +143,20 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         (
             "MIDDLEWARE_RATE_LIMIT_MAX_BUCKETS=10000",
             "AUTH_RATE_LIMIT_MAX_BUCKETS_PER_RULE=10000",
             "RATE_LIMIT_STORE=memory",
         ),
     )
-    env_example = read("apps/api/.env.example")
+    env_example = read("api/.env.example")
     if re.search(r"^REDIS_(?:HOST|PORT|PASSWORD|DB)=", env_example, re.MULTILINE):
-        failures.append("apps/api/.env.example must not advertise unassembled REDIS_* runtime settings")
+        failures.append("api/.env.example must not advertise unassembled REDIS_* runtime settings")
 
     require_all(
         failures,
-        "apps/api/docs/MIDDLEWARE.md",
+        "api/docs/MIDDLEWARE.md",
         (
             "bounded, process-local fixed-window limiter",
             "least recently used bucket",
@@ -166,7 +166,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/adr/0011-rate-limit-runtime-boundary.md",
+        "api/docs/adr/0011-rate-limit-runtime-boundary.md",
         (
             "Rate-Limit Runtime Boundary",
             "Silent fallback to",
@@ -183,8 +183,8 @@ def main() -> int:
         ),
     )
 
-    if "golang.org/x/time" in read("apps/api/go.mod"):
-        failures.append("apps/api/go.mod must not retain x/time solely for the removed Redis limiter")
+    if "golang.org/x/time" in read("api/go.mod"):
+        failures.append("api/go.mod must not retain x/time solely for the removed Redis limiter")
 
     if failures:
         print("Rate-limit boundary check failed:", file=sys.stderr)

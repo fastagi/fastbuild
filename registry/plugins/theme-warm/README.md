@@ -5,7 +5,7 @@ browser shells through design tokens only, so every existing component, page, an
 up without code changes.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add theme-warm
+cd api && go run ./cmd/fastbuild plugin:add theme-warm
 ```
 
 | Token area | Change |

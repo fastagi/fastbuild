@@ -14,11 +14,11 @@ Security vulnerabilities must follow [SECURITY.md](SECURITY.md) and must not be 
 
 ## Development Setup
 
-Required tool versions are documented in the root [README.md](README.md), `apps/api/go.mod`, and `apps/web/package.json`.
+Required tool versions are documented in the root [README.md](README.md), `api/go.mod`, and `apps/web/package.json`.
 
 ```bash
 # API dependencies and generated dependency injection
-cd apps/api
+cd api
 go mod download
 make wire
 
@@ -27,11 +27,11 @@ cd ../web
 corepack pnpm install --frozen-lockfile
 ```
 
-Use `apps/api/docker-compose.yml` for the local PostgreSQL-backed API flow. The Web app can run with its bounded development mock BFF while you work on browser-only behavior.
+Use `api/docker-compose.yml` for the local PostgreSQL-backed API flow. The Web app can run with its bounded development mock BFF while you work on browser-only behavior.
 
 ## Change Boundaries
 
-- Keep `apps/api/` and `apps/web/` independently deployable. They share HTTP contracts, not source code.
+- Keep `api/` and `apps/web/` independently deployable. They share HTTP contracts, not source code.
 - Put reusable runtime infrastructure in core or capabilities, coherent business workflows in starters, and downstream product behavior outside the scaffold.
 - Keep optional starters additive and disabled by default.
 - Do not add a framework abstraction until it removes demonstrated complexity or matches an established local seam.
@@ -55,7 +55,7 @@ make check
 Useful focused commands:
 
 ```bash
-cd apps/api && go test ./...
+cd api && go test ./...
 cd apps/web && corepack pnpm type-check
 cd apps/web && corepack pnpm lint
 cd apps/web && corepack pnpm test -- --run

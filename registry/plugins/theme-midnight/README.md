@@ -5,7 +5,7 @@ used at night. It restyles both browser shells through design tokens only, so ev
 component, page, and block picks it up without code changes.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add theme-midnight
+cd api && go run ./cmd/fastbuild plugin:add theme-midnight
 ```
 
 | Token area | Change |

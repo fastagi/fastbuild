@@ -56,12 +56,12 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/modules/apikey/model.go",
+        "api/internal/modules/apikey/model.go",
         ("json.Marshal(scopes)", "json.Unmarshal", "Compatibility for rows written before"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/apikey/repository.go",
+        "api/internal/modules/apikey/repository.go",
         (
             "revoked_at IS NULL",
             '"last_used_at"',
@@ -69,15 +69,15 @@ def main() -> int:
             "expires_at IS NULL OR expires_at > ?",
         ),
     )
-    repository = read("apps/api/internal/modules/apikey/repository.go")
+    repository = read("api/internal/modules/apikey/repository.go")
     if re.search(r"\.Save\s*\(", repository):
         failures.append(
-            "apps/api/internal/modules/apikey/repository.go must not use full-row Save for revoke or use tracking"
+            "api/internal/modules/apikey/repository.go must not use full-row Save for revoke or use tracking"
         )
 
     require_all(
         failures,
-        "apps/api/internal/modules/apikey/service.go",
+        "api/internal/modules/apikey/service.go",
         (
             "MaxAPIKeyScopes",
             "MaxAPIKeyScopeLength",
@@ -90,7 +90,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/apikey/scope_middleware.go",
+        "api/internal/modules/apikey/scope_middleware.go",
         (
             "func RequireScopes(",
             "domain.CodePermissionDenied",
@@ -100,7 +100,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/apikey/handler.go",
+        "api/internal/modules/apikey/handler.go",
         ("ValidationErrorHandler", "response.HandleError(c, \"API key authentication failed\", err)"),
     )
 
@@ -174,9 +174,9 @@ def main() -> int:
         require_all(failures, relative_path, ("privateApiKeyResponse(",))
 
     for relative_path in (
-        "apps/api/internal/modules/apikey/repository_test.go",
-        "apps/api/internal/modules/apikey/handler_middleware_test.go",
-        "apps/api/internal/modules/apikey/scope_middleware_test.go",
+        "api/internal/modules/apikey/repository_test.go",
+        "api/internal/modules/apikey/handler_middleware_test.go",
+        "api/internal/modules/apikey/scope_middleware_test.go",
         "apps/web/src/test/api-key-contract.test.ts",
         "apps/web/src/test/api-key-route.test.ts",
         "apps/web/src/test/api-key-ui.test.tsx",

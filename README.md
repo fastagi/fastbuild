@@ -67,7 +67,7 @@ until it needs those capabilities.
 
 | Deployable unit | Stack |
 |---|---|
-| `apps/api/` | Go 1.25, Gin, Wire, GORM, PostgreSQL, typed configuration, versioned migrations, structured logging, OpenTelemetry, and operator CLI |
+| `api/` | Go 1.25, Gin, Wire, GORM, PostgreSQL, typed configuration, versioned migrations, structured logging, OpenTelemetry, and operator CLI |
 | `apps/web/` | Customer-facing Next.js 16 application with React 19, TypeScript, Tailwind CSS 4, shadcn/ui, TanStack Query, Zustand, next-intl, and a secure same-origin API adapter |
 | `apps/admin/` | Project management console built with Vite 8, React 19, TanStack Router, TanStack Query, Zustand, Zod, Tailwind CSS 4, shadcn/ui, and i18next |
 | Delivery | Docker Compose, non-root production images, GitHub Actions, SBOM generation, dependency scanning, container scanning, and bundle budgets |
@@ -126,7 +126,7 @@ Plugins are reviewed capabilities installed as source: the code lands in your pr
 it. A coding agent can find and install them with the `plugin-integration` skill.
 
 ```bash
-cd apps/api
+cd api
 go run ./cmd/fastbuild plugin:search knowledge
 go run ./cmd/fastbuild plugin:add knowledge-base
 ```
@@ -165,7 +165,7 @@ adapter.
 ### Run One Surface
 
 ```bash
-cd apps/api && docker compose up --build --wait     # API image with PostgreSQL
+cd api && docker compose up --build --wait     # API image with PostgreSQL
 cd apps/web && corepack pnpm install && corepack pnpm dev    # Web with the development mock BFF
 cd apps/admin && corepack pnpm install && corepack pnpm dev  # Admin Console shell
 ```
@@ -180,7 +180,7 @@ container with `docker build admin`; both hosting options are in
 Inspect and configure optional API starters with the CLI:
 
 ```bash
-cd apps/api
+cd api
 go run ./cmd/fastbuild starter:list
 go run ./cmd/fastbuild starter:enable permission
 go run ./cmd/fastbuild starter:check
@@ -230,7 +230,7 @@ Next.js + server adapters        Vite SPA + browser gateway
        email, R2, Redis, AI, telemetry
 ```
 
-- `apps/api/` owns domain rules, persistence, migrations, routes, workers, and provider integrations.
+- `api/` owns domain rules, persistence, migrations, routes, workers, and provider integrations.
 - `apps/web/` owns customer-facing Next.js routes, account/workspace journeys, UI
   state, server adapters, and development mocks.
 - `apps/admin/` owns project management routes, operator-facing state, validated
@@ -253,7 +253,7 @@ translation, and shared domain code remains independent of Gin and GORM.
 The API includes a `fastbuild` operator command:
 
 ```bash
-cd apps/api
+cd api
 go run ./cmd/fastbuild version
 go run ./cmd/fastbuild starter:list
 go run ./cmd/fastbuild starter:check
@@ -266,7 +266,7 @@ go run ./cmd/fastbuild audit:prune --before=2026-04-01T00:00:00Z --batch=500
 ```
 
 Starter-specific commands manage notification workers, asset cleanup, setting overrides, usage
-retention, webhook delivery, and other operational workflows. See [apps/api/README.md](apps/api/README.md)
+retention, webhook delivery, and other operational workflows. See [api/README.md](api/README.md)
 for the complete command reference.
 
 ## HTTP Contracts
@@ -286,7 +286,7 @@ make contract-generate
 Runtime route discovery is deterministic and machine-readable:
 
 ```bash
-cd apps/api
+cd api
 DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild route:list --format=json
 ```
 
@@ -309,7 +309,7 @@ FastBuild includes practical application-security foundations:
 
 Deployments still own secrets, TLS termination, ingress policy, PostgreSQL backups, provider
 credentials, scaling, monitoring, and release approvals. Start with
-[apps/api/docs/DEPLOYMENT.md](apps/api/docs/DEPLOYMENT.md),
+[api/docs/DEPLOYMENT.md](api/docs/DEPLOYMENT.md),
 [apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md),
 [apps/web/docs/SECURITY.md](apps/web/docs/SECURITY.md), and
 [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md).
@@ -331,7 +331,7 @@ benchmark, container, and security commands.
 
 ```text
 fastbuild/
-|-- apps/api/          # Go API, starters, workers, migrations, and CLI
+|-- api/          # Go API, starters, workers, migrations, and CLI
 |-- apps/web/          # Customer-facing Next.js application
 |-- apps/admin/        # Vite and TanStack project management console
 |-- packages/contracts/    # Shared HTTP and starter contracts
@@ -343,12 +343,12 @@ fastbuild/
 
 | Topic | Start here |
 |---|---|
-| API development and commands | [apps/api/README.md](apps/api/README.md) |
+| API development and commands | [api/README.md](api/README.md) |
 | Customer Web application | [apps/web/README.md](apps/web/README.md) |
 | Admin Console, container, and CDN deployment | [apps/admin/README.md](apps/admin/README.md), [apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md) |
 | Architecture and ownership | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | HTTP contracts | [packages/contracts/README.md](packages/contracts/README.md) |
-| Add an API starter or module | [apps/api/docs/ADDING_MODULE.md](apps/api/docs/ADDING_MODULE.md) |
+| Add an API starter or module | [api/docs/ADDING_MODULE.md](api/docs/ADDING_MODULE.md) |
 | Add a Next.js feature | [apps/web/docs/ADDING_FEATURE.md](apps/web/docs/ADDING_FEATURE.md) |
 | Add an Admin Console feature | [apps/admin/docs/ADDING_FEATURE.md](apps/admin/docs/ADDING_FEATURE.md) |
 | Long-term roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |

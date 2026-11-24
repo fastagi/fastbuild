@@ -46,7 +46,7 @@ src/http/client.ts -> HTTP API`.
   Query cache.
 - Put reusable controls in `components/ui` only when they are genuinely
   feature-neutral. Search before adding a primitive, hook, or utility.
-- Do not import source from `apps/web/` or `apps/api/`. Equivalent behavior is
+- Do not import source from `apps/web/` or `api/`. Equivalent behavior is
   implemented locally against the same contracts.
 
 ## Routing

@@ -197,7 +197,7 @@ if [ "${1:-}" = "--all" ]; then
     done < <(
         find \
             "$REPO_ROOT/.agents/skills" \
-            "$REPO_ROOT/apps/api/.agents/skills" \
+            "$REPO_ROOT/api/.agents/skills" \
             "$REPO_ROOT/apps/web/.agents/skills" \
             -name SKILL.md -not -path '*/.template/*' 2>/dev/null |
             sort

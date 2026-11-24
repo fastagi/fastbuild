@@ -59,7 +59,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/bootstrap/http.go",
+        "api/internal/bootstrap/http.go",
         (
             "func RegisterHTTPRoutes(",
             "h.RegisterRoutes(engine)",
@@ -70,7 +70,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/route_list.go",
+        "api/internal/infra/console/commands/route_list.go",
         (
             'routeCatalogKind          = "fastbuild.route_catalog"',
             "routeCatalogSchemaVersion = 1",
@@ -84,12 +84,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/console.go",
+        "api/internal/infra/console/console.go",
         ("completionOutputSuppressor", "shouldPrintCompletionOutput(cmd)"),
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-route-catalog.sh",
+        "api/scripts/verify-route-catalog.sh",
         (
             'go build -o "${CLI_FILE}" ./cmd/fastbuild',
             '"${CLI_FILE}" route:list --format=json',
@@ -103,7 +103,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/ROUTE_DISCOVERY.md",
+        "api/docs/ROUTE_DISCOVERY.md",
         (
             "One runtime registration seam",
             "not an OpenAPI Description",
@@ -128,7 +128,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/Makefile",
+        "api/Makefile",
         ("route-catalog-check:", "scripts/verify-route-catalog.sh"),
     )
     require_all(
@@ -143,21 +143,21 @@ def main() -> int:
     )
 
     for relative_path in (
-        "apps/api/cmd/tools/routes",
-        "apps/api/cmd/tools/apidoc",
+        "api/cmd/tools/routes",
+        "api/cmd/tools/apidoc",
     ):
         if (ROOT / relative_path).exists():
             failures.append(f"{relative_path} must remain removed")
 
-    schema_path = ROOT / "apps/api/docs/route-catalog.schema.json"
+    schema_path = ROOT / "api/docs/route-catalog.schema.json"
     if not schema_path.exists():
-        failures.append("apps/api/docs/route-catalog.schema.json is missing")
+        failures.append("api/docs/route-catalog.schema.json is missing")
     else:
         try:
             schema = json.loads(schema_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
             failures.append(
-                f"apps/api/docs/route-catalog.schema.json is invalid JSON: {error}"
+                f"api/docs/route-catalog.schema.json is invalid JSON: {error}"
             )
         else:
             expected_required = {
@@ -179,8 +179,8 @@ def main() -> int:
                     "route catalog schema must require exactly the version 1 fields"
                 )
 
-    require_executable(failures, "apps/api/scripts/verify-route-catalog.sh")
-    require_executable(failures, "apps/api/scripts/validate-route-catalog.py")
+    require_executable(failures, "api/scripts/verify-route-catalog.sh")
+    require_executable(failures, "api/scripts/validate-route-catalog.py")
 
     if failures:
         print("Route contract discovery check failed:", file=sys.stderr)

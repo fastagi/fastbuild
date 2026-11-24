@@ -6,7 +6,7 @@ Instructions for coding agents working in this monorepo.
 
 FastBuild is an AI-era scaffold, not a product application:
 
-- `apps/api/`: Go backend (`github.com/fastagi/fastbuild/api`) using Gin, Wire, GORM, and
+- `api/`: Go backend (`github.com/fastagi/fastbuild/api`) using Gin, Wire, GORM, and
   DDD-flavored starter modules.
 - `apps/web/`: customer-facing Next.js 16 application with React 19, TypeScript,
   Tailwind 4, shadcn, SSR, and server-owned browser adapters.
@@ -26,7 +26,7 @@ and follows the package rules below. Downstream applications may deploy
 Start with the smallest context that can answer the task:
 
 1. Inspect the current diff/status and the nearest implementation and tests.
-2. Read the nearest `apps/api/AGENTS.md`, `apps/web/AGENTS.md`, or
+2. Read the nearest `api/AGENTS.md`, `apps/web/AGENTS.md`, or
    `apps/admin/AGENTS.md` only when editing that deployable unit.
 3. Open `CONTEXT.md` for global vocabulary or ownership decisions, not for
    routine local edits.
@@ -77,7 +77,7 @@ The complete skill index and helper catalog are in
 | CI and supply-chain policy | [docs/CI.md](docs/CI.md), [docs/DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md), [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md) |
 | Shared HTTP envelope and compatibility | [packages/contracts/README.md](packages/contracts/README.md) |
 | Capability-specific HTTP behavior | The owning file under `packages/contracts/` |
-| API implementation rules | [apps/api/AGENTS.md](apps/api/AGENTS.md) |
+| API implementation rules | [api/AGENTS.md](api/AGENTS.md) |
 | Web implementation rules | [apps/web/AGENTS.md](apps/web/AGENTS.md) |
 | Admin Console implementation rules | [apps/admin/AGENTS.md](apps/admin/AGENTS.md) |
 | Long-running priorities | [docs/ROADMAP.md](docs/ROADMAP.md), [docs/FRAMEWORK_QUALITY_ROADMAP.md](docs/FRAMEWORK_QUALITY_ROADMAP.md), [docs/STARTER_BUSINESS_ROADMAP.md](docs/STARTER_BUSINESS_ROADMAP.md) |
@@ -134,10 +134,10 @@ make agent-check
 make governance
 
 # API
-cd apps/api && make wire
-cd apps/api && go test ./internal/modules/<module>/...
-cd apps/api && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
-cd apps/api && make route-catalog-check
+cd api && make wire
+cd api && go test ./internal/modules/<module>/...
+cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
+cd api && make route-catalog-check
 
 # Web
 cd apps/web && corepack pnpm type-check

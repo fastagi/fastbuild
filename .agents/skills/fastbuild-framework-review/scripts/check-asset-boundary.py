@@ -74,7 +74,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/capabilities/storage/object_store.go",
+        "api/internal/capabilities/storage/object_store.go",
         (
             "type ObjectStore interface",
             "type DirectTransferStore interface",
@@ -86,7 +86,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/storage/local.go",
+        "api/internal/infra/storage/local.go",
         (
             "os.OpenRoot",
             "root.MkdirAll(directory, 0o700)",
@@ -98,7 +98,7 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/internal/infra/storage/local.go",
+        "api/internal/infra/storage/local.go",
         (
             "filepath.Join(s.root, key)",
             "os.WriteFile(",
@@ -106,7 +106,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/storage/r2.go",
+        "api/internal/infra/storage/r2.go",
         (
             '"github.com/aws/aws-sdk-go-v2/',
             "UsePathStyle = true",
@@ -121,7 +121,7 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/go.mod",
+        "api/go.mod",
         (
             "github.com/aws/aws-sdk-go v1",
             "github.com/aws/aws-sdk-go/",
@@ -129,7 +129,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             "type ObjectStorageConfig struct",
             "type AssetConfig struct",
@@ -141,7 +141,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/model.go",
+        "api/internal/modules/asset/model.go",
         (
             "idx_assets_user_idempotency",
             "idx_assets_cleanup",
@@ -152,7 +152,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/provider.go",
+        "api/internal/modules/asset/provider.go",
         (
             'config.StarterAsset',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit)',
@@ -163,7 +163,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/service.go",
+        "api/internal/modules/asset/service.go",
         (
             '"asset-uploads/" + id + "/object"',
             '"assets/" + id + "/object"',
@@ -181,7 +181,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/repository.go",
+        "api/internal/modules/asset/repository.go",
         (
             "ResolveContextDB",
             'clause.Locking{Strength: "UPDATE"}',
@@ -192,7 +192,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/service_test.go",
+        "api/internal/modules/asset/service_test.go",
         (
             "TestServiceInspectsFrozenFinalObjectAfterStagingChanges",
             "TestServicePrunesLateReadyStagingWithoutDeletingFinalObject",
@@ -201,7 +201,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/routes.go",
+        "api/internal/modules/asset/routes.go",
         (
             'auth.GET("/assets"',
             'auth.POST("/assets/upload-intents"',
@@ -214,7 +214,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/dto.go",
+        "api/internal/modules/asset/dto.go",
         (
             'json:"original_name"',
             'json:"media_type"',
@@ -225,17 +225,17 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/handler.go",
+        "api/internal/modules/asset/handler.go",
         ("func (h *Handler) Delete", "response.NoContent(c)"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/asset/handler_test.go",
+        "api/internal/modules/asset/handler_test.go",
         ("TestHandlerDeleteReturnsNoContent", "http.StatusNoContent"),
     )
     forbid_any(
         failures,
-        "apps/api/internal/modules/asset/dto.go",
+        "api/internal/modules/asset/dto.go",
         (
             'json:"user_id"',
             'json:"object_key"',
@@ -245,7 +245,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/asset.go",
+        "api/internal/infra/console/commands/asset.go",
         (
             'return "asset:prune"',
             'return "asset:prune [--batch=100]"',
@@ -255,7 +255,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_030000_create_assets_table.go",
+        "api/database/migrations/2026_07_15_030000_create_assets_table.go",
         (
             "UseTransaction: true",
             'CREATE TABLE assets (',
@@ -363,7 +363,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/docs/ASSETS.md",
+        "api/docs/ASSETS.md",
         (
             "asset",
             "stored object",
@@ -379,7 +379,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/adr/0006-asset-object-boundary.md",
+        "api/docs/adr/0006-asset-object-boundary.md",
         ("asset", "stored object", "Production activation requires R2", "## Consequences"),
     )
     require_all(
@@ -394,7 +394,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             'asset_flow="skipped"',
             'asset_migration_flow="skipped"',
@@ -410,7 +410,7 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         ('!= "404/200"',),
     )
     require_all(

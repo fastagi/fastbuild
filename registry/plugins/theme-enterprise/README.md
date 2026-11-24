@@ -4,7 +4,7 @@ A calm blue theme for business and internal tools. It restyles both browser shel
 tokens only, so every existing component, page, and block picks it up without code changes.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add theme-enterprise
+cd api && go run ./cmd/fastbuild plugin:add theme-enterprise
 ```
 
 | Token area | Change |

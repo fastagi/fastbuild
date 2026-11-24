@@ -94,7 +94,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/provider.go",
+        "api/internal/modules/setting/provider.go",
         (
             'config.StarterSetting',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit, config.StarterOrganization)',
@@ -105,7 +105,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/catalog.go",
+        "api/internal/modules/setting/catalog.go",
         (
             "maxSettingDefinitions = 64",
             "maxSettingValueBytes  = 4 * 1024",
@@ -126,7 +126,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/model.go",
+        "api/internal/modules/setting/model.go",
         (
             "idx_settings_scope_subject_key",
             "settings_scope_check",
@@ -141,7 +141,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/repository.go",
+        "api/internal/modules/setting/repository.go",
         (
             "ResolveContextDB",
             'clause.Locking{Strength: "UPDATE"}',
@@ -154,7 +154,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/service.go",
+        "api/internal/modules/setting/service.go",
         (
             "ListPublicAppSettings",
             "decodeStoredSettingValue",
@@ -165,7 +165,7 @@ def main() -> int:
         ),
     )
     try:
-        service = read("apps/api/internal/modules/setting/service.go")
+        service = read("api/internal/modules/setting/service.go")
     except FileNotFoundError:
         service = ""
     audit = between(service, "func recordSettingAudit(")
@@ -179,7 +179,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/modules/setting/handler.go",
+        "api/internal/modules/setting/handler.go",
         (
             "http.MaxBytesReader",
             "decoder.DisallowUnknownFields()",
@@ -195,7 +195,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/routes.go",
+        "api/internal/modules/setting/routes.go",
         (
             'r.GET("/settings/public"',
             'auth.GET("/settings/user"',
@@ -209,7 +209,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/operatorcommands/setting.go",
+        "api/internal/bootstrap/operatorcommands/setting.go",
         (
             'return "setting:list"',
             'return "setting:set --key=<key> --value=<json-scalar> --expected-version=<version>"',
@@ -224,7 +224,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_040000_create_settings_table.go",
+        "api/database/migrations/2026_07_15_040000_create_settings_table.go",
         (
             "UseTransaction: true",
             'CREATE TABLE settings (',
@@ -233,7 +233,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/account_deletion_policy.go",
+        "api/internal/modules/user/account_deletion_policy.go",
         (
             "type AccountDeletionCleaner interface",
             "RegisterCleaner",
@@ -242,7 +242,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/service_test.go",
+        "api/internal/modules/setting/service_test.go",
         (
             "TestServiceFailsClosedForCorruptStoredValue",
             "TestAccountDeletionCleansUserSettingsInsideTransaction",
@@ -252,7 +252,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/setting/handler_test.go",
+        "api/internal/modules/setting/handler_test.go",
         (
             "TestPublicSettingsUseAggregateETagAndRevalidation",
             "TestUserSettingMutationRequiresCanonicalVersionAndRejectsStaleWriter",
@@ -261,7 +261,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             'setting_flow="skipped"',
             "public setting revalidation returned HTTP",
@@ -279,7 +279,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/operatorcommands/setting_test.go",
+        "api/internal/bootstrap/operatorcommands/setting_test.go",
         (
             "TestRecordSettingCommandAuditContainsMetadataOnly",
             "TestSettingOperatorManifestRegistersAllCommands",
@@ -401,7 +401,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/docs/SETTINGS.md",
+        "api/docs/SETTINGS.md",
         ("finite code-owned catalog", "setting:list", "## Verification"),
     )
     require_all(
@@ -411,7 +411,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/adr/0007-typed-setting-boundary.md",
+        "api/docs/adr/0007-typed-setting-boundary.md",
         ("code-owned catalog", "arbitrary JSON", "## Consequences"),
     )
     require_all(

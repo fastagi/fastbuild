@@ -36,7 +36,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/docs/CONFIGURATION.md",
+        "api/docs/CONFIGURATION.md",
         (
             "one typed configuration authority",
             "Configuration changes require a process restart",
@@ -46,7 +46,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/cmd/server/main.go",
+        "api/cmd/server/main.go",
         (
             "config.Load()",
             "bootstrap.InitLogger(cfg)",
@@ -55,7 +55,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             "type Config struct",
             "func (c *Config) IsProduction() bool",
@@ -66,16 +66,16 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/migrate.go",
+        "api/internal/infra/console/commands/migrate.go",
         ("requireProductionForce", 'force := slices.Contains(args, "--force")'),
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/serve.go",
+        "api/internal/infra/console/commands/serve.go",
         ("startup migrations are disabled in production", "cfg.IsProduction()"),
     )
 
-    api_root = ROOT / "apps" / "api"
+    api_root = ROOT / "api"
     allowed_env_imports = {api_root / "internal/infra/config/config.go"}
     for path in api_root.rglob("*.go"):
         if path.name.endswith("_test.go"):
@@ -109,9 +109,9 @@ def main() -> int:
                 )
 
     forbidden_paths = (
-        "apps/api/internal/infra/config/dynamic.go",
-        "apps/api/internal/infra/config/watcher.go",
-        "apps/api/pkg/logger/clickhouse.go",
+        "api/internal/infra/config/dynamic.go",
+        "api/internal/infra/config/watcher.go",
+        "api/pkg/logger/clickhouse.go",
     )
     for relative_path in forbidden_paths:
         if (ROOT / relative_path).exists():
@@ -129,11 +129,11 @@ def main() -> int:
                 f"{path.relative_to(ROOT)} reintroduces removed symbol {match.group(0)!r}"
             )
 
-    go_mod = read("apps/api/go.mod")
+    go_mod = read("api/go.mod")
     if "github.com/fsnotify/fsnotify" in go_mod:
-        failures.append("apps/api/go.mod must not depend on fsnotify without a real reload lifecycle")
+        failures.append("api/go.mod must not depend on fsnotify without a real reload lifecycle")
 
-    env_example = read("apps/api/.env.example")
+    env_example = read("api/.env.example")
     removed_keys = (
         "JWT_SECRET",
         "JWT_EXPIRE_DAYS",
@@ -145,7 +145,7 @@ def main() -> int:
     )
     for key in removed_keys:
         if re.search(rf"^{key}=", env_example, re.MULTILINE):
-            failures.append(f"apps/api/.env.example advertises unsupported key {key}")
+            failures.append(f"api/.env.example advertises unsupported key {key}")
 
     if failures:
         print("Configuration authority check failed:", file=sys.stderr)

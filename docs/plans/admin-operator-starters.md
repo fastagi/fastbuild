@@ -23,7 +23,7 @@ viewing signing secrets or event payloads; reading notification titles, bodies, 
 addresses; publishing notifications; retrying notification deliveries; permission, usage, and asset
 administration.
 
-**Deployable units.** `apps/api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md`.
+**Deployable units.** `api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md`.
 
 **Success signal.** With `OPTIONAL_STARTERS=operator,organization,webhook,notification`, an operator
 opens an organization in the Admin Console, sees its members and a failed webhook delivery, replays

@@ -37,7 +37,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             "DefaultAIRequestTimeout = 120 * time.Second",
             "DefaultAIMaxInputBytes = 1024 * 1024",
@@ -52,7 +52,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/capabilities/ai/ai.go",
+        "api/internal/capabilities/ai/ai.go",
         (
             "type RequestLimits struct",
             "ErrProviderNotConfigured",
@@ -67,7 +67,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/capabilities/ai/openai.go",
+        "api/internal/capabilities/ai/openai.go",
         (
             "context.WithTimeout(ctx, p.timeout)",
             "io.LimitReader(body, maxBytes+1)",
@@ -82,7 +82,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/ai.go",
+        "api/internal/infra/console/commands/ai.go",
         (
             "MaxInputBytes:       cfg.MaxInputBytes",
             "MaxResponseBytes:    cfg.MaxResponseBytes",
@@ -91,7 +91,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/AI.md",
+        "api/docs/AI.md",
         (
             "not an AI product starter",
             "FastBuild deliberately has no fast-moving default model",
@@ -102,7 +102,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         (
             "AI_ENABLED=false",
             "AI_DEFAULT_MODEL=",
@@ -113,7 +113,7 @@ def main() -> int:
     )
 
     try:
-        source = read("apps/api/internal/capabilities/ai/openai.go")
+        source = read("api/internal/capabilities/ai/openai.go")
     except FileNotFoundError:
         source = ""
     forbidden = (
@@ -126,20 +126,20 @@ def main() -> int:
     for pattern, description in forbidden:
         if re.search(pattern, source):
             failures.append(
-                f"apps/api/internal/capabilities/ai/openai.go contains forbidden {description}"
+                f"api/internal/capabilities/ai/openai.go contains forbidden {description}"
             )
 
     if source.count("context.WithTimeout(ctx, p.timeout)") != 2:
         failures.append(
-            "apps/api/internal/capabilities/ai/openai.go must bound both one-shot and streaming calls"
+            "api/internal/capabilities/ai/openai.go must bound both one-shot and streaming calls"
         )
 
-    env_example = read("apps/api/.env.example")
+    env_example = read("api/.env.example")
     if re.search(r"^AI_ENABLED=true$", env_example, re.MULTILINE):
-        failures.append("apps/api/.env.example must keep the optional AI capability disabled")
+        failures.append("api/.env.example must keep the optional AI capability disabled")
     if re.search(r"^AI_DEFAULT_MODEL=.+$", env_example, re.MULTILINE):
         failures.append(
-            "apps/api/.env.example must not freeze a fast-moving provider model default"
+            "api/.env.example must not freeze a fast-moving provider model default"
         )
 
     if failures:

@@ -178,7 +178,7 @@ These are high-level entry points. They orchestrate, ask questions, and select l
 | `fastbuild-framework-review` | Explicit global scaffold review and long-running optimization router. | Existing |
 | `grill-before-build` | Resolves a blocking high-impact choice after local discovery. | Existing |
 | `pr-description-writer` | Packages a completed diff into reviewable context. | Existing |
-| `contract-evolution` | Guides HTTP contract changes across `packages/contracts/`, `apps/api/`, Web services, and mock BFF. | Existing |
+| `contract-evolution` | Guides HTTP contract changes across `packages/contracts/`, `api/`, Web services, and mock BFF. | Existing |
 | `downstream-app-extraction` | Guides converting FastBuild into a downstream app by keeping starters and deleting/replacing scaffold examples. | Existing |
 
 The explicit-only set also includes high-cost local workflows for deployment,
@@ -268,7 +268,7 @@ Goal: make architecture improvement visible and repeatable.
 2. **Deepen remaining API boundary exceptions**
    - Status: complete for the current baseline. The workflow capability no longer imports
      `internal/infra/config`, `internal/infra/retry`, `internal/infra/schedule`, or `internal/infra/queue`.
-   - Keep `apps/api/docs/PACKAGE_BOUNDARIES.md` at zero baseline exceptions unless a new exception is
+   - Keep `api/docs/PACKAGE_BOUNDARIES.md` at zero baseline exceptions unless a new exception is
      explicitly justified in an ADR or roadmap entry.
    - The former `internal/infra/queue`, `schedule`, and `retry` compatibility wrappers were removed
      in 2026-09; workflow-owned primitives are the only implementation home.

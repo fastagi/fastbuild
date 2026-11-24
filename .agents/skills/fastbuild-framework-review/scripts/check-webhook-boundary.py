@@ -105,7 +105,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/webhook.go",
+        "api/internal/domain/webhook.go",
         (
             "type WebhookPublisher interface",
             "type WebhookDispatcher interface",
@@ -117,7 +117,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/error_codes.go",
+        "api/internal/domain/error_codes.go",
         (
             '"WEBHOOK.ENDPOINT_NOT_FOUND"',
             '"WEBHOOK.DELIVERY_NOT_FOUND"',
@@ -131,7 +131,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/error_mappings.go",
+        "api/internal/modules/webhook/error_mappings.go",
         (
             "ErrWebhookEndpointNotFound, http.StatusNotFound",
             "ErrWebhookDeliveryNotFound, http.StatusNotFound",
@@ -145,7 +145,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/provider.go",
+        "api/internal/modules/webhook/provider.go",
         (
             'config.StarterWebhook',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit, config.StarterOrganization)',
@@ -158,7 +158,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/config/config.go",
+        "api/internal/infra/config/config.go",
         (
             'env.Get("WEBHOOK_ENCRYPTION_KEY", "")',
             'env.GetDuration("WEBHOOK_REQUEST_TIMEOUT", DefaultWebhookRequestTimeout)',
@@ -169,7 +169,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/catalog.go",
+        "api/internal/modules/webhook/catalog.go",
         (
             "maxWebhookDefinitions    = 128",
             "maxWebhookPayloadBytes   = 64 * 1024",
@@ -180,7 +180,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/target.go",
+        "api/internal/modules/webhook/target.go",
         (
             "parsed.User != nil",
             "parsed.RawQuery != \"\"",
@@ -197,7 +197,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/sender.go",
+        "api/internal/modules/webhook/sender.go",
         (
             'request.Header.Set("webhook-id"',
             'request.Header.Set("webhook-timestamp"',
@@ -213,7 +213,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/secret.go",
+        "api/internal/modules/webhook/secret.go",
         (
             'webhookSecretPrefix = "whsec_"',
             "crypto.GenerateKey(32)",
@@ -224,7 +224,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/model.go",
+        "api/internal/modules/webhook/model.go",
         (
             "SecretCiphertext",
             "PreviousSecretCiphertext",
@@ -240,12 +240,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/internal/modules/webhook/model.go",
+        "api/internal/modules/webhook/model.go",
         ("ResponseBody", "ErrorMessage", "RequestSignature", "DNSAnswer"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/repository.go",
+        "api/internal/modules/webhook/repository.go",
         (
             "ResolveContextDB",
             "Fingerprint != mutation.Fingerprint",
@@ -260,7 +260,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/service.go",
+        "api/internal/modules/webhook/service.go",
         (
             "webhookMaximumAttempts",
             "webhookDisableAfterFailure",
@@ -274,7 +274,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/handler.go",
+        "api/internal/modules/webhook/handler.go",
         (
             "maxWebhookManagementBodyBytes = 16 * 1024",
             "CanManageOrganization()",
@@ -287,7 +287,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/routes.go",
+        "api/internal/modules/webhook/routes.go",
         (
             'auth.GET("/webhook-event-types"',
             'auth.POST("/webhook-endpoints"',
@@ -299,7 +299,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_060000_create_webhook_tables.go",
+        "api/database/migrations/2026_07_15_060000_create_webhook_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE webhook_endpoints (',
@@ -312,7 +312,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/operatorcommands/webhook.go",
+        "api/internal/bootstrap/operatorcommands/webhook.go",
         (
             'return "webhook:work"',
             'return "webhook:publish-test"',
@@ -324,7 +324,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/service_test.go",
+        "api/internal/modules/webhook/service_test.go",
         (
             "TestServiceCreatesPublishesAndDispatchesWebhook",
             "TestServiceRetriesWithStableMessageID",
@@ -333,7 +333,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/repository_test.go",
+        "api/internal/modules/webhook/repository_test.go",
         (
             "TestRepositoryDurableDeliveryLifecycle",
             "TestRepositoryAutoDisablesEndpointAfterConsecutiveTerminalFailures",
@@ -345,7 +345,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/target_test.go",
+        "api/internal/modules/webhook/target_test.go",
         (
             "TestTargetPolicyRejectsUnsafeURLFormsAndNetworks",
             "TestTargetPolicyNormalizesAndRequiresEveryResolvedAddressToBePublic",
@@ -354,7 +354,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/webhook/sender_test.go",
+        "api/internal/modules/webhook/sender_test.go",
         (
             "TestSenderSignsTheExactBodyAndHeaders",
             "TestSenderDoesNotFollowRedirects",
@@ -447,7 +447,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             'webhook_flow="skipped"',
             "webhook endpoint list leaked secret material",
@@ -468,7 +468,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/docs/WEBHOOKS.md",
+        "api/docs/WEBHOOKS.md",
         ("Production Configuration", "Operations", "SSRF", "Replacement And Removal"),
     )
     require_all(

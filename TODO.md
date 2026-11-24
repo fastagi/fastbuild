@@ -6,7 +6,7 @@ Handoff notes for the team continuing FastBuild development (updated 2026-11-24)
 
 - All work is on GitHub. `main` is at the merge of #120. Latest release tag: `v0.26.0`; everything
   below is unreleased.
-- #119 moved the deployable units: `api/`, `web/`, `admin/` are now `apps/api`, `apps/web`,
+- #119 moved the deployable units: `api/`, `web/`, `admin/` are now `api`, `apps/web`,
   `apps/admin`, and `contracts/` is `packages/contracts`. The Go module path is unchanged, and each
   unit still has its own lockfile and pnpm policies. Downstream steps are in `UPGRADING.md`.
 - #119 also replaced the "never share source" rule. Apps never import each other; packages never
@@ -66,9 +66,9 @@ Seeded accounts (password `secret`): `admin@example.com` is a platform operator,
 
 ### Dependabot pull requests
 
-- [ ] #121 and #122: `go.opentelemetry.io/otel` trace and sdk 1.46.0 → 1.47.0 in `/apps/api`.
+- [ ] #121 and #122: `go.opentelemetry.io/otel` trace and sdk 1.46.0 → 1.47.0 in `/api`.
 - [ ] #94 `deps(api)`: Go minor and patch group (11 updates); opened before the move, so let
-      Dependabot recreate it for `/apps/api` if it no longer applies.
+      Dependabot recreate it for `/api` if it no longer applies.
 - [ ] #29 `actions/setup-go` 6.4.0 → 7.0.0 (major).
 - [ ] #5 `actions/setup-node` 6.4.0 → 7.0.0 (major).
 - [ ] #21 `actions/checkout` 5.0.1 → 7.0.1 (major; has merge conflicts, recreate with
@@ -99,7 +99,7 @@ The scaffold documents only what ships, so this plan lives here. Phase 1 (the la
 - Not planned: a cross-platform UI layer shared by Web and mobile (react-native-web, Solito);
   they share logic, types, and tokens. `packages/ui-web` waits for real duplication between the
   Vite SPAs.
-- Exit: a project keeps only `apps/api` plus `apps/mobile` (or `apps/desktop`), passes
+- Exit: a project keeps only `api` plus `apps/mobile` (or `apps/desktop`), passes
   `make check`, and signs in through the native-client auth contract.
 
 ### Roadmap (see `docs/ROADMAP.md`)

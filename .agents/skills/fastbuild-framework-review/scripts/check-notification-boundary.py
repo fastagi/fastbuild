@@ -75,7 +75,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/notification.go",
+        "api/internal/domain/notification.go",
         (
             'NotificationChannelInApp NotificationChannel = "in_app"',
             'NotificationChannelEmail NotificationChannel = "email"',
@@ -88,7 +88,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/model.go",
+        "api/internal/modules/notification/model.go",
         (
             "idx_notifications_user_idempotency",
             "PublicationHash string",
@@ -106,7 +106,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/repository.go",
+        "api/internal/modules/notification/repository.go",
         (
             "clause.OnConflict",
             'Columns:   []clause.Column{{Name: "user_id"}, {Name: "idempotency_key"}}',
@@ -124,7 +124,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/service.go",
+        "api/internal/modules/notification/service.go",
         (
             "maxDeliveryAttempts  = uint8(5)",
             "normalizePublication(publication)",
@@ -144,7 +144,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/provider.go",
+        "api/internal/modules/notification/provider.go",
         (
             'config.StarterNotification',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit)',
@@ -156,7 +156,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/routes.go",
+        "api/internal/modules/notification/routes.go",
         (
             'WithMiddleware("auth")',
             'GET("/notifications"',
@@ -169,12 +169,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/internal/modules/notification/routes.go",
+        "api/internal/modules/notification/routes.go",
         ('POST("/notifications"',),
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_07_15_020000_create_notification_tables.go",
+        "api/database/migrations/2026_07_15_020000_create_notification_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE notifications (',
@@ -185,7 +185,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/notification.go",
+        "api/internal/infra/console/commands/notification.go",
         (
             'return "notification:work"',
             "--batch=25",
@@ -199,17 +199,17 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "apps/api/internal/infra/console/commands/notification.go",
+        "api/internal/infra/console/commands/notification.go",
         ("--max-jobs", "MaxJobs"),
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/manifest.go",
+        "api/internal/infra/console/commands/manifest.go",
         ("NewNotificationWorkCommand()",),
     )
     require_all(
         failures,
-        "apps/api/internal/infra/email/email.go",
+        "api/internal/infra/email/email.go",
         (
             "SendEmailIdempotent(",
             'request.Header.Set("Idempotency-Key", idempotencyKey)',
@@ -219,7 +219,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/domain/error_codes.go",
+        "api/internal/domain/error_codes.go",
         (
             '"NOTIFICATION.NOT_FOUND"',
             '"NOTIFICATION.IDEMPOTENCY_CONFLICT"',
@@ -317,7 +317,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "apps/api/docs/NOTIFICATIONS.md",
+        "api/docs/NOTIFICATIONS.md",
         (
             "fastbuild notification:work",
             "same image, database",
@@ -336,7 +336,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/scripts/verify-compose.sh",
+        "api/scripts/verify-compose.sh",
         (
             'notification_flow="skipped"',
             'notification_migration_flow="skipped"',
@@ -348,7 +348,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/notification/service_test.go",
+        "api/internal/modules/notification/service_test.go",
         (
             "TestPublishIsIdempotentAndRejectsConflictingReplay",
             "TestNotificationCenterEnforcesOwnershipAndReadHighWaterMark",
@@ -360,7 +360,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/infra/console/commands/notification_test.go",
+        "api/internal/infra/console/commands/notification_test.go",
         ("TestRunNotificationWorkerOnceReturnsDispatchErrorAndCompletedCount",),
     )
     require_all(
@@ -373,10 +373,10 @@ def main() -> int:
         ),
     )
 
-    old_manager = ROOT / "apps/api/internal/infra/notification/notification.go"
+    old_manager = ROOT / "api/internal/infra/notification/notification.go"
     if old_manager.exists():
         failures.append(
-            "apps/api/internal/infra/notification/notification.go must stay removed; the route-owning starter owns notification workflow"
+            "api/internal/infra/notification/notification.go must stay removed; the route-owning starter owns notification workflow"
         )
 
     if failures:

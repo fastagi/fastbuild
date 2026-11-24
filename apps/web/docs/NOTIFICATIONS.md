@@ -71,7 +71,7 @@ To remove it:
 2. Delete `src/features/notification`, its five `/api` resource directories, notification i18n
    module/namespace, route tests, and console layout contribution.
 3. Remove the matching API starter and data only through the staged process in
-   [`../../api/docs/NOTIFICATIONS.md`](../../api/docs/NOTIFICATIONS.md).
+   [`../../../api/docs/NOTIFICATIONS.md`](../../../api/docs/NOTIFICATIONS.md).
 4. Update contract, catalog, surface, and governance references in the same change.
 
 ## Verification

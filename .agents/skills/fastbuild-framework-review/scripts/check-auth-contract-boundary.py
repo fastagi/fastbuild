@@ -118,7 +118,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/routes.go",
+        "api/internal/modules/user/routes.go",
         (
             'r.POST("/login"',
             'r.POST("/register"',
@@ -130,7 +130,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/auth_abuse_guard.go",
+        "api/internal/modules/user/auth_abuse_guard.go",
         (
             "PerSubject",
             "crypto.SHA256Hex",
@@ -140,24 +140,24 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/service.go",
+        "api/internal/modules/user/service.go",
         ("dummyPasswordHash", "FindByLoginIdentifier", "domain.ErrInvalidCredentials"),
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/http.go",
+        "api/internal/bootstrap/http.go",
         ("configureTrustedProxies", "SetTrustedProxies"),
     )
 
-    env_example = read("apps/api/.env.example")
+    env_example = read("api/.env.example")
     for key in ("MIDDLEWARE_RATE_LIMIT_ENABLED", "AUTH_RATE_LIMIT_ENABLED"):
         if re.search(rf"^{key}=false(?:\s|$)", env_example, re.MULTILINE):
             failures.append(
-                f"apps/api/.env.example must not actively disable production-default {key}"
+                f"api/.env.example must not actively disable production-default {key}"
             )
     require_all(
         failures,
-        "apps/api/internal/modules/user/dto.go",
+        "api/internal/modules/user/dto.go",
         (
             'json:"username"',
             'json:"access_token"',
@@ -168,7 +168,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/model.go",
+        "api/internal/modules/user/model.go",
         (
             "type AuthenticationSessionPO struct",
             "TokenHash",
@@ -179,12 +179,12 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "apps/api/internal/modules/user/model.go",
+        "api/internal/modules/user/model.go",
         ("IPAddress", "UserAgent", "PlaintextToken"),
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/session_service.go",
+        "api/internal/modules/user/session_service.go",
         (
             "authenticationCredentialBytes   = 32",
             "crypto.GenerateKey",
@@ -195,7 +195,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/repository.go",
+        "api/internal/modules/user/repository.go",
         (
             "UpdatePasswordAndRevokeSessions",
             "sessionRevocationPasswordReset",
@@ -204,22 +204,22 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/api/internal/modules/user/authentication_middleware.go",
+        "api/internal/modules/user/authentication_middleware.go",
         ("sessionAuth", "domain.SessionAuthenticator", "authenticationSessionID"),
     )
     require_all(
         failures,
-        "apps/api/database/migrations/2026_04_27_000003_create_authentication_sessions_table.go",
+        "api/database/migrations/2026_04_27_000003_create_authentication_sessions_table.go",
         ('CREATE TABLE authentication_sessions (', "UseTransaction: true", 'DROP TABLE IF EXISTS authentication_sessions CASCADE'),
     )
     require_all(
         failures,
-        "apps/api/internal/bootstrap/operatorcommands/authentication_session.go",
+        "api/internal/bootstrap/operatorcommands/authentication_session.go",
         ("auth-session:prune", "PruneAuthenticationSessions", "--batch"),
     )
     require_all(
         failures,
-        "apps/api/.env.example",
+        "api/.env.example",
         (
             "AUTH_SESSION_TTL=720h",
             "AUTH_SESSION_IDLE_TIMEOUT=168h",
@@ -228,12 +228,12 @@ def main() -> int:
         ),
     )
     if re.search(r"^JWT_(?:SECRET|EXPIRE_DAYS)=", env_example, re.MULTILINE):
-        failures.append("apps/api/.env.example must not advertise retired JWT configuration")
-    require_missing(failures, "apps/api/internal/infra/jwt/jwt.go")
-    require_missing(failures, "apps/api/internal/infra/middleware/jwt.go")
+        failures.append("api/.env.example must not advertise retired JWT configuration")
+    require_missing(failures, "api/internal/infra/jwt/jwt.go")
+    require_missing(failures, "api/internal/infra/middleware/jwt.go")
     require_missing(failures, "apps/web/src/features/auth/server/auth-token.ts")
-    if "github.com/golang-jwt/jwt" in read("apps/api/go.mod"):
-        failures.append("apps/api/go.mod must not retain the removed JWT runtime dependency")
+    if "github.com/golang-jwt/jwt" in read("api/go.mod"):
+        failures.append("api/go.mod must not retain the removed JWT runtime dependency")
     require_all(
         failures,
         "apps/web/src/features/auth/services/auth-service.ts",

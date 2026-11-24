@@ -6,7 +6,7 @@ deleted comments keep their place with the text erased. Mentioned members receiv
 when the `notification` starter is enabled; without it, mentions are stored silently.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add comments
+cd api && go run ./cmd/fastbuild plugin:add comments
 ```
 
 It installs the `comment` starter (API module, migration, contract) and needs the `organization`

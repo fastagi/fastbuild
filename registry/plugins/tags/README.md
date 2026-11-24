@@ -5,7 +5,7 @@ them to any resource whose module registers a resource type; every member reads 
 product-neutral building block that other modules and plugins tag their resources with.
 
 ```bash
-cd apps/api && go run ./cmd/fastbuild plugin:add tags
+cd api && go run ./cmd/fastbuild plugin:add tags
 ```
 
 It installs the `tag` starter (API module, migration, contract) and needs the `organization`
