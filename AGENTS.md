@@ -13,13 +13,22 @@ FastBuild is an AI-era scaffold, not a product application:
 - `apps/admin/`: project management console built with Vite 8, React 19, TanStack
   Router, TanStack Query, TypeScript, Tailwind 4, and shadcn/ui. It ships as
   static OSS/CDN assets.
-- `packages/contracts/`: OpenAPI contract, fragments, and contract tooling shared
-  by every app.
+- `apps/desktop/`: Electron + Vite 8 + React 19 desktop client reusing
+  `@fastbuild/ui`, `@fastbuild/tokens`, `@fastbuild/core`, and
+  `@fastbuild/api-client` with OS keychain native auth.
+- `apps/mobile/`: Expo Router + React Native + NativeWind mobile client reusing
+  `@fastbuild/tokens`, `@fastbuild/core`, and `@fastbuild/api-client` with
+  `expo-secure-store` native auth.
+- `packages/`: shared workspace packages — `contracts/` (OpenAPI + fragments),
+  `config/` (tsconfig/prettier), `tokens/` (zero-chroma obsidian/alabaster CSS +
+  RN theme + Modular Stack F brand mark), `core/` (errors, validation, i18n),
+  `api-client/` (cookie + native rotating refresh client), and `ui/` (shared
+  React 19 + Tailwind 4 web primitives).
 
 Apps under `apps/` are independently deployable and never import each other's
 source; they integrate over HTTP contracts. Shared code lives under `packages/`
-and follows the package rules below. Downstream applications may deploy
-`apps/web/`, `apps/admin/`, or both.
+and follows the package rules below (`tools/guards/check-import-direction.py`).
+Downstream applications may deploy any subset of `apps/`.
 
 ## Fast Task Routing
 

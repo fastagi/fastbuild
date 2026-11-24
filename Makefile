@@ -89,6 +89,7 @@ governance: agent-check
 	[ ! -d tools/scaffold ] || PYTHONDONTWRITEBYTECODE=1 python3 tools/scaffold/check-surface-catalog.py
 	[ ! -d tools/scaffold ] || PYTHONDONTWRITEBYTECODE=1 python3 tools/scaffold/check-starter-catalog.py
 	bash tools/guards/check-api-boundaries.sh
+	PYTHONDONTWRITEBYTECODE=1 python3 tools/guards/check-import-direction.py
 	[ ! -d tools/scaffold ] || bash tools/scaffold/check-branch-governance.sh
 
 api-check:
@@ -100,6 +101,12 @@ web-check:
 
 admin-check:
 	cd apps/admin && bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
+
+desktop-check:
+	cd apps/desktop && corepack pnpm type-check && corepack pnpm lint && corepack pnpm test -- --run && corepack pnpm build
+
+mobile-check:
+	cd apps/mobile && corepack pnpm type-check && corepack pnpm test
 
 dependency-scan:
 	bash tools/ci/dependency-security.sh scan
