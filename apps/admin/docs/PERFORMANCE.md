@@ -4,15 +4,29 @@
 
 `pnpm build` measures compressed production assets:
 
-| Metric                        |  Budget |
-| ----------------------------- | ------: |
-| Total JavaScript gzip         | 300 KiB |
-| Largest JavaScript chunk gzip | 180 KiB |
-| Total CSS gzip                |  50 KiB |
+| Metric                           |  Budget |
+| -------------------------------- | ------: |
+| Application JavaScript gzip      | 300 KiB |
+| Optional library JavaScript gzip |  20 KiB |
+| Largest JavaScript chunk gzip    | 180 KiB |
+| Total CSS gzip                   |  50 KiB |
+
+Application JavaScript is everything the console can load: the entry, its static
+imports, and the lazy chunks of its own source, such as route pages. Optional
+library JavaScript is a lazy chunk whose module belongs to a dependency, fetched
+only when that library opts into a feature at runtime; ui-sdk's touch-sheet
+presentation is one, and the console never enables it. The script reads
+`dist/.vite/manifest.json` to tell the two apart.
 
 The build also fails when source maps or a server bundle appear. Budget changes
 must include before/after production measurements and a clear user-facing
 reason.
+
+The application/optional split replaced a single total-JavaScript budget when the
+console moved from Radix to ui-sdk. Measured gzip: Radix total 290,665 B;
+ui-sdk with a native Select 297,807 B of application JavaScript plus 13,388 B for
+the sheet chunk the console never fetches (311,195 B total). Counting that chunk
+against the application budget would have rejected code no user downloads.
 
 ## Implementation Rules
 

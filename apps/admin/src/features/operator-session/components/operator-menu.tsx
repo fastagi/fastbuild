@@ -60,7 +60,7 @@ function SignedInOperator() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
             >
               {identity}
               <span className="sr-only">{t('auth.accountMenu')}</span>
@@ -68,7 +68,7 @@ function SignedInOperator() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className="w-(--anchor-width) min-w-56 rounded-lg"
             side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}

@@ -1,21 +1,22 @@
-'use client';
-
 import * as React from 'react';
-import * as LabelPrimitive from '@radix-ui/react-label';
-import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/cn';
 
-const labelVariants = cva(
-  'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-);
-
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & VariantProps<typeof labelVariants>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root ref={ref} className={cn(labelVariants(), className)} {...props} />
-));
-Label.displayName = LabelPrimitive.Root.displayName;
+/**
+ * A native label. Every Admin Console label points at a labelable element (an input or a button
+ * such as a select trigger or switch), so the browser names and activates it without script.
+ */
+function Label({ className, ...props }: React.ComponentProps<'label'>) {
+  return (
+    // eslint-disable-next-line jsx-a11y/label-has-associated-control -- callers pass htmlFor or wrap their control.
+    <label
+      className={cn(
+        'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
 export { Label };

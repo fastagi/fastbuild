@@ -1,3 +1,5 @@
+@layer ui-sdk;
+
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import './tokens.css';
@@ -152,12 +154,12 @@
     @apply flex w-full gap-1 rounded-md border bg-muted/70 p-1;
   }
 
-  .segmented-control > [data-slot='toggle-group-item'],
+  .segmented-control > [data-slot='toggle'],
   .segmented-control > button {
     @apply h-7 flex-1 rounded-sm px-2.5 text-xs text-muted-foreground hover:bg-background/60 hover:text-foreground;
   }
 
-  .segmented-control > [data-state='on'] {
+  .segmented-control > [data-pressed] {
     @apply bg-background text-foreground shadow-sm hover:bg-background;
   }
 
