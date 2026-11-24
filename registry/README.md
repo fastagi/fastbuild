@@ -5,7 +5,7 @@ installed into a project with one command; from then on the project owns the cod
 remembers exactly what the plugin added so it can be updated or removed later.
 
 ```bash
-cd api
+cd apps/api
 go run ./cmd/fastbuild plugin:search knowledge      # find (also: --format=json for agents)
 go run ./cmd/fastbuild plugin:info knowledge-base   # decide: requirements, files, integration steps
 go run ./cmd/fastbuild plugin:add knowledge-base    # install (--dry-run previews every change)
@@ -31,8 +31,8 @@ speak the Model Context Protocol can use the read-only tools of `fastbuild mcp` 
 `plugin_slots`); installing stays an explicit CLI step the builder sees.
 
 ```bash
-claude mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'   # Claude Code
-codex mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'    # Codex
+claude mcp add fastbuild -- sh -c 'cd apps/api && go run ./cmd/fastbuild mcp'   # Claude Code
+codex mcp add fastbuild -- sh -c 'cd apps/api && go run ./cmd/fastbuild mcp'    # Codex
 ```
 
 ## Kinds
@@ -41,7 +41,7 @@ codex mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'    # Cod
 |---|---|---|
 | `feature` | API module and starter, migration, contract fragment, optional Web screens | `knowledge-base` |
 | `theme` | Design token overrides for the Web application and the Admin Console; one theme at a time | `theme-enterprise` |
-| `block` | A reusable page section under `web/src/components/blocks` | `block-pricing-table` |
+| `block` | A reusable page section under `apps/web/src/components/blocks` | `block-pricing-table` |
 | `template` | A set of plugins installed together or not at all; `make init-project TEMPLATE=<name>` starts a project from one | `saas-app` |
 
 ## How A Plugin Touches The Project
@@ -51,7 +51,7 @@ codex mcp add fastbuild -- sh -c 'cd api && go run ./cmd/fastbuild mcp'    # Cod
 - **Slots** are the only way a plugin edits core files. A slot is a marker comment such as
   `// fastbuild:slot web.features`; the plugin's `wiring` lists lines to insert before it, and a
   `starter` spec expands into the `api.starter.*` slots. `plugin:slots` lists every slot.
-- **Contract fragments** are merged into `contracts/openapi.yaml`, including `x-error-codes`.
+- **Contract fragments** are merged into `packages/contracts/openapi.yaml`, including `x-error-codes`.
 
 Everything is applied in one step and rolled back on failure. The lock file records each file's
 checksum, each inserted line, and each contract addition, which is what makes the lifecycle exact:
@@ -81,8 +81,8 @@ registry/
 1. Write or edit the plugin under `plugins/<name>/` and raise its `version` when users would notice.
 2. Develop it installed: `plugin:add <name>`, finish its integration steps, edit the installed files,
    then `plugin:pack <name>` copies edited files back here (add new files by hand).
-3. Regenerate the index: `cd api && go run ./cmd/fastbuild plugin:index`.
-4. Prove it: `cd api && go test ./internal/infra/console/commands -run 'Plugin|Slots'` installs every
+3. Regenerate the index: `cd apps/api && go run ./cmd/fastbuild plugin:index`.
+4. Prove it: `cd apps/api && go test ./internal/infra/console/commands -run 'Plugin|Slots'` installs every
    plugin into a copy of the project, builds and tests it, and removes it again;
    `make contract-check` merges, lints, and removes every contract fragment.
 5. `plugin:remove <name> --force` so the scaffold itself does not keep the plugin installed.

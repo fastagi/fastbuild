@@ -18,5 +18,5 @@
     "directory": "comment",
     "handler": "Comment"
   },
-  "fragment": "contracts/fragments/comments.yaml"
+  "fragment": "packages/contracts/fragments/comments.yaml"
 }

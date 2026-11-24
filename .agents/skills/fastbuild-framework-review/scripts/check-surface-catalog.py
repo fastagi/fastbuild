@@ -37,11 +37,11 @@ CONTEXT_TERMS = {
 }
 REQUIRED_REFERENCES = [
     "../CONTEXT.md",
-    "../contracts/README.md",
-    "../web/docs/MOCK_BFF.md",
-    "../api/docs/ADDING_MODULE.md",
-    "../web/docs/ADDING_FEATURE.md",
-    "../admin/docs/ADDING_FEATURE.md",
+    "../packages/contracts/README.md",
+    "../apps/web/docs/MOCK_BFF.md",
+    "../apps/api/docs/ADDING_MODULE.md",
+    "../apps/web/docs/ADDING_FEATURE.md",
+    "../apps/admin/docs/ADDING_FEATURE.md",
     "check-downstream-contamination.sh",
     "check-surface-catalog.py",
     "check-starter-catalog.py",

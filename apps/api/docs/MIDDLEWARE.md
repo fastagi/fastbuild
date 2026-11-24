@@ -2,7 +2,7 @@
 
 This catalog names the HTTP middleware that belongs to the FastBuild API core, the default starter set, optional route/starter behavior, and the deployment layer.
 
-Use this document when changing `api/internal/bootstrap/http.go`, adding starter-owned middleware, or deciding whether a cross-cutting concern should become part of the default scaffold.
+Use this document when changing `apps/api/internal/bootstrap/http.go`, adding starter-owned middleware, or deciding whether a cross-cutting concern should become part of the default scaffold.
 
 ## Ownership
 
@@ -16,7 +16,7 @@ Use this document when changing `api/internal/bootstrap/http.go`, adding starter
 
 ## Default Kernel
 
-`api/internal/bootstrap/http.go` wires the core HTTP middleware in this order:
+`apps/api/internal/bootstrap/http.go` wires the core HTTP middleware in this order:
 
 1. `RequestID`
 2. `GinLogger`
@@ -109,7 +109,7 @@ optional `RealIP` middleware follows the same deny-by-default rule when used by 
 - `/metrics` is registered only when `METRICS_ENABLED=true`. Production deployments must restrict it with network policy, a gateway, or a private listener.
 - The previous `/monitor` dashboard and `/swagger` route are not default surfaces. They were removed because the monitor depended on an unassembled global container and no generated Swagger contract existed.
 - `fastbuild route:list --format=json` inventories core and starter routes through the server's real registration seam; see [ROUTE_DISCOVERY.md](ROUTE_DISCOVERY.md). It is a topology catalog, not an inferred OpenAPI contract.
-- The machine-readable HTTP contract is [`../../contracts/openapi.yaml`](../../contracts/openapi.yaml), validated by `make contract-check`; it is published as a file, not served as a route. A dedicated management listener would be a separate verified slice.
+- The machine-readable HTTP contract is [`../../../packages/contracts/openapi.yaml`](../../../packages/contracts/openapi.yaml), validated by `make contract-check`; it is published as a file, not served as a route. A dedicated management listener would be a separate verified slice.
 
 ## Starter-Owned Middleware
 
@@ -136,7 +136,7 @@ Apply `RequireScopes` after the named `api_key` middleware. It requires every co
 honors only the explicit `*` wildcard, returns `PERMISSION.DENIED` when a key is too narrow, and
 panics during route assembly for invalid scope configuration. These scopes attenuate a user-owned
 credential; they are not organization roles or generalized RBAC. See
-[`../../contracts/API_KEYS.md`](../../contracts/API_KEYS.md).
+[`../../../packages/contracts/API_KEYS.md`](../../../packages/contracts/API_KEYS.md).
 
 The authentication guard is enabled by default in production and disabled by default elsewhere.
 It uses separate buckets per endpoint, then independent source-IP and normalized/hashed subject
@@ -253,11 +253,11 @@ Before moving middleware between categories:
 
 1. Decide the owner: core default, starter-owned, route/starter opt-in, or deployment-owned.
 2. Update this catalog and any affected README entry.
-3. If response behavior changes, update `../../contracts/README.md`.
+3. If response behavior changes, update `../../../packages/contracts/README.md`.
 4. Add or update tests at the public seam:
-   - default kernel behavior: `api/internal/bootstrap/http_test.go`
+   - default kernel behavior: `apps/api/internal/bootstrap/http_test.go`
    - middleware contract behavior: the middleware package's own tests
-   - configuration defaults: `api/internal/infra/config`
+   - configuration defaults: `apps/api/internal/infra/config`
 5. Run targeted tests and `golangci-lint run ./...`.
 6. Run `make benchmark-http` when the core chain or request metrics change, and report before/after
    timing, bytes, and allocations from the same machine.

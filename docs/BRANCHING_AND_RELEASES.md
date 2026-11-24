@@ -50,7 +50,8 @@ main
 ## CI and Environment Mapping
 
 - Pull requests, into any branch, run the checks for the areas they change; see [`CI.md`](CI.md).
-- Pushes to `main`, the weekly schedule, and release tags run everything.
+- Merges to `main` run nothing extra. The weekly schedule and release tags run the full suite;
+  heavy checks (containers, performance) also run on demand.
 - The scaffold deploys nothing. A downstream project that adds deployment branches documents their
   source of truth here before giving CI write access.
 
@@ -87,7 +88,7 @@ gates. Run an individual guard only as a focused feedback loop before the final
 gate.
 
 For contract-sensitive changes, also verify the affected API and mock BFF behavior against
-[`../contracts/README.md`](../contracts/README.md).
+[`../packages/contracts/README.md`](../packages/contracts/README.md).
 
 ## Anti-Patterns
 

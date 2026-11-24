@@ -7,10 +7,10 @@
 init-project:
 	@test -n "$(NAME)" && test -n "$(SLUG)" && test -n "$(MODULE)" || \
 		{ echo 'usage: make init-project NAME="Acme Platform" SLUG=acme MODULE=github.com/acme/platform/api [REPOSITORY=...] [STARTERS=...] [TEMPLATE=...]' >&2; exit 2; }
-	cd api && go run ./cmd/fastbuild project:init --name="$(NAME)" --slug="$(SLUG)" --module="$(MODULE)" \
+	cd apps/api && go run ./cmd/fastbuild project:init --name="$(NAME)" --slug="$(SLUG)" --module="$(MODULE)" \
 		$(if $(REPOSITORY),--repository="$(REPOSITORY)") $(if $(STARTERS),--starters="$(STARTERS)") \
 		$(if $(TEMPLATE),--template="$(TEMPLATE)")
-	cd api && go mod tidy
+	cd apps/api && go mod tidy
 
 # Verify main is ready to tag; see docs/VERSIONING.md.
 release-check:
@@ -31,12 +31,12 @@ dev-reset:
 check: governance contract-check api-check web-check admin-check
 
 contract-check:
-	cd contracts && corepack pnpm check
-	cd contracts && corepack pnpm check:routes
-	cd contracts && corepack pnpm check:registry
+	cd packages/contracts && corepack pnpm check
+	cd packages/contracts && corepack pnpm check:routes
+	cd packages/contracts && corepack pnpm check:registry
 
 contract-generate:
-	cd contracts && corepack pnpm generate
+	cd packages/contracts && corepack pnpm generate
 
 agent-check:
 	@bash .agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh
@@ -64,7 +64,7 @@ governance: agent-check
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-performance-boundary.py
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-ui-primitive-boundary.py
-	node admin/scripts/check-architecture.mjs
+	node apps/admin/scripts/check-architecture.mjs
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-api-key-boundary.py
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-audit-boundary.py
 	PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/fastbuild-framework-review/scripts/check-permission-boundary.py
@@ -86,14 +86,14 @@ governance: agent-check
 	bash .agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh
 
 api-check:
-	cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
-	cd api && make route-catalog-check
+	cd apps/api && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
+	cd apps/api && make route-catalog-check
 
 web-check:
-	cd web && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+	cd apps/web && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
 
 admin-check:
-	cd admin && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+	cd apps/admin && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
 
 dependency-scan:
 	bash scripts/dependency-security.sh scan
@@ -112,15 +112,15 @@ container-sbom:
 # Remove generated build, test, log, and language-tool output while preserving
 # installed dependencies and reusable scanner caches.
 clean:
-	$(MAKE) -C api clean
-	rm -f api/*.test
-	find api -type d -path '*/storage/logs' -prune -exec rm -rf {} +
-	cd web && corepack pnpm clean
-	rm -f web/next-env.d.ts
-	cd admin && corepack pnpm clean
+	$(MAKE) -C apps/api clean
+	rm -f apps/api/*.test
+	find apps/api -type d -path '*/storage/logs' -prune -exec rm -rf {} +
+	cd apps/web && corepack pnpm clean
+	rm -f apps/web/next-env.d.ts
+	cd apps/admin && corepack pnpm clean
 	rm -rf .ruff_cache .pytest_cache
 	find . \( -path './.git' -o -name node_modules -o -name .next \) -prune -o -type d -name __pycache__ -exec rm -rf {} +
 
 # Also remove installed JavaScript dependencies for a cold workspace reset.
 clean-all: clean
-	rm -rf contracts/node_modules web/node_modules admin/node_modules
+	rm -rf packages/contracts/node_modules web/node_modules admin/node_modules

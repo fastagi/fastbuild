@@ -2,7 +2,7 @@
 
 The optional `webhook` starter provides organization-owned outbound subscriptions and a durable
 delivery ledger. The canonical cross-half behavior is
-[`../../contracts/WEBHOOKS.md`](../../contracts/WEBHOOKS.md); the durable architecture decision is
+[`../../../packages/contracts/WEBHOOKS.md`](../../../packages/contracts/WEBHOOKS.md); the durable architecture decision is
 [`adr/0009-outbound-webhook-delivery-boundary.md`](adr/0009-outbound-webhook-delivery-boundary.md).
 
 ## Runtime Shape
@@ -16,7 +16,7 @@ delivery ledger. The canonical cross-half behavior is
 - `fastbuild webhook:publish-test`, `webhook:replay`, and `webhook:prune` are bounded operator tools.
 - With the `operator` starter also selected, platform operators read an organization's endpoints,
   deliveries, and attempts and replay a delivery from the Admin Console through
-  `/v1/operator/organizations/:id/...` ([`OPERATORS.md`](../../contracts/OPERATORS.md)). The
+  `/v1/operator/organizations/:id/...` ([`OPERATORS.md`](../../../packages/contracts/OPERATORS.md)). The
   `OperatorHandler` in this module serves those routes; the operator starter authorizes them.
 
 The worker uses the same image, database, `WEBHOOK_ENCRYPTION_KEY`, and `OPTIONAL_STARTERS` snapshot

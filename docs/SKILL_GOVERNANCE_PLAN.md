@@ -46,7 +46,7 @@ Measured repository changes:
 Both root-plus-half guidance paths now stay well below Codex's current default 32,768-byte project
 instruction budget. The removed skills were duplicate generic standards/review workflows, the
 Web-local copy of Codex's built-in `skill-creator`, and a project overview better owned by
-`web/AGENTS.md`.
+`apps/web/AGENTS.md`.
 
 The fast agent-guidance loop is `make agent-check`. `make governance` remains the complete semantic
 and architecture gate, and `make check` remains the single release gate.
@@ -178,7 +178,7 @@ These are high-level entry points. They orchestrate, ask questions, and select l
 | `fastbuild-framework-review` | Explicit global scaffold review and long-running optimization router. | Existing |
 | `grill-before-build` | Resolves a blocking high-impact choice after local discovery. | Existing |
 | `pr-description-writer` | Packages a completed diff into reviewable context. | Existing |
-| `contract-evolution` | Guides HTTP contract changes across `contracts/`, `api/`, Web services, and mock BFF. | Existing |
+| `contract-evolution` | Guides HTTP contract changes across `packages/contracts/`, `apps/api/`, Web services, and mock BFF. | Existing |
 | `downstream-app-extraction` | Guides converting FastBuild into a downstream app by keeping starters and deleting/replacing scaffold examples. | Existing |
 
 The explicit-only set also includes high-cost local workflows for deployment,
@@ -232,7 +232,7 @@ Goal: turn skills into cross-boundary governance, not just reminders.
 
 1. **Add `contract-evolution`**
    - Status: implemented as a root skill.
-   - Required order: update `contracts/README.md`, API behavior, Web service/client behavior, mock BFF behavior,
+   - Required order: update `packages/contracts/README.md`, API behavior, Web service/client behavior, mock BFF behavior,
      and contract tests.
    - Include checklists for `error_code`, `request_id`, validation errors, pagination, and production mock guardrails.
 
@@ -268,7 +268,7 @@ Goal: make architecture improvement visible and repeatable.
 2. **Deepen remaining API boundary exceptions**
    - Status: complete for the current baseline. The workflow capability no longer imports
      `internal/infra/config`, `internal/infra/retry`, `internal/infra/schedule`, or `internal/infra/queue`.
-   - Keep `api/docs/PACKAGE_BOUNDARIES.md` at zero baseline exceptions unless a new exception is
+   - Keep `apps/api/docs/PACKAGE_BOUNDARIES.md` at zero baseline exceptions unless a new exception is
      explicitly justified in an ADR or roadmap entry.
    - The former `internal/infra/queue`, `schedule`, and `retry` compatibility wrappers were removed
      in 2026-09; workflow-owned primitives are the only implementation home.

@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 const adminRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const stylesRoot = join(adminRoot, 'src/styles');
-const registryPlugins = resolve(adminRoot, '../registry/plugins');
+const registryPlugins = resolve(adminRoot, '../../registry/plugins');
 const minimumTextContrast = 4.5;
 
 // Foreground token on background token, as the console renders them.
@@ -189,7 +189,7 @@ checkLayers('admin', imported);
 let themes = 0;
 if (existsSync(registryPlugins)) {
   for (const plugin of readdirSync(registryPlugins).sort()) {
-    const themeDirectory = join(registryPlugins, plugin, 'files/admin/src/styles/themes');
+    const themeDirectory = join(registryPlugins, plugin, 'files/apps/admin/src/styles/themes');
     if (!existsSync(themeDirectory)) {
       continue;
     }

@@ -2,7 +2,7 @@
 
 The default API key feature provides a real management surface at `/console/settings` and browser
 routes under `/api/api-keys`. Its shared HTTP and security behavior is defined in
-[`../../contracts/API_KEYS.md`](../../contracts/API_KEYS.md).
+[`../../../packages/contracts/API_KEYS.md`](../../../packages/contracts/API_KEYS.md).
 
 ## Runtime Resolution
 

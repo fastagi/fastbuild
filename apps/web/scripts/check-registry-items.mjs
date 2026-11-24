@@ -1,8 +1,8 @@
 // Registry Web item guard.
 //
 // Every registry plugin that ships Web TypeScript without a starter or contract fragment (themes
-// and blocks) is checked before anyone installs it: its web/ files are copied into a temporary
-// overlay (web/.registry-check/<plugin>/), where `@/` still resolves to this project's src/, and
+// and blocks) is checked before anyone installs it: its apps/web/ files are copied into a temporary
+// overlay (apps/web/.registry-check/<plugin>/), where `@/` still resolves to this project's src/, and
 // then type-checked, linted, scanned for hard-coded copy and colors, and tested with Vitest.
 // Theme stylesheets are checked by check-theme-contrast.mjs. Skips cleanly when the repository
 // registry is absent, as in projects created from the scaffold.
@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourceRoot = join(webRoot, 'src');
-const registryPlugins = resolve(webRoot, '../registry/plugins');
+const registryPlugins = resolve(webRoot, '../../registry/plugins');
 const overlayName = '.registry-check';
 const overlayRoot = join(webRoot, overlayName);
 const require = createRequire(import.meta.url);
@@ -74,7 +74,7 @@ function run(label, command, args) {
 }
 
 if (!existsSync(registryPlugins)) {
-  console.log('Registry item check skipped: no ../registry/plugins directory.');
+  console.log('Registry item check skipped: no ../../registry/plugins directory.');
   process.exit(0);
 }
 
@@ -113,7 +113,7 @@ for (const name of readdirSync(registryPlugins).sort()) {
             `${label}:${line}: import the plugin's own file "${specifier}" with a relative path`
           );
         } else if (!firstExisting(join(sourceRoot, specifier.slice(2)))) {
-          failures.push(`${label}:${line}: "${specifier}" does not exist in web/src`);
+          failures.push(`${label}:${line}: "${specifier}" does not exist in apps/web/src`);
         }
       } else if (specifier.startsWith('.')) {
         const target = firstExisting(resolve(dirname(file), specifier));
@@ -162,7 +162,7 @@ try {
   for (const plugin of plugins) {
     cpSync(plugin.webFiles, join(overlayRoot, plugin.name), { recursive: true });
   }
-  // The overlay extends the project config, so `@/` keeps resolving to web/src; the setup file
+  // The overlay extends the project config, so `@/` keeps resolving to apps/web/src; the setup file
   // brings in the Testing Library matcher types the block tests use.
   mkdirSync(overlayRoot, { recursive: true });
   writeFileSync(

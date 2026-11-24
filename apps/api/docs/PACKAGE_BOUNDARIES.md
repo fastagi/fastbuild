@@ -50,7 +50,7 @@ None.
 - The FastBuild startup banner now lives in `internal/bootstrap/` instead of `pkg/support`, keeping
   application-branded console output out of reusable `pkg/` helpers.
 - Starter registry interfaces now live in `internal/starter/assembly` instead of the old
-  top-level starter contract package, keeping HTTP contract vocabulary reserved for `contracts/`.
+  top-level starter contract package, keeping HTTP contract vocabulary reserved for `packages/contracts/`.
 - Generic grab-bag packages are gone. After their helpers moved to owning seams, `pkg/support` and
   `pkg/utils` had no production callers and were removed (2026-09); the boundary check now rejects
   `support`, `utils`, `common`, and `helpers` packages under `pkg/` and `internal/infra/`.

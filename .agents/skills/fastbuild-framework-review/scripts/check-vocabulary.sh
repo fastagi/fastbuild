@@ -15,34 +15,34 @@ FILES=(
   docs/SCAFFOLD_SURFACES.md
   docs/STARTER_BUSINESS_ROADMAP.md
   docs/SKILL_GOVERNANCE_PLAN.md
-  contracts/README.md
-  api/AGENTS.md
-  api/docs/ADDING_MODULE.md
-  api/docs/MIDDLEWARE.md
-  api/docs/PACKAGE_BOUNDARIES.md
-  api/docs/adr/0001-layer-vocabulary.md
-  api/docs/adr/0002-default-starters.md
-  api/docs/adr/0005-package-boundaries.md
-  api/.agents/skills/README.md
-  api/internal/capabilities/README.md
-  api/internal/domain/README.md
-  api/internal/modules/README.md
-  web/AGENTS.md
-  web/README.md
-  web/docs/ADDING_FEATURE.md
-  web/docs/MOCK_BFF.md
-  admin/AGENTS.md
-  admin/README.md
-  admin/docs/ADDING_FEATURE.md
-  admin/docs/ARCHITECTURE.md
-  admin/docs/DEPLOYMENT.md
-  admin/docs/SECURITY.md
+  packages/contracts/README.md
+  apps/api/AGENTS.md
+  apps/api/docs/ADDING_MODULE.md
+  apps/api/docs/MIDDLEWARE.md
+  apps/api/docs/PACKAGE_BOUNDARIES.md
+  apps/api/docs/adr/0001-layer-vocabulary.md
+  apps/api/docs/adr/0002-default-starters.md
+  apps/api/docs/adr/0005-package-boundaries.md
+  apps/api/.agents/skills/README.md
+  apps/api/internal/capabilities/README.md
+  apps/api/internal/domain/README.md
+  apps/api/internal/modules/README.md
+  apps/web/AGENTS.md
+  apps/web/README.md
+  apps/web/docs/ADDING_FEATURE.md
+  apps/web/docs/MOCK_BFF.md
+  apps/admin/AGENTS.md
+  apps/admin/README.md
+  apps/admin/docs/ADDING_FEATURE.md
+  apps/admin/docs/ARCHITECTURE.md
+  apps/admin/docs/DEPLOYMENT.md
+  apps/admin/docs/SECURITY.md
 )
 
 while IFS= read -r skill_file; do
   FILES+=("$skill_file")
 done < <(
-  find .agents api/.agents web/.agents \
+  find .agents apps/api/.agents apps/web/.agents \
     -path '*/.template/*' -prune -o \
     -type f -name 'SKILL.md' -print | sort
 )

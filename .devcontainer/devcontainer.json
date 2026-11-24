@@ -8,7 +8,7 @@
   "containerEnv": {
     "GOTOOLCHAIN": "auto"
   },
-  "postCreateCommand": "corepack enable && for unit in contracts web admin; do (cd \"$unit\" && CI=true corepack pnpm install --frozen-lockfile); done",
+  "postCreateCommand": "corepack enable && for unit in packages/contracts apps/web apps/admin; do (cd \"$unit\" && CI=true corepack pnpm install --frozen-lockfile); done",
   "forwardPorts": [3000, 4173, 8025],
   "portsAttributes": {
     "3000": { "label": "Web" },

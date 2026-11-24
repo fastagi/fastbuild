@@ -11,15 +11,15 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[4]
-CONTRACTS_README = ROOT / "contracts" / "README.md"
-API_RESPONSE_CODES = ROOT / "api" / "pkg" / "response" / "error_codes.go"
-API_DOMAIN_CODES = ROOT / "api" / "internal" / "domain" / "error_codes.go"
+CONTRACTS_README = ROOT / "packages" / "contracts" / "README.md"
+API_RESPONSE_CODES = ROOT / "apps" / "api" / "pkg" / "response" / "error_codes.go"
+API_DOMAIN_CODES = ROOT / "apps" / "api" / "internal" / "domain" / "error_codes.go"
 # Plugins keep their codes inside their module, so installing one never edits core files.
-API_MODULE_CODE_FILES = sorted((ROOT / "api" / "internal" / "modules").glob("*/errors.go"))
-OPENAPI_CONTRACT = ROOT / "contracts" / "openapi.yaml"
+API_MODULE_CODE_FILES = sorted((ROOT / "apps" / "api" / "internal" / "modules").glob("*/errors.go"))
+OPENAPI_CONTRACT = ROOT / "packages" / "contracts" / "openapi.yaml"
 BROWSER_CODE_PATHS = {
-    "web": ROOT / "web" / "src" / "http" / "codes.ts",
-    "admin": ROOT / "admin" / "src" / "http" / "codes.ts",
+    "web": ROOT / "apps" / "web" / "src" / "http" / "codes.ts",
+    "admin": ROOT / "apps" / "admin" / "src" / "http" / "codes.ts",
 }
 
 
@@ -163,23 +163,23 @@ def main() -> int:
     missing_openapi = sorted(expected_openapi_codes - openapi_codes)
     extra_openapi = sorted(openapi_codes - expected_openapi_codes)
     if missing_openapi:
-        failures.append("contracts/openapi.yaml ErrorCode is missing API values: " + ", ".join(missing_openapi))
+        failures.append("packages/contracts/openapi.yaml ErrorCode is missing API values: " + ", ".join(missing_openapi))
     if extra_openapi:
-        failures.append("contracts/openapi.yaml ErrorCode has values absent from the API: " + ", ".join(extra_openapi))
+        failures.append("packages/contracts/openapi.yaml ErrorCode has values absent from the API: " + ", ".join(extra_openapi))
 
     for error in contract_errors:
         documented_by_status.setdefault(error.status, set()).add(error.error_code)
 
     if not contract_errors:
-        failures.append("contracts/README.md must document scaffold-level error rows")
+        failures.append("packages/contracts/README.md must document scaffold-level error rows")
 
     duplicate_contract_codes = duplicate_values([error.error_code for error in contract_errors])
     if duplicate_contract_codes:
-        failures.append(f"contracts/README.md has duplicate error_code rows: {', '.join(duplicate_contract_codes)}")
+        failures.append(f"packages/contracts/README.md has duplicate error_code rows: {', '.join(duplicate_contract_codes)}")
 
     missing_api = sorted(contract_codes - api_response_codes)
     if missing_api:
-        failures.append(f"api/pkg/response/error_codes.go is missing contract error_code values: {', '.join(missing_api)}")
+        failures.append(f"apps/api/pkg/response/error_codes.go is missing contract error_code values: {', '.join(missing_api)}")
 
     for name, path in BROWSER_CODE_PATHS.items():
         relative_path = path.relative_to(ROOT)
@@ -223,7 +223,7 @@ def main() -> int:
             if mapped_code not in documented_codes:
                 failures.append(
                     f"{relative_path} maps HTTP {status} to {mapped_code}, "
-                    f"but contracts/README.md documents {', '.join(sorted(documented_codes))}"
+                    f"but packages/contracts/README.md documents {', '.join(sorted(documented_codes))}"
                 )
 
         undocumented_statuses = sorted(set(status_map) - set(documented_by_status))
@@ -240,12 +240,12 @@ def main() -> int:
         only_admin = sorted(admin_codes - next_codes)
         if only_next:
             failures.append(
-                "admin/src/http/codes.ts is missing Next.js Web ApiErrorCode values: "
+                "apps/admin/src/http/codes.ts is missing Next.js Web ApiErrorCode values: "
                 + ", ".join(only_next)
             )
         if only_admin:
             failures.append(
-                "web/src/http/codes.ts is missing Admin Console ApiErrorCode values: "
+                "apps/web/src/http/codes.ts is missing Admin Console ApiErrorCode values: "
                 + ", ".join(only_admin)
             )
 

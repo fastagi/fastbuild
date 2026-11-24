@@ -10,13 +10,13 @@ must be enabled explicitly.
 
 ## Role And Boundaries
 
-`api/` is the authoritative backend for both FastBuild browser applications and for
+`apps/api/` is the authoritative backend for both FastBuild browser applications and for
 other HTTP clients. It owns domain rules, PostgreSQL persistence, migrations,
 public HTTP routes, background workers, and provider integrations.
 
 It does not own customer pages or administrative screens. Those belong to
-`web/` and `admin/` respectively, which integrate with this service only
-through the contracts under `../contracts/`. The API must remain deployable
+`apps/web/` and `apps/admin/` respectively, which integrate with this service only
+through the contracts under `../../packages/contracts/`. The API must remain deployable
 without either browser application.
 
 ## Core Capabilities
@@ -77,8 +77,8 @@ OPTIONAL_STARTERS=organization,permission
 The organization starter owns invitations, membership, ownership transfer, and active context.
 The permission starter adds organization-scoped access roles, exact grants, transactional
 assignments, and a replaceable authorizer. See
-[`../contracts/ORGANIZATIONS.md`](../contracts/ORGANIZATIONS.md),
-[`../contracts/PERMISSIONS.md`](../contracts/PERMISSIONS.md), and
+[`../../packages/contracts/ORGANIZATIONS.md`](../../packages/contracts/ORGANIZATIONS.md),
+[`../../packages/contracts/PERMISSIONS.md`](../../packages/contracts/PERMISSIONS.md), and
 [`docs/PERMISSIONS.md`](docs/PERMISSIONS.md).
 
 Notifications:
@@ -91,7 +91,7 @@ go run ./cmd/fastbuild notification:work --batch=25 --poll=2s
 The notification starter owns idempotent publication, user preferences, in-app read state, and
 lease-driven email delivery. The HTTP process, migrations, and worker must use the same starter and
 email configuration. See [`docs/NOTIFICATIONS.md`](docs/NOTIFICATIONS.md) and
-[`../contracts/NOTIFICATIONS.md`](../contracts/NOTIFICATIONS.md).
+[`../../packages/contracts/NOTIFICATIONS.md`](../../packages/contracts/NOTIFICATIONS.md).
 
 Private assets:
 
@@ -103,7 +103,7 @@ go run ./cmd/fastbuild asset:prune --batch=100
 
 Development uses root-confined local storage. Production deployments that enable assets must
 configure R2 explicitly and never fall back to the container filesystem. See
-[`docs/ASSETS.md`](docs/ASSETS.md) and [`../contracts/ASSETS.md`](../contracts/ASSETS.md).
+[`docs/ASSETS.md`](docs/ASSETS.md) and [`../../packages/contracts/ASSETS.md`](../../packages/contracts/ASSETS.md).
 
 Settings and usage:
 
@@ -116,7 +116,7 @@ Settings provide a finite, code-defined catalog of app, organization, and user s
 Usage provides trusted events, UTC counters, atomic quota decisions, and read-only summaries.
 Usage events enter through a Go domain interface or operator command; no public browser ingestion,
 billing, plan, or pricing semantics are included. See [`docs/SETTINGS.md`](docs/SETTINGS.md),
-[`docs/USAGE.md`](docs/USAGE.md), and [`../contracts/USAGE.md`](../contracts/USAGE.md).
+[`docs/USAGE.md`](docs/USAGE.md), and [`../../packages/contracts/USAGE.md`](../../packages/contracts/USAGE.md).
 
 ### 3. Generate Dependency Injection
 
@@ -432,7 +432,7 @@ docker compose down
 
 Image publication, registry ownership, secret injection, and deployment automation remain
 downstream decisions. Build inputs, CycloneDX 1.7, vulnerability gates, and the downstream Cosign
-boundary are documented in [`../docs/CONTAINER_SECURITY.md`](../docs/CONTAINER_SECURITY.md).
+boundary are documented in [`../../docs/CONTAINER_SECURITY.md`](../../docs/CONTAINER_SECURITY.md).
 
 ## Design Principles
 
@@ -443,4 +443,4 @@ boundary are documented in [`../docs/CONTAINER_SECURITY.md`](../docs/CONTAINER_S
 
 ## License
 
-[MIT](../LICENSE)
+[MIT](../../LICENSE)

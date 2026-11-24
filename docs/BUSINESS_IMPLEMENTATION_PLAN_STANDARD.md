@@ -30,7 +30,7 @@ The plan does not replace the authority of:
 
 - `CONTEXT.md` for global vocabulary and surface ownership;
 - `docs/ARCHITECTURE.md` for deployable-unit boundaries and vertical flow;
-- the owning file under `contracts/` for public HTTP behavior;
+- the owning file under `packages/contracts/` for public HTTP behavior;
 - the nearest `AGENTS.md` for local implementation rules.
 
 ## 2. Planning Principles
@@ -50,7 +50,7 @@ aggregate data from several owners, but they must not become a second writer.
 
 ### 2.3 Keep deployable units independent
 
-`api/`, `web/`, and `admin/` communicate through reviewed HTTP behavior. They
+`apps/api/`, `apps/web/`, and `apps/admin/` communicate through reviewed HTTP behavior. They
 MUST NOT import one another's source. The plan MUST name every deployable unit
 that changes and the contract joining them.
 
@@ -225,7 +225,7 @@ transitions SHOULD have explicit commands or subresources.
 
 ## 3.8 HTTP Contract Design
 
-Public behavior MUST be documented under `contracts/` before multiple
+Public behavior MUST be documented under `packages/contracts/` before multiple
 deployable units implement it. For each endpoint, specify:
 
 1. method and path;
@@ -241,7 +241,7 @@ deployable units implement it. For each endpoint, specify:
 11. audit and observability requirements;
 12. compatibility and rollout notes.
 
-All API responses MUST follow the shared envelope in `contracts/README.md`.
+All API responses MUST follow the shared envelope in `packages/contracts/README.md`.
 Browser behavior MUST branch on `error_code`, not backend message text.
 
 List endpoints MUST define:
@@ -534,7 +534,7 @@ that observes it and performs the transition.
 
 ## 3.12 Browser-Surface Plan
 
-For every changed `web/` or `admin/` surface, specify:
+For every changed `apps/web/` or `apps/admin/` surface, specify:
 
 - route and owning feature;
 - contract or fixed browser adapter used;
@@ -756,7 +756,7 @@ domain decisions are correct and does not replace the checklist below.
 ### Data and contract
 
 - [ ] Schema, constraints, indexes, migration, rollback, and backfill are defined.
-- [ ] Public HTTP behavior is documented under `contracts/`.
+- [ ] Public HTTP behavior is documented under `packages/contracts/`.
 - [ ] Authorization includes row/tenant scope, not roles alone.
 - [ ] Pagination, filtering, ordering, limits, and errors are defined.
 - [ ] Idempotency and concurrency behavior are defined for every material mutation.

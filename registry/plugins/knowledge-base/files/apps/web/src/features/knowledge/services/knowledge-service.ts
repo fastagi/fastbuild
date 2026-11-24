@@ -32,7 +32,7 @@ interface ListOptions {
 }
 
 /**
- * Browser service for the knowledge routes in `contracts/KNOWLEDGE.md`. Every call carries the
+ * Browser service for the knowledge routes in `packages/contracts/KNOWLEDGE.md`. Every call carries the
  * active organization; writes carry the version that was read as `If-Match`.
  */
 export const knowledgeService = {

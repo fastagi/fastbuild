@@ -88,7 +88,7 @@ func TestRemoteSourceDownloadsAndVerifiesTheReleaseRegistry(t *testing.T) {
 	assert.Equal(t, "/fastagi/fastbuild/tar.gz/v0.25.0", requested)
 	entry, ok := index.Find("demo-notes")
 	require.True(t, ok)
-	content, err := source.ReadFile(entry, "contracts/fragments/demo-notes.yaml")
+	content, err := source.ReadFile(entry, "packages/contracts/fragments/demo-notes.yaml")
 	require.NoError(t, err)
 	assert.Equal(t, "paths: {}\n", string(content))
 	assert.Equal(t, "github:fastagi/fastbuild@v0.25.0", source.Describe())

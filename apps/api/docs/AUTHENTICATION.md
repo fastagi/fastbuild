@@ -1,7 +1,7 @@
 # Authentication Sessions
 
 The default `user` starter owns browser-user authentication for the Go API. Its HTTP contract is
-[`../../contracts/AUTHENTICATION.md`](../../contracts/AUTHENTICATION.md); this document owns the API
+[`../../../packages/contracts/AUTHENTICATION.md`](../../../packages/contracts/AUTHENTICATION.md); this document owns the API
 implementation, operations, and replacement boundary.
 
 ## Credential Model

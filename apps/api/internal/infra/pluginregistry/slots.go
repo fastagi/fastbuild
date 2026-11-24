@@ -33,29 +33,29 @@ type Slot struct {
 // ProjectSlots is the catalog of extension points in a FastBuild project. A guard test keeps it
 // aligned with the markers in the source.
 var ProjectSlots = []Slot{
-	{"api.starter.constants", "api/internal/infra/config/starters.go", "Starter name constant, for example `StarterKnowledge = \"knowledge\"`"},
-	{"api.starter.names", "api/internal/infra/config/starters.go", "Starter constant in StarterNames()"},
-	{"api.starter.imports", "api/internal/starter/defaults.go", "Import of the starter module package"},
-	{"api.starter.providers", "api/internal/starter/defaults.go", "The module's Wire ProviderSet"},
-	{"api.starter.handlers", "api/internal/starter/defaults.go", "The module's field on starter.Handlers"},
-	{"api.starter.manifests", "api/internal/starter/defaults.go", "The module's manifest in OptionalManifests()"},
-	{"web.features", "web/src/config/optional-features.ts", "Optional Web feature name"},
-	{"web.feature-dependencies", "web/src/config/optional-features.ts", "Features an optional Web feature requires"},
-	{"web.http.error-codes", "web/src/http/codes.ts", "API error code constant from the plugin's contract fragment, so the Go API adapter forwards it"},
-	{"web.routes.console", "web/src/constants/routes.ts", "Console route constant"},
-	{"web.console.nav-icons", "web/src/app/(protected)/(console)/console/layout.tsx", "lucide-react icon import for a console navigation item"},
-	{"web.console.nav", "web/src/app/(protected)/(console)/console/layout.tsx", "Console navigation item guarded by its feature"},
-	{"web.i18n.modules", "web/src/i18n/module-names.ts", "Message module name"},
-	{"web.i18n.loaders", "web/src/i18n/loader.ts", "Per-locale message module loaders"},
-	{"web.i18n.message-imports", "web/src/i18n/modules/index.ts", "Import of the source-locale messages and their type"},
-	{"web.i18n.messages", "web/src/i18n/modules/index.ts", "Source-locale messages entry"},
-	{"web.i18n.message-schema", "web/src/i18n/modules/index.ts", "Message schema entry"},
-	{"web.i18n.zh-hans-schema", "web/src/i18n/modules/index.ts", "zh-Hans message schema entry"},
-	{"web.i18n.client-namespaces", "web/src/i18n/client-message-namespaces.ts", "Client message namespaces of a route scope"},
-	{"web.i18n.nav.en-us", "web/src/i18n/modules/nav/en-US.ts", "English navigation label"},
-	{"web.i18n.nav.zh-hans", "web/src/i18n/modules/nav/zh-Hans.ts", "Chinese navigation label"},
-	{"web.theme", "web/src/themes/index.css", "Theme stylesheet import; at most one theme is installed"},
-	{"admin.theme", "admin/src/styles/globals.css", "Theme stylesheet import; at most one theme is installed"},
+	{"api.starter.constants", "apps/api/internal/infra/config/starters.go", "Starter name constant, for example `StarterKnowledge = \"knowledge\"`"},
+	{"api.starter.names", "apps/api/internal/infra/config/starters.go", "Starter constant in StarterNames()"},
+	{"api.starter.imports", "apps/api/internal/starter/defaults.go", "Import of the starter module package"},
+	{"api.starter.providers", "apps/api/internal/starter/defaults.go", "The module's Wire ProviderSet"},
+	{"api.starter.handlers", "apps/api/internal/starter/defaults.go", "The module's field on starter.Handlers"},
+	{"api.starter.manifests", "apps/api/internal/starter/defaults.go", "The module's manifest in OptionalManifests()"},
+	{"web.features", "apps/web/src/config/optional-features.ts", "Optional Web feature name"},
+	{"web.feature-dependencies", "apps/web/src/config/optional-features.ts", "Features an optional Web feature requires"},
+	{"web.http.error-codes", "apps/web/src/http/codes.ts", "API error code constant from the plugin's contract fragment, so the Go API adapter forwards it"},
+	{"web.routes.console", "apps/web/src/constants/routes.ts", "Console route constant"},
+	{"web.console.nav-icons", "apps/web/src/app/(protected)/(console)/console/layout.tsx", "lucide-react icon import for a console navigation item"},
+	{"web.console.nav", "apps/web/src/app/(protected)/(console)/console/layout.tsx", "Console navigation item guarded by its feature"},
+	{"web.i18n.modules", "apps/web/src/i18n/module-names.ts", "Message module name"},
+	{"web.i18n.loaders", "apps/web/src/i18n/loader.ts", "Per-locale message module loaders"},
+	{"web.i18n.message-imports", "apps/web/src/i18n/modules/index.ts", "Import of the source-locale messages and their type"},
+	{"web.i18n.messages", "apps/web/src/i18n/modules/index.ts", "Source-locale messages entry"},
+	{"web.i18n.message-schema", "apps/web/src/i18n/modules/index.ts", "Message schema entry"},
+	{"web.i18n.zh-hans-schema", "apps/web/src/i18n/modules/index.ts", "zh-Hans message schema entry"},
+	{"web.i18n.client-namespaces", "apps/web/src/i18n/client-message-namespaces.ts", "Client message namespaces of a route scope"},
+	{"web.i18n.nav.en-us", "apps/web/src/i18n/modules/nav/en-US.ts", "English navigation label"},
+	{"web.i18n.nav.zh-hans", "apps/web/src/i18n/modules/nav/zh-Hans.ts", "Chinese navigation label"},
+	{"web.theme", "apps/web/src/themes/index.css", "Theme stylesheet import; at most one theme is installed"},
+	{"admin.theme", "apps/admin/src/styles/globals.css", "Theme stylesheet import; at most one theme is installed"},
 }
 
 // FindSlot returns the named slot from the project catalog.
@@ -97,7 +97,7 @@ func (i Insert) validate() error {
 	return nil
 }
 
-// errSlotMissing reports a slot the project does not have, for example after web/ was removed.
+// errSlotMissing reports a slot the project does not have, for example after apps/web/ was removed.
 var errSlotMissing = errors.New("slot marker not found")
 
 // applyInsert inserts lines before the slot marker in content. It reports false when equivalent

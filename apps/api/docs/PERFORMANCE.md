@@ -53,8 +53,8 @@ controls. Settings:
 | `FASTBUILD_PERF_OUTPUT` | `perf/results/summary.json` | k6 summary export |
 | `K6` | `k6` on `PATH` | k6 binary |
 
-`.github/workflows/perf.yml` runs the baseline weekly and on demand, and keeps the summary as an
-artifact for 30 days.
+`.github/workflows/perf.yml` runs the baseline on demand (before a release or after a hot-path change)
+and keeps the summary as an artifact for 30 days.
 
 ## Profiling A Running Process
 

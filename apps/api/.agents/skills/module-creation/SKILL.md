@@ -36,7 +36,7 @@ Establish:
 - dependencies on other starters
 - focused tests that prove disabled and enabled assembly
 
-Update the owning file under `../../../../contracts/` before exposing new HTTP
+Update the owning file under `../../../../../packages/contracts/` before exposing new HTTP
 behavior.
 
 ## Workflow

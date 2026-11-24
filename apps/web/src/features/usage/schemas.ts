@@ -45,7 +45,7 @@ export const usageSummarySchema = strictObject({
 }).check(refine(isSemanticallyValidSummary));
 
 /**
- * Any well-formed summary as `contracts/openapi.yaml` describes it. The metric catalog is
+ * Any well-formed summary as `packages/contracts/openapi.yaml` describes it. The metric catalog is
  * code-owned and downstream apps extend it, so summaries are read with this schema first and only
  * the metrics this client renders are narrowed with `usageSummarySchema`.
  */

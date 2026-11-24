@@ -56,14 +56,14 @@ unchanged successful command in the same turn.
 Examples:
 
 ```bash
-cd api
+cd apps/api
 bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/user/...
 
-cd web
+cd apps/web
 corepack pnpm vitest run src/features/auth/auth.test.ts
 bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 0
 
-cd admin
+cd apps/admin
 corepack pnpm vitest run src/http/client.test.ts
 bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
 ```

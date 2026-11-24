@@ -7,7 +7,7 @@ description: Audit a completed FastBuild UI against WCAG 2.2 AA. Use when the us
 
 Audit a completed surface against WCAG 2.2 AA through code inspection,
 automated evidence, and manual interaction. Baseline accessibility remains
-mandatory through `web/AGENTS.md`; this explicit workflow is not an automatic
+mandatory through `apps/web/AGENTS.md`; this explicit workflow is not an automatic
 follow-up to ordinary UI work.
 
 ## Scope And Authority
@@ -15,7 +15,7 @@ follow-up to ordinary UI work.
 Identify the pages, components, user workflows, supported locales, and changed
 interaction states before auditing. Read:
 
-1. `web/AGENTS.md` and the target code.
+1. `apps/web/AGENTS.md` and the target code.
 2. The underlying shadcn/Radix primitive when custom composition changes its
    semantic or focus contract.
 3. Existing public tests for the same interaction.
@@ -75,7 +75,7 @@ design skills merely because they are adjacent to accessibility.
 
 ## Evidence
 
-Use the narrowest evidence available. Run these commands from `web/`:
+Use the narrowest evidence available. Run these commands from `apps/web/`:
 
 ```bash
 # Theme contrast changes

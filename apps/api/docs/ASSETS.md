@@ -2,7 +2,7 @@
 
 The optional `asset` starter provides a private, user-owned upload lifecycle without coupling
 feature code to a filesystem, bucket, or storage SDK. The shared HTTP contract is
-[`../../contracts/ASSETS.md`](../../contracts/ASSETS.md).
+[`../../../packages/contracts/ASSETS.md`](../../../packages/contracts/ASSETS.md).
 
 An **asset** is the persisted owner, metadata, policy, and lifecycle record. A **stored object** is
 the opaque byte payload behind `internal/capabilities/storage`. Keep those concepts separate:
@@ -123,7 +123,7 @@ To remove the starter:
 ## Verification
 
 ```bash
-cd api
+cd apps/api
 go test ./internal/modules/asset ./internal/capabilities/storage ./internal/infra/storage
 OPTIONAL_STARTERS=asset go run ./cmd/fastbuild route:list
 go run ./cmd/fastbuild route:list

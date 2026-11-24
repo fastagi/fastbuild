@@ -65,12 +65,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "contracts/README.md",
+        "packages/contracts/README.md",
         ("AUTHENTICATION.md", "explicit adapter"),
     )
     require_all(
         failures,
-        "contracts/AUTHENTICATION.md",
+        "packages/contracts/AUTHENTICATION.md",
         (
             "## Browser Auth Contract",
             "POST /api/auth/login",
@@ -98,7 +98,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "contracts/AUTHENTICATION.md",
+        "packages/contracts/AUTHENTICATION.md",
         (
             "does not yet ship a production adapter",
             "not ready-to-use",
@@ -107,10 +107,10 @@ def main() -> int:
     )
     require_all(
         failures,
-        "contracts/AUTHENTICATION.md",
+        "packages/contracts/AUTHENTICATION.md",
         (
             "## Admin Console Authentication Boundary",
-            "`admin/` has no server runtime",
+            "`apps/admin/` has no server runtime",
             "same-origin browser gateway",
             "must not be stored in `localStorage`, `sessionStorage`, IndexedDB",
             "is the shipped Go browser adapter for platform operators",
@@ -118,7 +118,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/routes.go",
+        "apps/api/internal/modules/user/routes.go",
         (
             'r.POST("/login"',
             'r.POST("/register"',
@@ -130,7 +130,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/auth_abuse_guard.go",
+        "apps/api/internal/modules/user/auth_abuse_guard.go",
         (
             "PerSubject",
             "crypto.SHA256Hex",
@@ -140,24 +140,24 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/service.go",
+        "apps/api/internal/modules/user/service.go",
         ("dummyPasswordHash", "FindByLoginIdentifier", "domain.ErrInvalidCredentials"),
     )
     require_all(
         failures,
-        "api/internal/bootstrap/http.go",
+        "apps/api/internal/bootstrap/http.go",
         ("configureTrustedProxies", "SetTrustedProxies"),
     )
 
-    env_example = read("api/.env.example")
+    env_example = read("apps/api/.env.example")
     for key in ("MIDDLEWARE_RATE_LIMIT_ENABLED", "AUTH_RATE_LIMIT_ENABLED"):
         if re.search(rf"^{key}=false(?:\s|$)", env_example, re.MULTILINE):
             failures.append(
-                f"api/.env.example must not actively disable production-default {key}"
+                f"apps/api/.env.example must not actively disable production-default {key}"
             )
     require_all(
         failures,
-        "api/internal/modules/user/dto.go",
+        "apps/api/internal/modules/user/dto.go",
         (
             'json:"username"',
             'json:"access_token"',
@@ -168,7 +168,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/model.go",
+        "apps/api/internal/modules/user/model.go",
         (
             "type AuthenticationSessionPO struct",
             "TokenHash",
@@ -179,12 +179,12 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "api/internal/modules/user/model.go",
+        "apps/api/internal/modules/user/model.go",
         ("IPAddress", "UserAgent", "PlaintextToken"),
     )
     require_all(
         failures,
-        "api/internal/modules/user/session_service.go",
+        "apps/api/internal/modules/user/session_service.go",
         (
             "authenticationCredentialBytes   = 32",
             "crypto.GenerateKey",
@@ -195,7 +195,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/repository.go",
+        "apps/api/internal/modules/user/repository.go",
         (
             "UpdatePasswordAndRevokeSessions",
             "sessionRevocationPasswordReset",
@@ -204,22 +204,22 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/authentication_middleware.go",
+        "apps/api/internal/modules/user/authentication_middleware.go",
         ("sessionAuth", "domain.SessionAuthenticator", "authenticationSessionID"),
     )
     require_all(
         failures,
-        "api/database/migrations/2026_04_27_000003_create_authentication_sessions_table.go",
+        "apps/api/database/migrations/2026_04_27_000003_create_authentication_sessions_table.go",
         ('CREATE TABLE authentication_sessions (', "UseTransaction: true", 'DROP TABLE IF EXISTS authentication_sessions CASCADE'),
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/authentication_session.go",
+        "apps/api/internal/bootstrap/operatorcommands/authentication_session.go",
         ("auth-session:prune", "PruneAuthenticationSessions", "--batch"),
     )
     require_all(
         failures,
-        "api/.env.example",
+        "apps/api/.env.example",
         (
             "AUTH_SESSION_TTL=720h",
             "AUTH_SESSION_IDLE_TIMEOUT=168h",
@@ -228,34 +228,34 @@ def main() -> int:
         ),
     )
     if re.search(r"^JWT_(?:SECRET|EXPIRE_DAYS)=", env_example, re.MULTILINE):
-        failures.append("api/.env.example must not advertise retired JWT configuration")
-    require_missing(failures, "api/internal/infra/jwt/jwt.go")
-    require_missing(failures, "api/internal/infra/middleware/jwt.go")
-    require_missing(failures, "web/src/features/auth/server/auth-token.ts")
-    if "github.com/golang-jwt/jwt" in read("api/go.mod"):
-        failures.append("api/go.mod must not retain the removed JWT runtime dependency")
+        failures.append("apps/api/.env.example must not advertise retired JWT configuration")
+    require_missing(failures, "apps/api/internal/infra/jwt/jwt.go")
+    require_missing(failures, "apps/api/internal/infra/middleware/jwt.go")
+    require_missing(failures, "apps/web/src/features/auth/server/auth-token.ts")
+    if "github.com/golang-jwt/jwt" in read("apps/api/go.mod"):
+        failures.append("apps/api/go.mod must not retain the removed JWT runtime dependency")
     require_all(
         failures,
-        "web/src/features/auth/services/auth-service.ts",
+        "apps/web/src/features/auth/services/auth-service.ts",
         ("'/auth/login'", "'/auth/register'", "'/auth/me'", "'/auth/logout'"),
     )
     require_all(
         failures,
-        "web/src/features/auth/types.ts",
+        "apps/web/src/features/auth/types.ts",
         ("export interface AuthUser", "export interface LoginRequest", "email: string"),
     )
-    auth_types = read("web/src/features/auth/types.ts")
+    auth_types = read("apps/web/src/features/auth/types.ts")
     auth_user_match = re.search(
         r"export interface AuthUser\s*\{(?P<body>.*?)\}", auth_types, re.DOTALL
     )
     if not auth_user_match or re.search(r"\brole\s*:", auth_user_match.group("body")):
         failures.append(
-            "web/src/features/auth/types.ts AuthUser must not invent a role before the "
+            "apps/web/src/features/auth/types.ts AuthUser must not invent a role before the "
             "permission starter exists"
         )
     require_all(
         failures,
-        "web/src/config/server-env.ts",
+        "apps/web/src/config/server-env.ts",
         (
             "API_ADAPTER_ENABLED",
             "API_UPSTREAM_TIMEOUT_MS",
@@ -270,7 +270,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/config/auth-session.ts",
+        "apps/web/src/config/auth-session.ts",
         (
             "__Host-fastbuild_auth",
             "httpOnly: true",
@@ -280,7 +280,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/auth/server/auth-credential.ts",
+        "apps/web/src/features/auth/server/auth-credential.ts",
         (
             "isOpaqueAuthenticationCredential",
             "{43}",
@@ -290,12 +290,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/app/api/_shared/mock-bff.ts",
+        "apps/web/src/app/api/_shared/mock-bff.ts",
         ("env.NEXT_PUBLIC_APP_URL", "parsedOrigin.origin !== allowedOrigin"),
     )
     require_all(
         failures,
-        "web/src/features/auth/server/go-api-auth-adapter.ts",
+        "apps/web/src/features/auth/server/go-api-auth-adapter.ts",
         (
             "'users/profile'",
             "'logout'",
@@ -308,7 +308,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/server/api-adapter/go-api-client.ts",
+        "apps/web/src/server/api-adapter/go-api-client.ts",
         (
             "cache: 'no-store'",
             "redirect: 'error'",
@@ -320,12 +320,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/auth/server/auth-response.ts",
+        "apps/web/src/features/auth/server/auth-response.ts",
         ("privateAuthResponse<", "privateNoStoreResponse(response, ['Cookie'])"),
     )
     require_all(
         failures,
-        "web/src/features/auth/server/auth-adapter-route.ts",
+        "apps/web/src/features/auth/server/auth-adapter-route.ts",
         (
             "setApiSessionCookie",
             "getApiSessionToken",
@@ -337,7 +337,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/server/http/private-response.ts",
+        "apps/web/src/server/http/private-response.ts",
         (
             "private, no-store",
             "privateNoStoreHeaders(",
@@ -349,23 +349,23 @@ def main() -> int:
     for route in ("login", "register", "me", "logout"):
         require_all(
             failures,
-            f"web/src/app/api/auth/{route}/route.ts",
+            f"apps/web/src/app/api/auth/{route}/route.ts",
             ("resolveAuthRoute()", "privateAuthResponse("),
         )
     for test_file in (
-        "web/src/test/auth-adapter-route.test.ts",
-        "web/src/test/auth-route-backend.test.ts",
-        "web/src/test/auth-session-cookie.test.ts",
-        "web/src/test/go-api-auth-adapter.test.ts",
-        "web/src/test/private-response.test.ts",
+        "apps/web/src/test/auth-adapter-route.test.ts",
+        "apps/web/src/test/auth-route-backend.test.ts",
+        "apps/web/src/test/auth-session-cookie.test.ts",
+        "apps/web/src/test/go-api-auth-adapter.test.ts",
+        "apps/web/src/test/private-response.test.ts",
     ):
         if not (ROOT / test_file).exists():
             failures.append(f"{test_file} is missing")
     require_all(
         failures,
-        "web/docs/AUTHENTICATION.md",
+        "apps/web/docs/AUTHENTICATION.md",
         (
-            "../../contracts/AUTHENTICATION.md",
+            "../../../packages/contracts/AUTHENTICATION.md",
             "three resolution modes",
             "`api-session`",
             "`__Host-fastbuild_auth`",
@@ -377,22 +377,22 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/docs/AUTHENTICATION.md",
+        "apps/web/docs/AUTHENTICATION.md",
         ("not a complete integration", "does not yet ship the production"),
     )
     require_all(
         failures,
-        "web/src/i18n/modules/console/en-US.ts",
+        "apps/web/src/i18n/modules/console/en-US.ts",
         ("contract-compatible production endpoint or adapter",),
     )
     require_all(
         failures,
-        "web/src/i18n/modules/console/zh-Hans.ts",
+        "apps/web/src/i18n/modules/console/zh-Hans.ts",
         ("apiBefore:", "apiAfter:", "next-intl"),
     )
     require_all(
         failures,
-        "admin/docs/SECURITY.md",
+        "apps/admin/docs/SECURITY.md",
         (
             "Every byte under `dist/` is public",
             "reviewed browser gateway or Go adapter",
@@ -404,7 +404,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "admin/src/http/client.ts",
+        "apps/admin/src/http/client.ts",
         (
             "credentials: 'include'",
             "HttpStatusErrorCodeMap[response.status]",

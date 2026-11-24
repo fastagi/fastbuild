@@ -15,7 +15,7 @@ shared contract, thin handlers, and centralized response semantics.
 Read only:
 
 1. the owning module and its tests
-2. `../../../../contracts/README.md` and the owning capability contract
+2. `../../../../../packages/contracts/README.md` and the owning capability contract
 3. `../../../AGENTS.md`
 4. `examples/complete-crud-handler.go` only when no nearby production handler
    demonstrates the needed pattern

@@ -102,7 +102,7 @@ func (c *ResourceCatalog) Lookup(name string) (ResourceType, bool) {
 //		})
 //	}
 //
-// See contracts/COMMENT.md.
+// See packages/contracts/COMMENT.md.
 func ProvideResourceCatalog() (*ResourceCatalog, error) {
 	return NewResourceCatalog()
 }

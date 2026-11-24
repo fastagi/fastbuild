@@ -1,7 +1,7 @@
 # Permission Starter
 
 The optional `permission` starter is FastBuild's organization-scoped authorization kernel. Its public
-HTTP behavior is defined in [`../../contracts/PERMISSIONS.md`](../../contracts/PERMISSIONS.md).
+HTTP behavior is defined in [`../../../packages/contracts/PERMISSIONS.md`](../../../packages/contracts/PERMISSIONS.md).
 This document explains the API assembly and downstream extension boundary.
 
 ## Activate

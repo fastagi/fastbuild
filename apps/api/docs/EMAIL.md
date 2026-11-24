@@ -59,7 +59,7 @@ provider failures, expose delivery receipts, or provide exactly-once semantics.
   provider failure must not erase or silently accept an invitation state transition. The
   organization starter owns the escaped template and narrow mailer adapter; the API reports only
   whether the synchronous provider call was accepted, failed, or not configured. See
-  [`../../contracts/ORGANIZATIONS.md`](../../contracts/ORGANIZATIONS.md).
+  [`../../../packages/contracts/ORGANIZATIONS.md`](../../../packages/contracts/ORGANIZATIONS.md).
 - The optional notification starter persists its own delivery ledger, retries transient failures in
   `fastbuild notification:work`, and supplies a stable provider idempotency key. Those semantics belong to
   the starter and do not make direct `SendEmail` calls durable. See
@@ -79,7 +79,7 @@ contracts, handlers, or Web code.
 ## Verification
 
 ```bash
-cd api
+cd apps/api
 go test ./internal/infra/email ./internal/infra/config ./internal/modules/user ./internal/modules/organization ./internal/modules/notification
 go test -race ./internal/infra/email ./internal/modules/user ./internal/modules/organization ./internal/modules/notification
 ```

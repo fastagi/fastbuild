@@ -31,9 +31,9 @@ func TestBuildIndexChecksumsEveryShippedFile(t *testing.T) {
 	entry := index.Plugins[0]
 	assert.Equal(t, "demo-notes", entry.Name)
 	assert.Len(t, entry.Files, 2)
-	content, err := os.ReadFile(PluginFilePath(fixtureRegistry, "demo-notes", "api/internal/modules/demonotes/doc.go"))
+	content, err := os.ReadFile(PluginFilePath(fixtureRegistry, "demo-notes", "apps/api/internal/modules/demonotes/doc.go"))
 	require.NoError(t, err)
-	assert.Equal(t, Checksum(content), entry.Files["api/internal/modules/demonotes/doc.go"])
+	assert.Equal(t, Checksum(content), entry.Files["apps/api/internal/modules/demonotes/doc.go"])
 }
 
 func TestLocalSourceRejectsAFileThatDoesNotMatchTheIndex(t *testing.T) {
@@ -43,12 +43,12 @@ func TestLocalSourceRejectsAFileThatDoesNotMatchTheIndex(t *testing.T) {
 	entry, ok := index.Find("demo-notes")
 	require.True(t, ok)
 
-	_, err = source.ReadFile(entry, "api/internal/modules/demonotes/doc.go")
+	_, err = source.ReadFile(entry, "apps/api/internal/modules/demonotes/doc.go")
 	require.NoError(t, err)
 
-	tampered := PluginFilePath(source.Dir, "demo-notes", "api/internal/modules/demonotes/doc.go")
+	tampered := PluginFilePath(source.Dir, "demo-notes", "apps/api/internal/modules/demonotes/doc.go")
 	require.NoError(t, os.WriteFile(tampered, []byte("package demonotes\n// changed\n"), 0o644))
-	_, err = source.ReadFile(entry, "api/internal/modules/demonotes/doc.go")
+	_, err = source.ReadFile(entry, "apps/api/internal/modules/demonotes/doc.go")
 	require.ErrorContains(t, err, "does not match the registry checksum")
 
 	_, err = source.ReadFile(entry, "api/not-listed.go")
@@ -94,7 +94,7 @@ func TestValidFilePathRejectsEscapes(t *testing.T) {
 	for _, bad := range []string{"", "/etc/passwd", "../x", "a/../../x", "a\\b", ".git/config", "./a", "a//b"} {
 		assert.False(t, ValidFilePath(bad), bad)
 	}
-	assert.True(t, ValidFilePath("api/internal/modules/x/service.go"))
+	assert.True(t, ValidFilePath("apps/api/internal/modules/x/service.go"))
 }
 
 func TestParseVersionAcceptsGitDescribeOutput(t *testing.T) {

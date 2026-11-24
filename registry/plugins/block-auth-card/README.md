@@ -5,10 +5,10 @@ alternative sign-in actions with a divider, a slot for your form, a footer line 
 between sign-in and sign-up, and legal text under the card. It contains no authentication logic.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-auth-card
+cd apps/api && go run ./cmd/fastbuild plugin:add block-auth-card
 ```
 
-Installs `web/src/components/blocks/auth-card/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/auth-card/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy.
 
 ## Usage

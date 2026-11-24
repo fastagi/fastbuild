@@ -66,7 +66,7 @@ export const webhooksService = {
   },
 };
 
-// Fails type-check when contracts/openapi.yaml allows a body these schemas would reject.
+// Fails type-check when packages/contracts/openapi.yaml allows a body these schemas would reject.
 assertContract<Accepts<z.input<typeof webhookEndpointPageSchema>, ContractResponse<'listOperatorWebhookEndpoints', 200>>>();
 assertContract<Accepts<z.input<typeof webhookDeliveryPageSchema>, ContractResponse<'listOperatorWebhookDeliveries', 200>>>();
 assertContract<Accepts<z.input<typeof webhookAttemptPageSchema>, ContractResponse<'listOperatorWebhookDeliveryAttempts', 200>>>();

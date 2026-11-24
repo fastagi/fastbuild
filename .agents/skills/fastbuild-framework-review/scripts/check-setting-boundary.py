@@ -58,7 +58,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/SETTINGS.md",
+        "packages/contracts/SETTINGS.md",
         (
             "durable, typed overrides for a code-owned setting catalog",
             "OPTIONAL_STARTERS=organization,setting",
@@ -94,7 +94,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/provider.go",
+        "apps/api/internal/modules/setting/provider.go",
         (
             'config.StarterSetting',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit, config.StarterOrganization)',
@@ -105,7 +105,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/catalog.go",
+        "apps/api/internal/modules/setting/catalog.go",
         (
             "maxSettingDefinitions = 64",
             "maxSettingValueBytes  = 4 * 1024",
@@ -126,7 +126,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/model.go",
+        "apps/api/internal/modules/setting/model.go",
         (
             "idx_settings_scope_subject_key",
             "settings_scope_check",
@@ -141,7 +141,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/repository.go",
+        "apps/api/internal/modules/setting/repository.go",
         (
             "ResolveContextDB",
             'clause.Locking{Strength: "UPDATE"}',
@@ -154,7 +154,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/service.go",
+        "apps/api/internal/modules/setting/service.go",
         (
             "ListPublicAppSettings",
             "decodeStoredSettingValue",
@@ -165,7 +165,7 @@ def main() -> int:
         ),
     )
     try:
-        service = read("api/internal/modules/setting/service.go")
+        service = read("apps/api/internal/modules/setting/service.go")
     except FileNotFoundError:
         service = ""
     audit = between(service, "func recordSettingAudit(")
@@ -179,7 +179,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/internal/modules/setting/handler.go",
+        "apps/api/internal/modules/setting/handler.go",
         (
             "http.MaxBytesReader",
             "decoder.DisallowUnknownFields()",
@@ -195,7 +195,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/routes.go",
+        "apps/api/internal/modules/setting/routes.go",
         (
             'r.GET("/settings/public"',
             'auth.GET("/settings/user"',
@@ -209,7 +209,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/setting.go",
+        "apps/api/internal/bootstrap/operatorcommands/setting.go",
         (
             'return "setting:list"',
             'return "setting:set --key=<key> --value=<json-scalar> --expected-version=<version>"',
@@ -224,7 +224,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_15_040000_create_settings_table.go",
+        "apps/api/database/migrations/2026_07_15_040000_create_settings_table.go",
         (
             "UseTransaction: true",
             'CREATE TABLE settings (',
@@ -233,7 +233,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/user/account_deletion_policy.go",
+        "apps/api/internal/modules/user/account_deletion_policy.go",
         (
             "type AccountDeletionCleaner interface",
             "RegisterCleaner",
@@ -242,7 +242,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/service_test.go",
+        "apps/api/internal/modules/setting/service_test.go",
         (
             "TestServiceFailsClosedForCorruptStoredValue",
             "TestAccountDeletionCleansUserSettingsInsideTransaction",
@@ -252,7 +252,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/setting/handler_test.go",
+        "apps/api/internal/modules/setting/handler_test.go",
         (
             "TestPublicSettingsUseAggregateETagAndRevalidation",
             "TestUserSettingMutationRequiresCanonicalVersionAndRejectsStaleWriter",
@@ -261,7 +261,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         (
             'setting_flow="skipped"',
             "public setting revalidation returned HTTP",
@@ -279,7 +279,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/setting_test.go",
+        "apps/api/internal/bootstrap/operatorcommands/setting_test.go",
         (
             "TestRecordSettingCommandAuditContainsMetadataOnly",
             "TestSettingOperatorManifestRegistersAllCommands",
@@ -289,12 +289,12 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/config/optional-features.ts",
+        "apps/web/src/config/optional-features.ts",
         ("'setting'", "setting: ['organization']"),
     )
     require_all(
         failures,
-        "web/src/features/setting/schemas.ts",
+        "apps/web/src/features/setting/schemas.ts",
         (
             "strictObject",
             "maximum(Number.MAX_SAFE_INTEGER)",
@@ -309,12 +309,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "web/src/features/setting/schemas.ts",
+        "apps/web/src/features/setting/schemas.ts",
         ("record(", "unknown()", "any()"),
     )
     require_all(
         failures,
-        "web/src/features/setting/services/setting-service.ts",
+        "apps/web/src/features/setting/services/setting-service.ts",
         (
             "expectedAppSettings",
             "expectedUserSettings",
@@ -327,7 +327,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/setting/server/setting-route.ts",
+        "apps/web/src/features/setting/server/setting-route.ts",
         (
             "resolveSettingRoute(",
             "isWebFeatureEnabled('setting')",
@@ -346,7 +346,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/setting/server/mock-setting-store.ts",
+        "apps/web/src/features/setting/server/mock-setting-store.ts",
         (
             "maxMockSettingSubjects = 1_000",
             "publicETag()",
@@ -358,7 +358,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/test/setting-route.test.ts",
+        "apps/web/src/test/setting-route.test.ts",
         (
             "stable ETag and bodyless revalidation",
             "preserves user isolation, monotonic versions, stale rejection, and reset",
@@ -369,7 +369,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/app/(protected)/(console)/console/settings/page.tsx",
+        "apps/web/src/app/(protected)/(console)/console/settings/page.tsx",
         (
             "isWebFeatureEnabled('setting')",
             "lazy(async () =>",
@@ -379,17 +379,17 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "web/src/app/(protected)/(console)/console/settings/page.tsx",
+        "apps/web/src/app/(protected)/(console)/console/settings/page.tsx",
         ("companyUrl", "supportEmail", "twoFactor", "sessionTimeout", "darkMode"),
     )
     require_all(
         failures,
-        "web/src/features/setting/components/organization-setting-panel.tsx",
+        "apps/web/src/features/setting/components/organization-setting-panel.tsx",
         ("OrganizationSettingPanel", "canManage", "localization.locale"),
     )
     require_all(
         failures,
-        "web/src/test/setting-ui.test.tsx",
+        "apps/web/src/test/setting-ui.test.tsx",
         (
             "typed setting preferences",
             "validated IANA timezone",
@@ -401,17 +401,17 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/docs/SETTINGS.md",
+        "apps/api/docs/SETTINGS.md",
         ("finite code-owned catalog", "setting:list", "## Verification"),
     )
     require_all(
         failures,
-        "web/docs/SETTINGS.md",
+        "apps/web/docs/SETTINGS.md",
         ("strict", "organization,setting", "## Verification"),
     )
     require_all(
         failures,
-        "api/docs/adr/0007-typed-setting-boundary.md",
+        "apps/api/docs/adr/0007-typed-setting-boundary.md",
         ("code-owned catalog", "arbitrary JSON", "## Consequences"),
     )
     require_all(

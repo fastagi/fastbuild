@@ -3,7 +3,7 @@
 # Logging Standards Validation Script (slog)
 # Usage: ./validate-logging.sh <module_name>
 #
-# Checks that a module under api/internal/modules/<name>/ follows the
+# Checks that a module under apps/api/internal/modules/<name>/ follows the
 # log/slog conventions documented in ../SKILL.md.
 
 set -e

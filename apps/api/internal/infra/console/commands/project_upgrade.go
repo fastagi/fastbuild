@@ -162,6 +162,6 @@ func (c *ProjectUpgradeCommand) report(result *projectfiles.UpgradeResult, from,
 			projectfiles.ConflictMarker, projectfiles.IncomingSuffix)
 	}
 	c.output.Line("  - Read UPGRADING.md for %s → %s and apply its notes.", from, to)
-	c.output.Line("  - cd api && go mod tidy && make wire; cd contracts && corepack pnpm install && corepack pnpm generate")
-	c.output.Line("  - cd api && go run ./cmd/fastbuild plugin:doctor, then make check from the repository root.")
+	c.output.Line("  - cd apps/api && go mod tidy && make wire; cd packages/contracts && corepack pnpm install && corepack pnpm generate")
+	c.output.Line("  - cd apps/api && go run ./cmd/fastbuild plugin:doctor, then make check from the repository root.")
 }

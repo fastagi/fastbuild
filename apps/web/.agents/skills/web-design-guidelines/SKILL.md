@@ -12,7 +12,7 @@ findings; it does not establish a new visual direction or run a WCAG audit.
 
 Use the checked-in sources first:
 
-1. `web/AGENTS.md` for FastBuild UI, responsive, i18n, and component rules.
+1. `apps/web/AGENTS.md` for FastBuild UI, responsive, i18n, and component rules.
 2. The nearest existing route, feature, primitive, and theme tokens.
 3. The requested files and their loading, empty, error, disabled, and mobile
    states.
@@ -38,7 +38,7 @@ than FastBuild requirements.
   backend or provider details.
 
 Baseline keyboard, focus, naming, and contrast rules still apply through
-`web/AGENTS.md`. Use `accessibility-audit` only when the request is a dedicated
+`apps/web/AGENTS.md`. Use `accessibility-audit` only when the request is a dedicated
 WCAG/a11y review.
 
 ## Output

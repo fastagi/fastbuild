@@ -59,7 +59,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/internal/bootstrap/http.go",
+        "apps/api/internal/bootstrap/http.go",
         (
             "func RegisterHTTPRoutes(",
             "h.RegisterRoutes(engine)",
@@ -70,7 +70,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/console/commands/route_list.go",
+        "apps/api/internal/infra/console/commands/route_list.go",
         (
             'routeCatalogKind          = "fastbuild.route_catalog"',
             "routeCatalogSchemaVersion = 1",
@@ -84,12 +84,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/console/console.go",
+        "apps/api/internal/infra/console/console.go",
         ("completionOutputSuppressor", "shouldPrintCompletionOutput(cmd)"),
     )
     require_all(
         failures,
-        "api/scripts/verify-route-catalog.sh",
+        "apps/api/scripts/verify-route-catalog.sh",
         (
             'go build -o "${CLI_FILE}" ./cmd/fastbuild',
             '"${CLI_FILE}" route:list --format=json',
@@ -103,7 +103,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/docs/ROUTE_DISCOVERY.md",
+        "apps/api/docs/ROUTE_DISCOVERY.md",
         (
             "One runtime registration seam",
             "not an OpenAPI Description",
@@ -113,7 +113,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "contracts/README.md",
+        "packages/contracts/README.md",
         (
             "## Contract Discovery",
             "route:list --format=json",
@@ -128,7 +128,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/Makefile",
+        "apps/api/Makefile",
         ("route-catalog-check:", "scripts/verify-route-catalog.sh"),
     )
     require_all(
@@ -138,26 +138,26 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/src/app/(protected)/(console)/console/page.tsx",
+        "apps/web/src/app/(protected)/(console)/console/page.tsx",
         ("OpenAPI", "FASTBUILD_CONTRACTS_URL", "github.com/fastagi/fastbuild/tree/main/contracts"),
     )
 
     for relative_path in (
-        "api/cmd/tools/routes",
-        "api/cmd/tools/apidoc",
+        "apps/api/cmd/tools/routes",
+        "apps/api/cmd/tools/apidoc",
     ):
         if (ROOT / relative_path).exists():
             failures.append(f"{relative_path} must remain removed")
 
-    schema_path = ROOT / "api/docs/route-catalog.schema.json"
+    schema_path = ROOT / "apps/api/docs/route-catalog.schema.json"
     if not schema_path.exists():
-        failures.append("api/docs/route-catalog.schema.json is missing")
+        failures.append("apps/api/docs/route-catalog.schema.json is missing")
     else:
         try:
             schema = json.loads(schema_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as error:
             failures.append(
-                f"api/docs/route-catalog.schema.json is invalid JSON: {error}"
+                f"apps/api/docs/route-catalog.schema.json is invalid JSON: {error}"
             )
         else:
             expected_required = {
@@ -179,8 +179,8 @@ def main() -> int:
                     "route catalog schema must require exactly the version 1 fields"
                 )
 
-    require_executable(failures, "api/scripts/verify-route-catalog.sh")
-    require_executable(failures, "api/scripts/validate-route-catalog.py")
+    require_executable(failures, "apps/api/scripts/verify-route-catalog.sh")
+    require_executable(failures, "apps/api/scripts/validate-route-catalog.py")
 
     if failures:
         print("Route contract discovery check failed:", file=sys.stderr)

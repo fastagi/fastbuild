@@ -113,7 +113,7 @@ that exposes deltas to users owns moderation and policy enforcement before adopt
 ## Verification
 
 ```bash
-cd api
+cd apps/api
 go test ./internal/capabilities/ai ./internal/infra/config ./internal/infra/console/commands
 go test -race ./internal/capabilities/ai
 ```

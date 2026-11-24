@@ -15,8 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[4]
 PNPM_VERSION = "10.34.5"
 NODE_ENGINES = "^22.12.0 || ^24.0.0"
-BROWSER_PROJECTS = ("web", "admin")
-PNPM_PROJECTS = (*BROWSER_PROJECTS, "contracts")
+BROWSER_PROJECTS = ("apps/web", "apps/admin")
+PNPM_PROJECTS = (*BROWSER_PROJECTS, "packages/contracts")
 OSV_VERSION = "2.3.8"
 OSV_CHECKSUMS = {
     "osv-scanner_darwin_amd64": (
@@ -46,13 +46,13 @@ ALLOWED_BUILDS = {
     "unrs-resolver@1.12.2",
 }
 DEPENDABOT_TARGETS = {
-    ("npm", "/contracts"),
-    ("npm", "/web"),
-    ("npm", "/admin"),
-    ("gomod", "/api"),
+    ("npm", "/packages/contracts"),
+    ("npm", "/apps/web"),
+    ("npm", "/apps/admin"),
+    ("gomod", "/apps/api"),
     ("github-actions", "/"),
-    ("docker", "/api"),
-    ("docker", "/web"),
+    ("docker", "/apps/api"),
+    ("docker", "/apps/web"),
 }
 DEPENDABOT_GROUPS = {
     "contracts-development-minor-patch",
@@ -246,10 +246,10 @@ def main() -> int:
         f'OSV_VERSION="{OSV_VERSION}"',
         "--proto '=https' --proto-redir '=https' --tlsv1.2",
         '"--config=${ROOT_DIR}/osv-scanner.toml"',
-        '"--lockfile=${ROOT_DIR}/api/go.mod"',
-        '"--lockfile=${ROOT_DIR}/contracts/pnpm-lock.yaml"',
-        '"--lockfile=${ROOT_DIR}/web/pnpm-lock.yaml"',
-        '"--lockfile=${ROOT_DIR}/admin/pnpm-lock.yaml"',
+        '"--lockfile=${ROOT_DIR}/apps/api/go.mod"',
+        '"--lockfile=${ROOT_DIR}/packages/contracts/pnpm-lock.yaml"',
+        '"--lockfile=${ROOT_DIR}/apps/web/pnpm-lock.yaml"',
+        '"--lockfile=${ROOT_DIR}/apps/admin/pnpm-lock.yaml"',
         "--format=cyclonedx-1-5",
         'document.get("bomFormat") != "CycloneDX"',
         'document.get("specVersion") != "1.5"',

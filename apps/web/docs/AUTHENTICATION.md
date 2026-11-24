@@ -7,7 +7,7 @@ contract.
 The Go `user` starter owns a separate opaque authentication-session contract. FastBuild ships an explicit same-origin production
 adapter between them; pointing the browser directly at Go remains incorrect because paths, DTOs,
 user views, and credential ownership still differ. See
-[`../../contracts/AUTHENTICATION.md`](../../contracts/AUTHENTICATION.md) for the canonical mapping.
+[`../../../packages/contracts/AUTHENTICATION.md`](../../../packages/contracts/AUTHENTICATION.md) for the canonical mapping.
 
 ## Resolution Modes
 
@@ -138,7 +138,7 @@ success payloads remain failures.
 
 ## Downstream Adaptation
 
-1. Read `contracts/AUTHENTICATION.md`; do not assume the Go authentication-session endpoints implement the Web DTOs.
+1. Read `packages/contracts/AUTHENTICATION.md`; do not assume the Go authentication-session endpoints implement the Web DTOs.
 2. Use the shipped `api-session` adapter for the FastBuild Go starter; configure the private API URL,
    timeout, ingress client-IP header, and API trusted proxies together.
 3. Keep `client-session` when another identity provider owns a cross-origin cookie or token exchange.

@@ -5,8 +5,8 @@ Console. It depends on the default `user` and `audit` starters and is selected w
 `OPTIONAL_STARTERS=operator`. When it is not selected, no `/v1/operator` route and no `operator:*`
 command exists.
 
-Implementation plans: [`admin-operator-console.md`](../docs/plans/admin-operator-console.md) and
-[`admin-operator-starters.md`](../docs/plans/admin-operator-starters.md).
+Implementation plans: [`admin-operator-console.md`](../../docs/plans/admin-operator-console.md) and
+[`admin-operator-starters.md`](../../docs/plans/admin-operator-starters.md).
 
 ## Operators
 

@@ -20,6 +20,12 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 
 ### Changed
 
+- **Leaner CI by default.** Merges to `main` no longer rerun the suite; end-to-end and plugin
+  checks run weekly and on demand instead of on pull requests; container and performance checks run
+  on demand, and `release.yml` still builds and scans every image. See `docs/CI.md`.
+- **Repository layout.** `api/`, `web/`, and `admin/` moved to `apps/`, and `contracts/` moved to
+  `packages/contracts/`. Paths in CI, scripts, docs, skills, and registry payloads follow the move;
+  behavior, the Go module path, and per-unit lockfiles are unchanged.
 - Sign-in and registration validate inline and state the password rule. Registration takes optional
   legal links through `RegisterForm`'s `legalLinks` prop; the disabled GitHub button is gone.
 - The Admin Console overview leads with API, Database, and Failed deliveries. Users rows show name
@@ -41,6 +47,10 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   instead of a 500.
 - Patched `follow-redirects`, `seroval`, `glob`, and `minimatch` for new advisories. The `minimatch` 3
   copies in the ESLint toolchain carry a time-boxed exception in `osv-scanner.toml`.
+- Web upgrades `next` and `eslint-config-next` from 16.4.1 to 16.4.5 for seven Next.js advisories
+  (GHSA-pc58-hwjq-p385, GHSA-rhh4-g77r-r9qj, GHSA-vvgp-ww4w-46vf, GHSA-mfr8-8qww-v76h,
+  GHSA-vc7v-qv4w-wrv8, GHSA-7qx7-33qx-rqx2, GHSA-f3mh-rxg3-f5g2). `pnpm build` no longer stops with
+  `SecurityFatalError`.
 - `make dev` prints why a migration, seed, or operator grant failed instead of exiting silently.
 - The Web asset upload input has an accessible name.
 
@@ -254,7 +264,7 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   retention CronJobs, validated against Kubernetes 1.30.
 - `make perf` and a nightly `perf.yml` run a k6 baseline against a release build and PostgreSQL,
   failing when login, readiness, profile, API key, or audit log reads leave their p95 budgets; see
-  [`api/docs/PERFORMANCE.md`](api/docs/PERFORMANCE.md).
+  [`api/docs/PERFORMANCE.md`](apps/api/docs/PERFORMANCE.md).
 - `make:module` writes an OpenAPI fragment for the generated routes; `corepack pnpm
   merge-fragment` adds it to `contracts/openapi.yaml` without reformatting the file, so a new
   starter passes the two-way route check without hand-written contract entries.

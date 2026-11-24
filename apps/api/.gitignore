@@ -96,7 +96,7 @@ _reference/
 # Reference code
 .ref/
 
-# Built binaries in api/ (anchored, so cmd/fastbuild and cmd/server sources stay visible)
+# Built binaries in apps/api/ (anchored, so cmd/fastbuild and cmd/server sources stay visible)
 /fastbuild
 /server
 

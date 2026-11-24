@@ -47,7 +47,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/internal/infra/cache/store.go",
+        "apps/api/internal/infra/cache/store.go",
         (
             "type Store interface",
             "Get(ctx context.Context, key string) ([]byte, error)",
@@ -60,13 +60,13 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "api/internal/infra/cache/store.go",
+        "apps/api/internal/infra/cache/store.go",
         ("Has(ctx", "Increment(ctx", "Flush(ctx", "interface{}, error"),
     )
 
     require_all(
         failures,
-        "api/internal/infra/cache/memory.go",
+        "apps/api/internal/infra/cache/memory.go",
         (
             "DefaultMemoryMaxEntries = 10_000",
             "DefaultMemoryMaxBytes int64 = 64 << 20",
@@ -80,13 +80,13 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "api/internal/infra/cache/memory.go",
+        "apps/api/internal/infra/cache/memory.go",
         ("go s.cleanup", "stopCleanup", "func (s *MemoryStore) Close"),
     )
 
     require_all(
         failures,
-        "api/internal/infra/cache/redis.go",
+        "apps/api/internal/infra/cache/redis.go",
         (
             "type RedisClient interface",
             "Namespace",
@@ -99,7 +99,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "api/internal/infra/cache/redis.go",
+        "apps/api/internal/infra/cache/redis.go",
         (
             "NewRedisStoreFromConfig",
             "func (s *RedisStore) Close",
@@ -111,7 +111,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/internal/infra/cache/loader.go",
+        "apps/api/internal/infra/cache/loader.go",
         (
             '"golang.org/x/sync/singleflight"',
             "singleflight.Group",
@@ -121,21 +121,21 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "api/internal/infra/cache/loader.go",
+        "apps/api/internal/infra/cache/loader.go",
         ("var manager", "sync.Once", "func Global("),
     )
 
     for relative_path in (
-        "api/internal/infra/cache/cache.go",
-        "api/internal/infra/contracts/cache.go",
-        "api/internal/infra/singleflight/singleflight.go",
+        "apps/api/internal/infra/cache/cache.go",
+        "apps/api/internal/infra/contracts/cache.go",
+        "apps/api/internal/infra/singleflight/singleflight.go",
     ):
         if (ROOT / relative_path).exists():
             failures.append(f"{relative_path} reintroduces a removed duplicate cache surface")
 
     require_all(
         failures,
-        "api/internal/infra/cache/cache_contract_test.go",
+        "apps/api/internal/infra/cache/cache_contract_test.go",
         (
             "TestMemoryStoreIsBoundedAndUsesLRUEviction",
             "TestMemoryStoreAddAndTakeAreAtomic",
@@ -145,7 +145,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/cache/redis_test.go",
+        "apps/api/internal/infra/cache/redis_test.go",
         (
             "TestStoreContractMatchesMemoryAndRedis",
             "TestRedisStoreRealServer",
@@ -154,7 +154,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/docs/CACHE.md",
+        "apps/api/docs/CACHE.md",
         (
             "Cache data is a disposable copy of authoritative state",
             "`Add` is not a distributed-lock API",
@@ -164,7 +164,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/docs/adr/0012-cache-capability-boundary.md",
+        "apps/api/docs/adr/0012-cache-capability-boundary.md",
         (
             "Cache Capability Boundary",
             "Switching between memory and Redis",
@@ -181,7 +181,7 @@ def main() -> int:
         "docs/SCAFFOLD_SURFACES.md",
         (
             "except packages explicitly classified as capabilities below",
-            "api/internal/infra/cache",
+            "apps/api/internal/infra/cache",
             "check-cache-boundary.py",
         ),
     )
@@ -192,7 +192,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/AGENTS.md",
+        "apps/api/AGENTS.md",
         ("docs/CACHE.md", "make benchmark-cache"),
     )
     require_all(
@@ -202,16 +202,16 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/Makefile",
+        "apps/api/Makefile",
         ("benchmark-cache:", "BenchmarkMemory(Get|GetParallel|BoundedChurn)"),
     )
 
-    go_mod = read("api/go.mod")
+    go_mod = read("apps/api/go.mod")
     if not re.search(r"^\s*golang\.org/x/sync\s+v", go_mod, re.MULTILINE):
-        failures.append("api/go.mod must declare the maintained x/sync dependency directly")
+        failures.append("apps/api/go.mod must declare the maintained x/sync dependency directly")
 
     stale_calls = ("func Global(", "func Remember(", "func Flush(", "sync.Once")
-    for path in (ROOT / "api/internal/infra/cache").glob("*.go"):
+    for path in (ROOT / "apps/api/internal/infra/cache").glob("*.go"):
         if path.name.endswith("_test.go"):
             continue
         content = path.read_text(encoding="utf-8")

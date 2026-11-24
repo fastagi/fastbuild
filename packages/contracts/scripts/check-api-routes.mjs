@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 const execute = promisify(execFile);
-const apiDirectory = fileURLToPath(new URL('../../api/', import.meta.url));
+const apiDirectory = fileURLToPath(new URL('../../../apps/api/', import.meta.url));
 const schemaPath = fileURLToPath(new URL('../openapi.yaml', import.meta.url));
 const httpMethods = new Set(['delete', 'get', 'head', 'options', 'patch', 'post', 'put', 'trace']);
 

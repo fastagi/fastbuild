@@ -18,7 +18,7 @@ import (
 const LockFile = "fastbuild.plugins.lock"
 
 // ContractFile is the project's OpenAPI contract, which feature plugins extend.
-const ContractFile = "contracts/openapi.yaml"
+const ContractFile = "packages/contracts/openapi.yaml"
 
 // Lock is the committed record of installed plugins.
 type Lock struct {
@@ -35,7 +35,7 @@ type LockedEntry struct {
 	Source   string   `json:"source"`
 	Starter  string   `json:"starter,omitempty"`
 	Requires []string `json:"requires,omitempty"`
-	// Fragment is the contract fragment merged into contracts/openapi.yaml, with its checksum so an
+	// Fragment is the contract fragment merged into packages/contracts/openapi.yaml, with its checksum so an
 	// update knows whether the contract changed.
 	Fragment         string             `json:"fragment,omitempty"`
 	FragmentChecksum string             `json:"fragment_checksum,omitempty"`
@@ -56,10 +56,10 @@ type ContractAdditions struct {
 // ContractEditor merges and removes contract fragments. The contract tooling owns the YAML
 // layout, so the installer only orchestrates it.
 type ContractEditor interface {
-	// Merge merges the fragment at the repository path into contracts/openapi.yaml, deletes the
+	// Merge merges the fragment at the repository path into packages/contracts/openapi.yaml, deletes the
 	// fragment, and reports what it added.
 	Merge(fragment string) (*ContractAdditions, error)
-	// Remove deletes previously merged additions from contracts/openapi.yaml.
+	// Remove deletes previously merged additions from packages/contracts/openapi.yaml.
 	Remove(additions ContractAdditions) error
 }
 
@@ -128,7 +128,7 @@ type Installer struct {
 	// KnownStarters lists the starters the project can select.
 	KnownStarters []string
 	// Contract merges and removes contract fragments. When nil, fragments stay in
-	// contracts/fragments for an integration step.
+	// packages/contracts/fragments for an integration step.
 	Contract ContractEditor
 	// Transform adapts verified plugin content to the project before it is written, for example by
 	// rewriting the scaffold's Go module path to the project's.

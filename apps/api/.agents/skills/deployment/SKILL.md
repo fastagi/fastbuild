@@ -13,9 +13,9 @@ downstream apps own their cloud, registry, secret store, rollout, and rollback.
 
 ## Read First
 
-1. `../../../../CONTEXT.md` for scaffold and downstream-app vocabulary.
+1. `../../../../../CONTEXT.md` for scaffold and downstream-app vocabulary.
 2. `../../../docs/DEPLOYMENT.md` for the canonical container/deployment contract.
-3. `../../../../docs/CONTAINER_SECURITY.md` for immutable inputs, image evidence, and signing ownership.
+3. `../../../../../docs/CONTAINER_SECURITY.md` for immutable inputs, image evidence, and signing ownership.
 4. `../../../Dockerfile`, `../../../docker-compose.yml`, and
    `../../../scripts/verify-container.sh` for executable behavior.
 5. `../../../docs/MIDDLEWARE.md` when proxy trust, metrics exposure, or HTTP transport changes.
@@ -62,7 +62,7 @@ downstream apps own their cloud, registry, secret store, rollout, and rollback.
 ## Commands
 
 ```bash
-cd api
+cd apps/api
 make container-check
 make compose-check
 docker compose config --quiet

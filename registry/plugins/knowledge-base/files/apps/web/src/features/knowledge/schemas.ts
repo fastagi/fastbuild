@@ -16,7 +16,7 @@ import {
   string,
 } from 'zod/mini';
 
-/** Limits from `contracts/KNOWLEDGE.md`; lengths count Unicode characters, as the API does. */
+/** Limits from `packages/contracts/KNOWLEDGE.md`; lengths count Unicode characters, as the API does. */
 export const KNOWLEDGE_TITLE_MAX_LENGTH = 200;
 export const KNOWLEDGE_BODY_MAX_LENGTH = 200_000;
 export const KNOWLEDGE_QUERY_MAX_LENGTH = 200;

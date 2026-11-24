@@ -12,7 +12,7 @@ import { mergeFragment, removeContract } from './lib/fragment.mjs';
 
 const execute = promisify(execFile);
 const contractsDir = fileURLToPath(new URL('..', import.meta.url));
-const registryDir = fileURLToPath(new URL('../../registry/', import.meta.url));
+const registryDir = fileURLToPath(new URL('../../../registry/', import.meta.url));
 const redocly = join(contractsDir, 'node_modules', '.bin', 'redocly');
 
 let index;

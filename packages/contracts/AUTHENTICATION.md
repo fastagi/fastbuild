@@ -222,7 +222,7 @@ issuance should add that capability to the API contract instead of hiding compen
 
 ## Admin Console Authentication Boundary
 
-`admin/` has no server runtime, private environment, or Route Handler. A protected production Admin Console
+`apps/admin/` has no server runtime, private environment, or Route Handler. A protected production Admin Console
 therefore requires a same-origin `/api` origin that implements the Browser Auth Contract while
 keeping the opaque Go API session credential outside browser JavaScript.
 

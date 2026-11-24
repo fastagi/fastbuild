@@ -1,7 +1,7 @@
 # Typed Settings
 
 The optional `setting` starter provides durable overrides for a finite code-owned catalog. Read the
-cross-deployable contract in [`../../contracts/SETTINGS.md`](../../contracts/SETTINGS.md) and the
+cross-deployable contract in [`../../../packages/contracts/SETTINGS.md`](../../../packages/contracts/SETTINGS.md) and the
 architecture decision in [`adr/0007-typed-setting-boundary.md`](adr/0007-typed-setting-boundary.md)
 before extending it.
 

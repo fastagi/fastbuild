@@ -11,7 +11,7 @@ direction is still being designed.
 
 ## Authority
 
-Read `web/AGENTS.md` for component ownership, accessibility, i18n, and naming.
+Read `apps/web/AGENTS.md` for component ownership, accessibility, i18n, and naming.
 Inspect the nearest component and theme files before introducing a token,
 variant, primitive, or shared component.
 
@@ -54,7 +54,7 @@ variant, primitive, or shared component.
 
 ## Verification
 
-Run the narrowest check for the changed seam. Run these commands from `web/`:
+Run the narrowest check for the changed seam. Run these commands from `apps/web/`:
 
 ```bash
 # Theme mapping

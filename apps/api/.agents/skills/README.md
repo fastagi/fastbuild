@@ -1,7 +1,7 @@
 # FastBuild API Skills
 
 API skills provide task-specific workflows beyond the mandatory rules in
-`api/AGENTS.md`. Codex reads only metadata until a skill is selected.
+`apps/api/AGENTS.md`. Codex reads only metadata until a skill is selected.
 
 ## Skills
 
@@ -17,7 +17,7 @@ API skills provide task-specific workflows beyond the mandatory rules in
 | `deployment` | API image and runtime deployment checks |
 | `sql-migration-review` | Migration compatibility, locks, and rollback |
 
-Routine code standards stay in `api/AGENTS.md`; concrete diff review uses root
+Routine code standards stay in `apps/api/AGENTS.md`; concrete diff review uses root
 `fastbuild-code-review`. This avoids loading overlapping standards and review
 workflows during ordinary API implementation.
 
@@ -41,10 +41,10 @@ workflows during ordinary API implementation.
 bash .agents/skills/scripts/list-skills.sh
 make agent-check
 
-# From api/
+# From apps/api/
 go test ./internal/modules/<module>/...
 bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
 ```
 
-The root index at [`../../../.agents/skills/README.md`](../../../.agents/skills/README.md)
+The root index at [`../../../../.agents/skills/README.md`](../../../../.agents/skills/README.md)
 defines cross-repository routing and the governance guard map.

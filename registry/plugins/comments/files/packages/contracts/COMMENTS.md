@@ -13,7 +13,7 @@ OPTIONAL_STARTERS=organization,notification,comment
 
 A comment belongs to one resource, named by `resource_type` and `resource_id`. Resource types are a
 code-owned catalog: the plugin ships none, and each module that wants comments registers its type
-in `ProvideResourceCatalog` (`api/internal/modules/comment/resources.go`):
+in `ProvideResourceCatalog` (`apps/api/internal/modules/comment/resources.go`):
 
 ```go
 func ProvideResourceCatalog(tasks domain.TaskReader) (*ResourceCatalog, error) {

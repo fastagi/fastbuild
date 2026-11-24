@@ -44,7 +44,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/components/ui/button.tsx",
+        "apps/web/src/components/ui/button.tsx",
         (
             "Slot, Slottable",
             "@radix-ui/react-slot",
@@ -61,7 +61,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/src/components/ui/button.tsx",
+        "apps/web/src/components/ui/button.tsx",
         (
             "disabled={props.disabled || loading}",
             "const Comp = asChild ? Slot",
@@ -69,7 +69,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/test/button-composition.test.tsx",
+        "apps/web/src/test/button-composition.test.tsx",
         (
             "applies the button contract directly to the composed link",
             "keeps leading and trailing content inside the composed link hit area",
@@ -86,7 +86,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/AGENTS.md",
+        "apps/web/AGENTS.md",
         (
             "Shared composed controls must preserve their semantic host",
             "disabled state",
@@ -95,12 +95,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/.agents/skills/accessibility-audit/SKILL.md",
+        "apps/web/.agents/skills/accessibility-audit/SKILL.md",
         ("[references/fastbuild-controls.md](references/fastbuild-controls.md)",),
     )
     require_all(
         failures,
-        "web/.agents/skills/accessibility-audit/references/fastbuild-controls.md",
+        "apps/web/.agents/skills/accessibility-audit/references/fastbuild-controls.md",
         (
             "## Composed Buttons And Links",
             "`Button asChild`",
@@ -110,7 +110,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/.agents/skills/testing-standards/SKILL.md",
+        "apps/web/.agents/skills/testing-standards/SKILL.md",
         ("`src/test/button-composition.test.tsx`", "semantic host"),
     )
     require_all(

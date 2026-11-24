@@ -8,8 +8,8 @@ privacy, idempotency, retention, and other semantics that OpenAPI cannot express
 ## Toolchain
 
 - Redocly CLI validates OpenAPI structure and repository rules.
-- `openapi-typescript` generates deterministic TypeScript types independently into `web/` and
-  `admin/`; neither browser shell imports source from the other.
+- `openapi-typescript` generates deterministic TypeScript types independently into `apps/web/` and
+  `apps/admin/`; neither browser shell imports source from the other.
 - The route check assembles the real Go route catalog with every optional starter selected and
   infrastructure disabled. It fails when a described operation has no route and when a route has
   no described operation, so a new endpoint cannot ship without its contract.
@@ -19,7 +19,7 @@ privacy, idempotency, retention, and other semantics that OpenAPI cannot express
 Install and run from the repository root:
 
 ```bash
-cd contracts
+cd packages/contracts
 corepack pnpm install --frozen-lockfile
 corepack pnpm check
 corepack pnpm check:routes
@@ -34,7 +34,7 @@ generator during installation. CI fails when either copy is stale.
 1. Update the owning Markdown contract and `openapi.yaml` together. A new route fails
    `corepack pnpm check:routes` until it is described.
 2. Add only behavior that the API actually implements.
-3. Run `cd contracts && corepack pnpm generate`.
+3. Run `cd packages/contracts && corepack pnpm generate`.
 4. Bind browser request, response, and error types to generated schemas at the owning feature seam.
 5. Keep runtime validation for untrusted JSON; generated TypeScript types are not validators.
 6. Run contract, API, mock BFF, and browser tests for the changed operation.

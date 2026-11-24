@@ -1,4 +1,4 @@
-# OpenAPI fragment of the comments plugin. plugin:add merges it into contracts/openapi.yaml.
+# OpenAPI fragment of the comments plugin. plugin:add merges it into packages/contracts/openapi.yaml.
 x-error-codes:
   - COMMENT.NOT_FOUND
   - COMMENT.RESOURCE_NOT_FOUND

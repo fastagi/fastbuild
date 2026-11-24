@@ -19,7 +19,7 @@ Create only the directories the feature owns. Route entries belong under
 
 ## Workflow
 
-1. Read or update the owning contract under `../../contracts/`.
+1. Read or update the owning contract under `../../../packages/contracts/`.
 2. Add fixed endpoint paths and DTO validation in the feature service.
 3. Add TanStack Query hooks for remote reads and mutations.
 4. Add Zustand state only for genuinely shared browser UI state.

@@ -27,9 +27,9 @@ def installed_path(path: Path) -> str:
 def is_localization_source(path: Path) -> bool:
     relative = installed_path(path)
     return (
-        relative == "admin/src/i18n/resources.ts"
-        or relative == "web/src/i18n/locales.ts"
-        or (relative.startswith("web/src/i18n/modules/") and relative.endswith("/zh-Hans.ts"))
+        relative == "apps/admin/src/i18n/resources.ts"
+        or relative == "apps/web/src/i18n/locales.ts"
+        or (relative.startswith("apps/web/src/i18n/modules/") and relative.endswith("/zh-Hans.ts"))
     )
 
 

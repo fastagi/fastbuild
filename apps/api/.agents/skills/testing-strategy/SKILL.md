@@ -12,7 +12,7 @@ interfaces, substituting an incompatible database, or turning every package
 test into an end-to-end environment.
 
 Skip this skill when a nearby test already demonstrates the correct pattern.
-Use the focused command in `api/AGENTS.md` to run an existing test.
+Use the focused command in `apps/api/AGENTS.md` to run an existing test.
 
 ## Decision Order
 

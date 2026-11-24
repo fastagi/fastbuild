@@ -5,7 +5,7 @@ preferences, in-app read state, and a durable email delivery ledger. The shared 
 packages remain technical capabilities; they do not own notification workflow state.
 
 The HTTP and browser contract is canonical in
-[`../../contracts/NOTIFICATIONS.md`](../../contracts/NOTIFICATIONS.md).
+[`../../../packages/contracts/NOTIFICATIONS.md`](../../../packages/contracts/NOTIFICATIONS.md).
 
 ## Activation
 
@@ -120,7 +120,7 @@ dropping retained tables according to the downstream data policy.
 ## Verification
 
 ```bash
-cd api
+cd apps/api
 go test ./internal/modules/notification ./internal/infra/email ./internal/infra/console/commands
 OPTIONAL_STARTERS=notification go run ./cmd/fastbuild route:list
 go run ./cmd/fastbuild route:list

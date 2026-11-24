@@ -38,5 +38,5 @@ func TestModulesReadmeStarterCatalogIsGenerated(t *testing.T) {
 		return
 	}
 	require.Equal(t, generated, current,
-		"internal/modules/README.md starter table is stale; run `cd api && make starter-catalog`")
+		"internal/modules/README.md starter table is stale; run `cd apps/api && make starter-catalog`")
 }

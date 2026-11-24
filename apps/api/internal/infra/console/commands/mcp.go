@@ -33,7 +33,7 @@ func (c *MCPCommand) SuppressCompletionOutput() bool { return true }
 
 const mcpInstructions = `FastBuild project tools. Before building a capability, theme, or page section, call ` +
 	`plugin_search with the builder's words; when a plugin's use_when matches, call plugin_info and ` +
-	`plugin_preview, then install it with the CLI: cd api && go run ./cmd/fastbuild plugin:add <name>, ` +
+	`plugin_preview, then install it with the CLI: cd apps/api && go run ./cmd/fastbuild plugin:add <name>, ` +
 	`and complete its INTEGRATION.md steps. Call plugin_doctor before declaring integration done.`
 
 func (c *MCPCommand) Run([]string) error {
@@ -200,7 +200,7 @@ func pluginTools() []mcp.Tool {
 				return map[string]any{
 					"plugin": result.Entry.Name, "version": result.Entry.Version, "writes": result.Written,
 					"wiring": result.Wiring, "merges_contract": result.Entry.Fragment != "" && installer.Contract != nil,
-					"install_command": "cd api && go run ./cmd/fastbuild plugin:add " + result.Entry.Name + sourceSuffix(args.Source),
+					"install_command": "cd apps/api && go run ./cmd/fastbuild plugin:add " + result.Entry.Name + sourceSuffix(args.Source),
 				}, nil
 			},
 		},

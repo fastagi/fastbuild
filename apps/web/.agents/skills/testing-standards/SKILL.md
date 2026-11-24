@@ -130,4 +130,4 @@ Select another skill only when its distinct concern is active.
 
 - [`webapp-testing`](../webapp-testing/): Browser-driven complement to unit/component tests.
 - [`data-state-management`](../data-state-management/): Mocking state in tests.
-- [`systematic-debugging`](../../../../.agents/skills/systematic-debugging/): When a failing test surfaces a bug needing a real root cause.
+- [`systematic-debugging`](../../../../../.agents/skills/systematic-debugging/): When a failing test surfaces a bug needing a real root cause.

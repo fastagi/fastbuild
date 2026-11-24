@@ -11,7 +11,7 @@ Choose one hosting option:
 
 | Option                                                   | Use when                                                   | Owns headers and `/api` routing             |
 | -------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------- |
-| [Container](#option-a-container)                         | The API already runs on Kubernetes or a container platform | `admin/Dockerfile` (nginx), configured here |
+| [Container](#option-a-container)                         | The API already runs on Kubernetes or a container platform | `apps/admin/Dockerfile` (nginx), configured here |
 | [Object storage + CDN](#option-b-object-storage-and-cdn) | You want no admin runtime at all                           | Your CDN rules                              |
 
 Both options share the build contract, the API configuration, and the release rules.
@@ -45,7 +45,7 @@ Never put credentials in `VITE_*`; see [SECURITY.md](SECURITY.md).
 ## API Configuration
 
 With `VITE_OPTIONAL_FEATURES` containing `operator`, the API must select the `operator` starter and
-trust the console's public origin ([`contracts/OPERATORS.md`](../../contracts/OPERATORS.md)):
+trust the console's public origin ([`packages/contracts/OPERATORS.md`](../../../packages/contracts/OPERATORS.md)):
 
 | API setting                | Value                                                                                                                                                          |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -62,7 +62,7 @@ must be served over TLS.
 
 ## Option A: Container
 
-`admin/Dockerfile` builds the console with the reviewed Node base and serves it from a digest-pinned
+`apps/admin/Dockerfile` builds the console with the reviewed Node base and serves it from a digest-pinned
 `nginxinc/nginx-unprivileged` slim image copied into `scratch` without the `apk` binary. It runs as UID 101 on
 port 8080 with a read-only root filesystem; only `/tmp` must be writable.
 
@@ -93,7 +93,7 @@ The image serves:
 | Anything else        | Existing file, otherwise `index.html` with `200`; both `Cache-Control: no-cache`                                                     |
 
 Every static response carries the [security headers](#security-headers). Kubernetes wiring is in
-[`deploy/kubernetes/base/admin.yaml`](../../deploy/kubernetes/base/admin.yaml); the example overlay
+[`deploy/kubernetes/base/admin.yaml`](../../../deploy/kubernetes/base/admin.yaml); the example overlay
 selects the `operator` starter and sets `OPERATOR_ALLOWED_ORIGINS`. Route the whole admin host to
 the `fastbuild-admin` Service and terminate TLS at the ingress. Ingress should overwrite
 `X-Real-IP` with the client address, as it does for Web.

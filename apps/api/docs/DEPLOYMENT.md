@@ -14,7 +14,7 @@ cloud, registry, rollout controller, secret store, or migration orchestrator for
 | `.github/workflows/container.yml` | CI | Runs the same container verifier when API or container sources change. |
 | `fastbuild notification:work` | Optional notification starter | Processes durable email deliveries with bounded database leases. |
 | `fastbuild webhook:work` | Optional webhook starter | Processes signed outbound deliveries with bounded network calls and database leases. |
-| [`deploy/kubernetes`](../../deploy/kubernetes/README.md) | Example | Hardened kustomize reference for the API, workers, retention jobs, migration job, and Web. |
+| [`deploy/kubernetes`](../../../deploy/kubernetes/README.md) | Example | Hardened kustomize reference for the API, workers, retention jobs, migration job, and Web. |
 | Production deployment manifests | Downstream app | Own secrets, network policy, replicas, migrations, rollout, and rollback. |
 
 ## Production Image
@@ -53,7 +53,7 @@ The verifier uses Buildx maximal metadata and requires the reviewed Dockerfile, 
 digests in the BuildKit material set. It also checks OCI identity labels, the non-root user, image
 health configuration, liveness, database-disabled readiness, JSON request logs on stdout, absence of
 `/app/.env`, and a zero exit code after SIGTERM. Image-level SBOM, vulnerability, secret, EOL, and
-downstream signing semantics live in [`../../docs/CONTAINER_SECURITY.md`](../../docs/CONTAINER_SECURITY.md).
+downstream signing semantics live in [`../../../docs/CONTAINER_SECURITY.md`](../../../docs/CONTAINER_SECURITY.md).
 Standalone `make compose-check` always rebuilds the current worktree so a stale local tag cannot
 produce a false green result. In CI, the Compose verifier receives the explicit image tag built and
 checked by the immediately preceding container step; a missing explicit image fails instead of

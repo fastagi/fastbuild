@@ -16,7 +16,7 @@ const webRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const themeRoot = join(webRoot, 'src/themes');
 const presetRoot = join(themeRoot, 'presets');
 const sourceRoot = join(webRoot, 'src');
-const registryPlugins = resolve(webRoot, '../registry/plugins');
+const registryPlugins = resolve(webRoot, '../../registry/plugins');
 const minimumTextContrast = 4.5;
 
 const checks = [
@@ -258,7 +258,7 @@ for (const file of imported.filter(candidate => candidate.startsWith(presetRoot 
 let registryThemes = 0;
 if (existsSync(registryPlugins)) {
   for (const plugin of readdirSync(registryPlugins).sort()) {
-    const presetDirectory = join(registryPlugins, plugin, 'files/web/src/themes/presets');
+    const presetDirectory = join(registryPlugins, plugin, 'files/apps/web/src/themes/presets');
     if (!existsSync(presetDirectory)) {
       continue;
     }

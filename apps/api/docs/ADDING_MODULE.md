@@ -25,7 +25,7 @@ The steps below describe the same structure for a starter written by hand.
 ## Steps
 
 1. Name the module after the domain concept, not the transport action.
-2. Add or update the HTTP contract in `../../contracts/` before exposing a route, even when Web does not consume it yet.
+2. Add or update the HTTP contract in `../../../packages/contracts/` before exposing a route, even when Web does not consume it yet.
 3. Create `internal/modules/<name>/`.
 4. Keep the starter-style files local to the module:
 
@@ -47,7 +47,7 @@ service_test.go
 8. Generate Wire with `make wire` and commit `wire_gen.go`; CI runs `make wire-check`. Routes register through the selected manifest's module.
 9. Write versioned migrations as frozen SQL or migration-local snapshot structs, never `AutoMigrate` on the module's live persistence structs. Regenerate `database/migrations/testdata/schema.golden.sql` with `FASTBUILD_UPDATE_GOLDEN_SCHEMA=1` only when adding a migration, and review the diff.
 10. Verify both disabled and enabled assembly, including route and migration parity.
-11. Run `make test` in `api/`, or `make check` from the repo root.
+11. Run `make test` in `apps/api/`, or `make check` from the repo root.
 
 ## Design Rules
 
@@ -103,7 +103,7 @@ instead of silently leaving a route unprotected.
 
 Test at least missing selection, malformed selection, non-member non-disclosure, current role, and
 membership removal. The public behavior is defined in
-[`../../contracts/ORGANIZATIONS.md`](../../contracts/ORGANIZATIONS.md).
+[`../../../packages/contracts/ORGANIZATIONS.md`](../../../packages/contracts/ORGANIZATIONS.md).
 
 ## When Not To Add a Module
 

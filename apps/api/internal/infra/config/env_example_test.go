@@ -13,7 +13,7 @@ import (
 
 var envExampleKey = regexp.MustCompile(`^#?\s*([A-Z][A-Z0-9_]*)=`)
 
-// TestEnvExampleDocumentsEveryVariableTheConfigReads keeps api/.env.example a complete reference:
+// TestEnvExampleDocumentsEveryVariableTheConfigReads keeps apps/api/.env.example a complete reference:
 // every variable that Load reads must appear there, set or commented out.
 func TestEnvExampleDocumentsEveryVariableTheConfigReads(t *testing.T) {
 	t.Setenv("APP_ENV", "development")
@@ -31,7 +31,7 @@ func TestEnvExampleDocumentsEveryVariableTheConfigReads(t *testing.T) {
 	documented := map[string]bool{}
 	file, err := os.Open("../../../.env.example")
 	if err != nil {
-		t.Fatalf("open api/.env.example: %v", err)
+		t.Fatalf("open apps/api/.env.example: %v", err)
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -55,7 +55,7 @@ func TestEnvExampleDocumentsEveryVariableTheConfigReads(t *testing.T) {
 		}
 	}
 	if len(missing) > 0 {
-		t.Fatalf("api/.env.example does not document %d variable(s) the config reads:\n%s",
+		t.Fatalf("apps/api/.env.example does not document %d variable(s) the config reads:\n%s",
 			len(missing), strings.Join(missing, "\n"))
 	}
 }

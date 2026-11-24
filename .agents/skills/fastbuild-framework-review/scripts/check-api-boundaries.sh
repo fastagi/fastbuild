@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)
-API_ROOT="$ROOT/api"
+API_ROOT="$ROOT/apps/api"
 
 cd "$API_ROOT"
 
@@ -22,17 +22,17 @@ assert_absent_path() {
   local message=$2
 
   if [ -e "$API_ROOT/$relative_path" ]; then
-    echo "api/$relative_path is reserved against reuse; $message" >&2
+    echo "apps/api/$relative_path is reserved against reuse; $message" >&2
     exit 1
   fi
 }
 
-assert_absent_path "internal/contracts" "use internal/starter/assembly for starter registry seams and root contracts/ for HTTP contracts."
+assert_absent_path "internal/contracts" "use internal/starter/assembly for starter registry seams and root packages/contracts/ for HTTP contracts."
 # Generic grab-bag packages hide ownership; helpers belong at the seam that owns the behavior.
 for grab_bag in pkg/support pkg/utils pkg/common pkg/helpers internal/infra/utils internal/infra/common; do
   assert_absent_path "$grab_bag" "generic helper packages hide ownership; put the helper at the capability, runtime, or starter seam that owns it."
 done
-assert_absent_path "internal/infra/contracts" "the term contract is reserved for HTTP contracts under root contracts/; name Go interfaces for their seam."
+assert_absent_path "internal/infra/contracts" "the term contract is reserved for HTTP contracts under root packages/contracts/; name Go interfaces for their seam."
 
 KNOWN_VIOLATIONS=()
 
@@ -133,7 +133,7 @@ if [ "$new_violation_count" -gt 0 ]; then
   for violation in "${new_violations[@]}"; do
     printf '  - %s\n' "$violation" >&2
   done
-  echo "See api/docs/PACKAGE_BOUNDARIES.md and api/docs/adr/0005-package-boundaries.md." >&2
+  echo "See apps/api/docs/PACKAGE_BOUNDARIES.md and apps/api/docs/adr/0005-package-boundaries.md." >&2
   exit 1
 fi
 

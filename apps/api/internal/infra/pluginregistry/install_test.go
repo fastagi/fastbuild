@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	startersFile = "api/internal/infra/config/starters.go"
-	defaultsFile = "api/internal/starter/defaults.go"
-	featuresFile = "web/src/config/optional-features.ts"
+	startersFile = "apps/api/internal/infra/config/starters.go"
+	defaultsFile = "apps/api/internal/starter/defaults.go"
+	featuresFile = "apps/web/src/config/optional-features.ts"
 	testModule   = "github.com/fastagi/fastbuild/api"
 )
 
@@ -143,7 +143,7 @@ func TestInstallWritesFilesWiresTheStarterThroughSlotsAndLocks(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, result.Written, 2)
 	assert.Equal(t, []string{startersFile, defaultsFile}, result.Edited())
-	assert.FileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	assert.FileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 
 	starters := readFile(t, root, startersFile)
 	assert.Contains(t, starters, "StarterDemoNotes = \"demonotes\"\n\t// fastbuild:slot api.starter.constants")
@@ -168,13 +168,13 @@ func TestInstallWritesFilesWiresTheStarterThroughSlotsAndLocks(t *testing.T) {
 
 func TestInstallRefusesToOverwriteAndChangesNothing(t *testing.T) {
 	root := projectWithSlots(t)
-	writeFile(t, root, "contracts/fragments/demo-notes.yaml", "mine\n")
+	writeFile(t, root, "packages/contracts/fragments/demo-notes.yaml", "mine\n")
 
 	_, err := newInstaller(t, root).Install("demo-notes")
 	require.ErrorContains(t, err, "would overwrite existing files")
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 	assert.NoFileExists(t, filepath.Join(root, LockFile))
-	assert.Equal(t, "mine\n", readFile(t, root, "contracts/fragments/demo-notes.yaml"))
+	assert.Equal(t, "mine\n", readFile(t, root, "packages/contracts/fragments/demo-notes.yaml"))
 	assert.Equal(t, slotFixtures[startersFile], readFile(t, root, startersFile))
 }
 
@@ -185,8 +185,8 @@ func TestInstallRollsBackEverythingWhenTheContractMergeFails(t *testing.T) {
 
 	_, err := installer.Install("demo-notes")
 	require.ErrorContains(t, err, "merge exploded")
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
-	assert.NoDirExists(t, filepath.Join(root, "api/internal/modules/demonotes"), "created directories are removed")
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
+	assert.NoDirExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes"), "created directories are removed")
 	for file, content := range slotFixtures {
 		assert.Equal(t, content, readFile(t, root, file), file)
 	}
@@ -199,7 +199,7 @@ func TestInstallFailsWithoutChangesWhenASlotIsMissing(t *testing.T) {
 
 	_, err := newInstaller(t, root).Install("demo-notes")
 	require.ErrorContains(t, err, "slot marker not found: api.starter.imports")
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 	assert.Equal(t, slotFixtures[startersFile], readFile(t, root, startersFile))
 }
 
@@ -213,7 +213,7 @@ func TestInstallChecksRequirementsBeforeWriting(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), `needs the "organization" starter`)
 	assert.Contains(t, err.Error(), "needs FastBuild 0.24.0 or newer")
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 
 	installer.KnownStarters = []string{"organization", "demonotes"}
 	installer.ScaffoldVersion = ""
@@ -233,10 +233,10 @@ func TestMergedFragmentRecordsItsAdditionsAndIsNotTracked(t *testing.T) {
 	assert.Contains(t, result.Edited(), ContractFile)
 	lock, _ := ReadLock(root)
 	locked := lock.Plugins["demo-notes"]
-	assert.Equal(t, "contracts/fragments/demo-notes.yaml", locked.Fragment)
+	assert.Equal(t, "packages/contracts/fragments/demo-notes.yaml", locked.Fragment)
 	assert.NotEmpty(t, locked.FragmentChecksum)
 	assert.Equal(t, []string{"/v1/demo-notes"}, locked.Contract.Paths)
-	assert.NotContains(t, locked.Files, "contracts/fragments/demo-notes.yaml")
+	assert.NotContains(t, locked.Files, "packages/contracts/fragments/demo-notes.yaml")
 	for _, status := range Status(root, locked) {
 		assert.Equal(t, "unchanged", status.State, status.Path)
 	}
@@ -246,16 +246,16 @@ func TestStatusReportsModifiedAndMissingFiles(t *testing.T) {
 	root := projectWithSlots(t)
 	_, err := newInstaller(t, root).Install("demo-notes")
 	require.NoError(t, err)
-	writeFile(t, root, "api/internal/modules/demonotes/doc.go", "package demonotes\n")
-	require.NoError(t, os.Remove(filepath.Join(root, "contracts/fragments/demo-notes.yaml")))
+	writeFile(t, root, "apps/api/internal/modules/demonotes/doc.go", "package demonotes\n")
+	require.NoError(t, os.Remove(filepath.Join(root, "packages/contracts/fragments/demo-notes.yaml")))
 
 	lock, _ := ReadLock(root)
 	states := map[string]string{}
 	for _, status := range Status(root, lock.Plugins["demo-notes"]) {
 		states[status.Path] = status.State
 	}
-	assert.Equal(t, "modified", states["api/internal/modules/demonotes/doc.go"])
-	assert.Equal(t, "missing", states["contracts/fragments/demo-notes.yaml"])
+	assert.Equal(t, "modified", states["apps/api/internal/modules/demonotes/doc.go"])
+	assert.Equal(t, "missing", states["packages/contracts/fragments/demo-notes.yaml"])
 }
 
 func TestDryRunReportsFilesAndWiringWithoutWriting(t *testing.T) {
@@ -266,7 +266,7 @@ func TestDryRunReportsFilesAndWiringWithoutWriting(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, result.Written, 2)
 	assert.Len(t, result.Wiring, 6)
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 	assert.NoFileExists(t, filepath.Join(root, LockFile))
 	assert.Equal(t, slotFixtures[defaultsFile], readFile(t, root, defaultsFile))
 }
@@ -279,9 +279,9 @@ func TestTransformAdaptsFilesAndStarterImports(t *testing.T) {
 	}
 	_, err := installer.Install("demo-notes")
 	require.NoError(t, err)
-	written := readFile(t, root, "api/internal/modules/demonotes/doc.go")
+	written := readFile(t, root, "apps/api/internal/modules/demonotes/doc.go")
 	assert.Contains(t, written, "github.com/acme/platform/api/internal/domain")
 	assert.Contains(t, readFile(t, root, defaultsFile), "\"github.com/acme/platform/api/internal/modules/demonotes\"")
 	lock, _ := ReadLock(root)
-	assert.Equal(t, Checksum([]byte(written)), lock.Plugins["demo-notes"].Files["api/internal/modules/demonotes/doc.go"])
+	assert.Equal(t, Checksum([]byte(written)), lock.Plugins["demo-notes"].Files["apps/api/internal/modules/demonotes/doc.go"])
 }

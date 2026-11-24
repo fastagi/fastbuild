@@ -1,4 +1,4 @@
-# OpenAPI fragment of the tags plugin. plugin:add merges it into contracts/openapi.yaml.
+# OpenAPI fragment of the tags plugin. plugin:add merges it into packages/contracts/openapi.yaml.
 x-error-codes:
   - TAG.NOT_FOUND
   - TAG.INVALID

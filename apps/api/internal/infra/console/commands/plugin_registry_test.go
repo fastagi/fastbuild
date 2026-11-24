@@ -23,7 +23,7 @@ func TestPluginRegistryIndexIsCurrent(t *testing.T) {
 	require.NoError(t, err)
 	got, err := os.ReadFile(filepath.Join(dir, pluginregistry.IndexFile))
 	require.NoError(t, err)
-	require.Equal(t, string(want), string(got), "registry/index.json is stale; run: cd api && go run ./cmd/fastbuild plugin:index")
+	require.Equal(t, string(want), string(got), "registry/index.json is stale; run: cd apps/api && go run ./cmd/fastbuild plugin:index")
 }
 
 // fixtureRegistry copies the pluginregistry test registry and writes its index.
@@ -31,7 +31,7 @@ func TestPluginRegistryIndexIsCurrent(t *testing.T) {
 // which installs plugins from its FastBuild release instead of carrying the registry.
 func scaffoldRegistry(t *testing.T) string {
 	t.Helper()
-	dir, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", registryDir))
+	dir, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", "..", registryDir))
 	require.NoError(t, err)
 	if _, statErr := os.Stat(filepath.Join(dir, pluginregistry.IndexFile)); os.IsNotExist(statErr) {
 		t.Skip("no registry/: initialized projects install plugins from their FastBuild release")
@@ -44,7 +44,7 @@ func fixtureRegistry(t *testing.T) string {
 	dir := t.TempDir()
 	require.NoError(t, os.CopyFS(dir, os.DirFS(filepath.Join("..", "..", "pluginregistry", "testdata", "registry"))))
 	// Registries ship the scaffold's module path; project:init rewrote it in this tracked fixture.
-	module, err := projectModulePath(filepath.Join("..", "..", "..", "..", ".."))
+	module, err := projectModulePath(filepath.Join("..", "..", "..", "..", "..", ".."))
 	require.NoError(t, err)
 	require.NoError(t, filepath.WalkDir(dir, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil || entry.IsDir() || filepath.Ext(path) != ".go" {
@@ -124,12 +124,12 @@ func downstreamProject(t *testing.T) string {
 		require.NoError(t, os.MkdirAll(filepath.Dir(path), 0o755))
 		require.NoError(t, os.WriteFile(path, []byte(content), 0o644))
 	}
-	write("api/go.mod", "module github.com/example-demo/platform/api\n\ngo 1.26.9\n")
-	write("contracts/openapi.yaml", "openapi: 3.1.0\npaths: {}\n")
+	write("apps/api/go.mod", "module github.com/example-demo/platform/api\n\ngo 1.26.9\n")
+	write("packages/contracts/openapi.yaml", "openapi: 3.1.0\npaths: {}\n")
 	for _, file := range []string{"internal/infra/config/starters.go", "internal/starter/defaults.go"} {
 		raw, err := os.ReadFile(filepath.Join("..", "..", "..", "..", filepath.FromSlash(file)))
 		require.NoError(t, err)
-		write("api/"+file, string(raw))
+		write("apps/api/"+file, string(raw))
 	}
 	return root
 }
@@ -139,23 +139,23 @@ func TestPluginAddInstallsAdaptsWiresAndLocks(t *testing.T) {
 	require.NoError(t, err)
 	registry := fixtureRegistry(t)
 	root := downstreamProject(t)
-	t.Chdir(filepath.Join(root, "api"))
+	t.Chdir(filepath.Join(root, "apps", "api"))
 
 	require.NoError(t, NewPluginAddCommand().Run([]string{"demo-notes", "--source=" + registry, "--dry-run"}))
-	assert.NoFileExists(t, filepath.Join(root, "api/internal/modules/demonotes/doc.go"), "dry run writes nothing")
+	assert.NoFileExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"), "dry run writes nothing")
 
 	captureStdout(t, func() error {
 		return NewPluginAddCommand().Run([]string{"demo-notes", "--source=" + registry})
 	})
 
-	doc, err := os.ReadFile(filepath.Join(root, "api/internal/modules/demonotes/doc.go"))
+	doc, err := os.ReadFile(filepath.Join(root, "apps/api/internal/modules/demonotes/doc.go"))
 	require.NoError(t, err)
 	assert.Contains(t, string(doc), `"github.com/example-demo/platform/api/internal/domain"`, "imports follow the project's module")
 	assert.NotContains(t, string(doc), "fastagi/fastbuild")
 
-	starters, _ := os.ReadFile(filepath.Join(root, "api/internal/infra/config/starters.go"))
+	starters, _ := os.ReadFile(filepath.Join(root, "apps/api/internal/infra/config/starters.go"))
 	assert.Contains(t, string(starters), `StarterDemoNotes`)
-	defaults, _ := os.ReadFile(filepath.Join(root, "api/internal/starter/defaults.go"))
+	defaults, _ := os.ReadFile(filepath.Join(root, "apps/api/internal/starter/defaults.go"))
 	assert.Contains(t, string(defaults), "demonotes.ProviderSet")
 	assert.Contains(t, string(defaults), "demonotes.NewStarterManifest(h.DemoNotes)")
 
@@ -183,19 +183,19 @@ func TestPluginAddInstallsAdaptsWiresAndLocks(t *testing.T) {
 	for _, file := range []string{"internal/infra/config/starters.go", "internal/starter/defaults.go"} {
 		original, readErr := os.ReadFile(filepath.Join(scaffoldAPIRoot, filepath.FromSlash(file)))
 		require.NoError(t, readErr)
-		current, _ := os.ReadFile(filepath.Join(root, "api", filepath.FromSlash(file)))
+		current, _ := os.ReadFile(filepath.Join(root, "apps", "api", filepath.FromSlash(file)))
 		assert.Equal(t, string(original), string(current), "plugin:remove restores %s", file)
 	}
-	assert.NoDirExists(t, filepath.Join(root, "api/internal/modules/demonotes"))
+	assert.NoDirExists(t, filepath.Join(root, "apps/api/internal/modules/demonotes"))
 	assert.NoFileExists(t, filepath.Join(root, pluginregistry.LockFile))
 }
 
 // TestProjectSlotsAreMarkedExactlyOnce keeps the slot catalog and the markers in the source aligned:
 // every cataloged slot is marked once in its file, and no file marks an uncataloged slot.
 func TestProjectSlotsAreMarkedExactlyOnce(t *testing.T) {
-	repoRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
+	repoRoot, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", ".."))
 	require.NoError(t, err)
-	found, err := pluginregistry.ScanSlotMarkers(repoRoot, "api/internal", "web/src", "admin/src")
+	found, err := pluginregistry.ScanSlotMarkers(repoRoot, "apps/api/internal", "apps/web/src", "apps/admin/src")
 	require.NoError(t, err)
 	for _, slot := range pluginregistry.ProjectSlots {
 		assert.Equal(t, []string{slot.File}, found[slot.Name], "slot %s", slot.Name)

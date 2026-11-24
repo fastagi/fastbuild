@@ -8,7 +8,7 @@ not mistaken for a complete API contract.
 
 | Surface | Authority |
 |---|---|
-| [`../../contracts/`](../../contracts/) | Canonical request, response, status, `error_code`, `request_id`, pagination, authentication, and compatibility behavior. |
+| [`../../../packages/contracts/`](../../../packages/contracts/) | Canonical request, response, status, `error_code`, `request_id`, pagination, authentication, and compatibility behavior. |
 | `bootstrap.RegisterHTTPRoutes` | One runtime registration seam shared by the HTTP server and route discovery. It owns core operational routes plus active starter routes. |
 | `fastbuild route:list` | Human-readable inventory for the currently resolved configuration. |
 | `fastbuild route:list --format=json` | Deterministic machine-readable inventory described by [`route-catalog.schema.json`](route-catalog.schema.json). |
@@ -20,7 +20,7 @@ implementation tests. FastBuild does not expose a runtime `/swagger` or `/openap
 
 ## Commands
 
-From `api/`:
+From `apps/api/`:
 
 ```bash
 DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild route:list
@@ -67,7 +67,7 @@ CI executes that verifier after the API test tier.
 
 ## Change Workflow
 
-1. Update the owning file under [`../../contracts/`](../../contracts/) before changing public HTTP behavior.
+1. Update the owning file under [`../../../packages/contracts/`](../../../packages/contracts/) before changing public HTTP behavior.
 2. Register the route through core bootstrap or the owning starter manifest, never a parallel documentation registry.
 3. Run the relevant handler/contract tests and `make route-catalog-check`.
 4. Compare default and affected optional-starter catalogs when activation changes.
@@ -80,7 +80,7 @@ omitted runtime-only routes, and have been removed.
 
 ## OpenAPI Boundary
 
-[`../../contracts/openapi.yaml`](../../contracts/openapi.yaml) is the OpenAPI 3.1 machine contract
+[`../../../packages/contracts/openapi.yaml`](../../../packages/contracts/openapi.yaml) is the OpenAPI 3.1 machine contract
 for reviewed operations. Its coverage is intentionally incremental and explicit: included paths own
 schemas and generated types, while omitted paths remain governed by their Markdown contracts. The
 contract route check normalizes path parameters and requires every included operation to exist in
@@ -89,7 +89,7 @@ this runtime catalog.
 The two machine surfaces remain distinct. OpenAPI owns reviewed HTTP shapes and compatibility;
 `route:list` owns the exact topology assembled by one configuration, including operational and
 optional routes that may not yet have an OpenAPI schema. Neither surface may infer the other's
-missing information. See [`../../contracts/OPENAPI.md`](../../contracts/OPENAPI.md) for generation
+missing information. See [`../../../packages/contracts/OPENAPI.md`](../../../packages/contracts/OPENAPI.md) for generation
 and breaking-change policy.
 
 ## Measured Baseline

@@ -96,7 +96,7 @@ const userTimezoneSettingSchema = strictObject({
 });
 
 /**
- * Any well-formed setting as `contracts/openapi.yaml` describes it. The setting catalog is
+ * Any well-formed setting as `packages/contracts/openapi.yaml` describes it. The setting catalog is
  * code-owned and downstream apps extend it, so the client reads every entry with this schema and
  * then narrows only the definitions it renders; an unknown definition is ignored, not an error.
  */

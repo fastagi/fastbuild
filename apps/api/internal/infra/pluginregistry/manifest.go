@@ -96,7 +96,7 @@ type StarterSpec struct {
 	Name string `json:"name"`
 	// Const is the config constant, for example "StarterKnowledge".
 	Const string `json:"const"`
-	// Directory is the module directory under api/internal/modules.
+	// Directory is the module directory under apps/api/internal/modules.
 	Directory string `json:"directory"`
 	// Package is the Go package name; it defaults to Directory.
 	Package string `json:"package,omitempty"`
@@ -217,8 +217,8 @@ func (m Manifest) Validate() error {
 			problems = append(problems, "starter.name must equal the Go package name, which names the starter")
 		}
 	}
-	if m.Fragment != "" && (!strings.HasPrefix(m.Fragment, "contracts/fragments/") || path.Ext(m.Fragment) != ".yaml") {
-		problems = append(problems, "fragment must be a contracts/fragments/*.yaml path")
+	if m.Fragment != "" && (!strings.HasPrefix(m.Fragment, "packages/contracts/fragments/") || path.Ext(m.Fragment) != ".yaml") {
+		problems = append(problems, "fragment must be a packages/contracts/fragments/*.yaml path")
 	}
 	for _, variable := range m.Env {
 		if !envNamePattern.MatchString(variable.Name) || strings.TrimSpace(variable.Description) == "" {

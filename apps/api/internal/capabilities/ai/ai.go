@@ -11,7 +11,7 @@
 //
 // Today the only built-in provider is OpenAI. Adding another provider requires
 // an adapter, typed configuration and validation, and registration in
-// [NewManager]; see api/docs/AI.md for the complete boundary.
+// [NewManager]; see apps/api/docs/AI.md for the complete boundary.
 package ai
 
 import (

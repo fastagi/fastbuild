@@ -1,6 +1,6 @@
 # AGENTS.md - FastBuild Admin Console
 
-Rules for the static React application under `admin/`.
+Rules for the static React application under `apps/admin/`.
 
 ## Scope
 
@@ -12,7 +12,7 @@ may be required in production.
 
 Inspect the owning route, feature, service, and tests first. Use root FastBuild
 skills only when their trigger matches; this surface deliberately does not
-duplicate the Next-specific skills under `web/.agents/skills/`.
+duplicate the Next-specific skills under `apps/web/.agents/skills/`.
 
 ## Structure
 
@@ -46,7 +46,7 @@ src/http/client.ts -> HTTP API`.
   Query cache.
 - Put reusable controls in `components/ui` only when they are genuinely
   feature-neutral. Search before adding a primitive, hook, or utility.
-- Do not import source from `web/` or `api/`. Equivalent behavior is
+- Do not import source from `apps/web/` or `apps/api/`. Equivalent behavior is
   implemented locally against the same contracts.
 
 ## Routing
@@ -74,7 +74,7 @@ src/http/client.ts -> HTTP API`.
   mutation retries.
 - User-facing error copy belongs to i18n mappings, not upstream messages.
 
-Update the owning file under `../contracts/` when public request, response,
+Update the owning file under `../../packages/contracts/` when public request, response,
 status, error, session, or pagination behavior changes.
 
 ## Authentication And Security
@@ -126,7 +126,7 @@ This is a static browser client, not a BFF:
 | Browser security and authentication | [docs/SECURITY.md](docs/SECURITY.md)                         |
 | Internationalization                | [docs/INTERNATIONALIZATION.md](docs/INTERNATIONALIZATION.md) |
 | Bundle and runtime performance      | [docs/PERFORMANCE.md](docs/PERFORMANCE.md)                   |
-| Shared HTTP behavior                | The matching file under `../contracts/`                      |
+| Shared HTTP behavior                | The matching file under `../../packages/contracts/`                      |
 
 ## Verification
 
@@ -151,7 +151,7 @@ release, not for every Admin Console commit or push.
   server to this surface. The container is static nginx plus a fixed `/api`
   proxy; keep application logic out of `deploy/nginx/`.
 - Copy Next.js Route Handlers, Server Components, or server-only modules from
-  `web/`.
+  `apps/web/`.
 - Hide production auth gaps behind a development token store.
 - Add product-specific behavior to the scaffold default.
 - Commit `dist/`, local environment files, credentials, or generated reports.

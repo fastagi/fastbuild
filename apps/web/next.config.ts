@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
 
   productionBrowserSourceMaps: false,
 
-  // web/AGENTS.md is the reviewed agent guide for this shell; `next dev` must not append to it.
+  // apps/web/AGENTS.md is the reviewed agent guide for this shell; `next dev` must not append to it.
   agentRules: false,
   turbopack: {},
 

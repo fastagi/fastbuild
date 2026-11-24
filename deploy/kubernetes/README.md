@@ -7,7 +7,7 @@ controller, secret store, rollout controller, or PostgreSQL provider. Those choi
 downstream team.
 
 The container and runtime contract this baseline encodes is in
-[`api/docs/DEPLOYMENT.md`](../../api/docs/DEPLOYMENT.md). Read that first; this README covers only
+[`apps/api/docs/DEPLOYMENT.md`](../../apps/api/docs/DEPLOYMENT.md). Read that first; this README covers only
 how the manifests map onto it.
 
 ## Layout
@@ -30,7 +30,7 @@ takes replicas out of traffic without restarting them.
 
 ## Deploy
 
-1. **Build and push images by digest.** Build `api/`, `web/`, and `admin/` with their Dockerfiles,
+1. **Build and push images by digest.** Build `apps/api/`, `apps/web/`, and `apps/admin/` with their Dockerfiles,
    then set the digest in each kustomization's `images` entry (`kustomize edit set image
    fastbuild-api=registry.example.com/fastbuild-api@sha256:...`). The Web image bakes in
    `NEXT_PUBLIC_*` and the Admin image bakes in `VITE_*` at build time, so build each once per
@@ -74,7 +74,7 @@ takes replicas out of traffic without restarting them.
    pod CIDR to `SERVER_TRUSTED_PROXIES`. Build the image with
    `VITE_OPTIONAL_FEATURES=operator,...` matching the API starters. To host the console on object
    storage and a CDN instead, drop `admin.yaml` and follow
-   [`admin/docs/DEPLOYMENT.md`](../../admin/docs/DEPLOYMENT.md).
+   [`apps/admin/docs/DEPLOYMENT.md`](../../apps/admin/docs/DEPLOYMENT.md).
 
 ## Adapting
 

@@ -1,6 +1,6 @@
 # Adding a Web Feature
 
-Use this checklist for feature-first additions under `web/`.
+Use this checklist for feature-first additions under `apps/web/`.
 
 ## Placement
 
@@ -27,7 +27,7 @@ src/features/<feature>/
 - Use `getEnvelope()` only when a caller owns pagination `meta` / `links`; normal calls continue to
   receive extracted `data`. Validate security- or state-sensitive successful JSON before caching.
 - Treat backend `error_code` as the stable error branch key.
-- Keep DTO fields aligned with `contracts/README.md`.
+- Keep DTO fields aligned with `packages/contracts/README.md`.
 - If you add a development mock BFF route under `src/app/api/`, call `guardMockBffRoute()` before reading the request body or touching mock state. Unsafe handlers (`POST`, `PUT`, `PATCH`, `DELETE`) must then call `guardSameOriginMutation(request)` before parsing or mutation. Read JSON through bounded `readJsonBody()` and map an oversized body to `413 COMMON.REQUEST_TOO_LARGE`. Return successful payloads with `apiSuccessResponse()` so mock routes preserve `{ code: 0, message: "success", data }`. `src/test/mock-bff-route-contract.test.ts` fails if a route misses either required guard, bypasses shared response helpers, or emits legacy underscore-style error codes.
 - A hybrid production/mock feature may use a named route resolver and delegate to
   `src/server/api-adapter/`, but every browser path remains an explicit Route Handler. Never accept
@@ -64,7 +64,7 @@ src/features/<feature>/
 
 ## Verification
 
-Run from `web/`:
+Run from `apps/web/`:
 
 ```bash
 pnpm type-check

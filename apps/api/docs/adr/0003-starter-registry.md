@@ -21,7 +21,7 @@ The application, route setup, migration bootstrap, and seed bootstrap should con
 
 Starter assembly interfaces live under `internal/starter/assembly`, not a top-level starter
 contract package. The term `contract` remains reserved for documented HTTP behavior under the
-repository-level `contracts/` directory.
+repository-level `packages/contracts/` directory.
 
 The `audit`, `apikey`, and `user` starters are immutable defaults. Optional starters are compiled
 into the application provider graph but remain inactive unless their canonical lowercase name is

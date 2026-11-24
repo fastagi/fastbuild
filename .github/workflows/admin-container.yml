@@ -1,25 +1,7 @@
 name: Admin Container
 
-# Pull requests run this only when the image's inputs change; a weekly run rebuilds and rescans it.
+# On demand only. release.yml builds and scans the Admin Console image for every release tag.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "admin/Dockerfile"
-      - "admin/.dockerignore"
-      - "admin/package.json"
-      - "admin/pnpm-lock.yaml"
-      - "admin/pnpm-workspace.yaml"
-      - "admin/vite.config.ts"
-      - "admin/deploy/nginx/**"
-      - "admin/scripts/verify-container.sh"
-      - "scripts/container-security.sh"
-      - "scripts/validate-container-sbom.py"
-      - ".trivyignore.yaml"
-      - ".agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py"
-      - ".github/workflows/admin-container.yml"
-  schedule:
-    - cron: "35 3 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -37,7 +19,7 @@ jobs:
     timeout-minutes: 25
     defaults:
       run:
-        working-directory: admin
+        working-directory: apps/admin
     steps:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1

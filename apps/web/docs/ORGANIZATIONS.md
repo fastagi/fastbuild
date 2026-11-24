@@ -1,7 +1,7 @@
 # Organization Web Feature
 
 The optional Web `organization` feature is the browser workflow for the API `organization` starter.
-It consumes the contract in [`../../contracts/ORGANIZATIONS.md`](../../contracts/ORGANIZATIONS.md);
+It consumes the contract in [`../../../packages/contracts/ORGANIZATIONS.md`](../../../packages/contracts/ORGANIZATIONS.md);
 it does not redefine tenant ownership or authorization in React.
 
 ## Activation

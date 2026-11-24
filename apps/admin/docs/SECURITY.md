@@ -35,7 +35,7 @@ Zustand persistence, query cache, URLs, logs, or analytics.
 ## Platform Operator Sign-In
 
 The optional `operator` API starter is the shipped Go browser adapter for this
-console ([`../../contracts/OPERATORS.md`](../../contracts/OPERATORS.md)). Enable it
+console ([`../../../packages/contracts/OPERATORS.md`](../../../packages/contracts/OPERATORS.md)). Enable it
 in the console build with `VITE_OPTIONAL_FEATURES=operator`; without the flag the
 console has no sign-in and no protected feature:
 

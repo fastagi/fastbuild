@@ -10,7 +10,7 @@ design belong to `database-design`; this explicit workflow owns rollout risk.
 
 ## Scope
 
-Use for a versioned migration under `api/database/migrations/` that changes a
+Use for a versioned migration under `apps/api/database/migrations/` that changes a
 table, column, type, default, nullability, constraint, index, or persisted data.
 Read the migration, matching PO, query call sites, and available production row
 count/traffic evidence. Do not load `database-design` unless the desired final
@@ -62,7 +62,7 @@ schema itself remains unresolved.
 
 ### Repository hygiene
 
-- Use `api/database/migrations/YYYY_MM_DD_HHMMSS_<name>.go`.
+- Use `apps/api/database/migrations/YYYY_MM_DD_HHMMSS_<name>.go`.
 - Keep one rollout concern per migration and register it with its owning
   starter/core assembly.
 - Align the PO only at the deploy stage where new code can safely depend on the
@@ -78,8 +78,8 @@ schema itself remains unresolved.
 ## Static First Pass
 
 ```bash
-bash api/.agents/skills/sql-migration-review/scripts/check-migration.sh \
-  api/database/migrations/2026_07_25_000000_add_audit_retention_index.go
+bash apps/api/.agents/skills/sql-migration-review/scripts/check-migration.sh \
+  apps/api/database/migrations/2026_07_25_000000_add_audit_retention_index.go
 ```
 
 The script checks repository naming, required `Down`, unsupported dialect

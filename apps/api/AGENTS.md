@@ -1,6 +1,6 @@
 # AGENTS.md - FastBuild API
 
-Rules for the Go backend under `api/`.
+Rules for the Go backend under `apps/api/`.
 
 ## Scope
 
@@ -112,7 +112,7 @@ Capabilities should not gain HTTP files merely to match that template.
 - Resource URLs use plural nouns, not action verbs.
 - Use `200` for reads/updates, `201` for creation, and `204` for successful
   bodyless deletion.
-- Update the owning file under `../contracts/` before changing a shared public
+- Update the owning file under `../../packages/contracts/` before changing a shared public
   shape or behavior.
 
 ## Security And Runtime
@@ -148,7 +148,7 @@ Capabilities should not gain HTTP files merely to match that template.
 | Route discovery | [docs/ROUTE_DISCOVERY.md](docs/ROUTE_DISCOVERY.md) |
 | Architecture decisions | [docs/adr/README.md](docs/adr/README.md) |
 | Migrations and seeders | [database/README.md](database/README.md) |
-| Capability behavior | The matching file under `docs/` and `../contracts/` |
+| Capability behavior | The matching file under `docs/` and `../../packages/contracts/` |
 
 Open the matching capability document only when changing that capability.
 
@@ -161,7 +161,7 @@ Start focused, then widen once:
 go test ./internal/modules/<module>/...
 
 # Static + focused tests (scope is optional)
-bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
+bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
 
 # Generated dependency graph (regenerate, then prove it is committed)
 make wire

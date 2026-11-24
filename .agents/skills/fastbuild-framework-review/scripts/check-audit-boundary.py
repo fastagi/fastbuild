@@ -36,7 +36,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/AUDIT.md",
+        "packages/contracts/AUDIT.md",
         (
             "durable, user-scoped history",
             "GET /v1/audit-logs",
@@ -52,7 +52,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/audit/dto.go",
+        "apps/api/internal/modules/audit/dto.go",
         (
             'binding:"omitempty,max=120"',
             'binding:"omitempty,max=180"',
@@ -63,7 +63,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/audit/service.go",
+        "apps/api/internal/modules/audit/service.go",
         (
             "domain.AuditLogMaintainer",
             "maxAuditPruneBatch = 10_000",
@@ -75,7 +75,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/audit/repository.go",
+        "apps/api/internal/modules/audit/repository.go",
         (
             "Where(\"user_id = ?\", userID)",
             "WITH candidates AS",
@@ -89,7 +89,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/audit/model.go",
+        "apps/api/internal/modules/audit/model.go",
         (
             "idx_audit_logs_created_id,priority:1",
             "idx_audit_logs_created_id,priority:2",
@@ -97,7 +97,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/audit/provider.go",
+        "apps/api/internal/modules/audit/provider.go",
         (
             "wire.Bind(new(domain.AuditLogMaintainer)",
             'WithStarterMigrationNames("2026_07_25_000000_add_audit_retention_index")',
@@ -105,7 +105,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_25_000000_add_audit_retention_index.go",
+        "apps/api/database/migrations/2026_07_25_000000_add_audit_retention_index.go",
         (
             "UseTransaction: false",
             'db.Name() != "postgres"',
@@ -116,7 +116,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/audit.go",
+        "apps/api/internal/bootstrap/operatorcommands/audit.go",
         (
             'return "audit:prune --before=<RFC3339> [--batch=500]"',
             "defaultAuditPruneBatch = 500",
@@ -132,12 +132,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/manifest.go",
+        "apps/api/internal/bootstrap/operatorcommands/manifest.go",
         ("NewAuditPruneCommand()",),
     )
     require_all(
         failures,
-        "api/internal/app/app.go",
+        "apps/api/internal/app/app.go",
         ("AuditMaintainer        domain.AuditLogMaintainer",),
     )
 

@@ -49,7 +49,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/NOTIFICATIONS.md",
+        "packages/contracts/NOTIFICATIONS.md",
         (
             "OPTIONAL_STARTERS=notification",
             "NEXT_PUBLIC_OPTIONAL_FEATURES=notification",
@@ -75,7 +75,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/domain/notification.go",
+        "apps/api/internal/domain/notification.go",
         (
             'NotificationChannelInApp NotificationChannel = "in_app"',
             'NotificationChannelEmail NotificationChannel = "email"',
@@ -88,7 +88,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/model.go",
+        "apps/api/internal/modules/notification/model.go",
         (
             "idx_notifications_user_idempotency",
             "PublicationHash string",
@@ -106,7 +106,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/repository.go",
+        "apps/api/internal/modules/notification/repository.go",
         (
             "clause.OnConflict",
             'Columns:   []clause.Column{{Name: "user_id"}, {Name: "idempotency_key"}}',
@@ -124,7 +124,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/service.go",
+        "apps/api/internal/modules/notification/service.go",
         (
             "maxDeliveryAttempts  = uint8(5)",
             "normalizePublication(publication)",
@@ -144,7 +144,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/provider.go",
+        "apps/api/internal/modules/notification/provider.go",
         (
             'config.StarterNotification',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit)',
@@ -156,7 +156,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/routes.go",
+        "apps/api/internal/modules/notification/routes.go",
         (
             'WithMiddleware("auth")',
             'GET("/notifications"',
@@ -169,12 +169,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/internal/modules/notification/routes.go",
+        "apps/api/internal/modules/notification/routes.go",
         ('POST("/notifications"',),
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_15_020000_create_notification_tables.go",
+        "apps/api/database/migrations/2026_07_15_020000_create_notification_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE notifications (',
@@ -185,7 +185,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/console/commands/notification.go",
+        "apps/api/internal/infra/console/commands/notification.go",
         (
             'return "notification:work"',
             "--batch=25",
@@ -199,17 +199,17 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/internal/infra/console/commands/notification.go",
+        "apps/api/internal/infra/console/commands/notification.go",
         ("--max-jobs", "MaxJobs"),
     )
     require_all(
         failures,
-        "api/internal/infra/console/commands/manifest.go",
+        "apps/api/internal/infra/console/commands/manifest.go",
         ("NewNotificationWorkCommand()",),
     )
     require_all(
         failures,
-        "api/internal/infra/email/email.go",
+        "apps/api/internal/infra/email/email.go",
         (
             "SendEmailIdempotent(",
             'request.Header.Set("Idempotency-Key", idempotencyKey)',
@@ -219,7 +219,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/domain/error_codes.go",
+        "apps/api/internal/domain/error_codes.go",
         (
             '"NOTIFICATION.NOT_FOUND"',
             '"NOTIFICATION.IDEMPOTENCY_CONFLICT"',
@@ -228,12 +228,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/config/optional-features.ts",
+        "apps/web/src/config/optional-features.ts",
         ("'notification'",),
     )
     require_all(
         failures,
-        "web/src/features/notification/schemas.ts",
+        "apps/web/src/features/notification/schemas.ts",
         (
             "from 'zod/mini'",
             "notificationPageEnvelopeSchema = strictObject",
@@ -246,7 +246,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/notification/services/notification-service.ts",
+        "apps/web/src/features/notification/services/notification-service.ts",
         (
             "notificationPageEnvelopeSchema.safeParse",
             "notificationSchema.safeParse",
@@ -257,7 +257,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/notification/server/notification-route.ts",
+        "apps/web/src/features/notification/server/notification-route.ts",
         (
             "resolveNotificationRoute(",
             "isWebFeatureEnabled('notification')",
@@ -272,7 +272,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/notification/server/mock-notification-store.ts",
+        "apps/web/src/features/notification/server/mock-notification-store.ts",
         (
             "const states = new Map<string, MockNotificationState>()",
             "stateFor(user)",
@@ -283,7 +283,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/notification/hooks/use-notifications.ts",
+        "apps/web/src/features/notification/hooks/use-notifications.ts",
         (
             "refetchInterval: 60_000",
             "useNotifications(enabled: boolean)",
@@ -293,7 +293,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/notification/components/notification-center.tsx",
+        "apps/web/src/features/notification/components/notification-center.tsx",
         (
             "highestLoadedId",
             "markRead.mutateAsync(highestLoadedId)",
@@ -303,21 +303,21 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "web/src/features/notification/components/notification-center.tsx",
+        "apps/web/src/features/notification/components/notification-center.tsx",
         ("dangerouslySetInnerHTML",),
     )
     for route in (
-        "web/src/app/api/notifications/route.ts",
-        "web/src/app/api/notifications/[notificationId]/route.ts",
-        "web/src/app/api/notification-status/route.ts",
-        "web/src/app/api/notification-read-state/route.ts",
-        "web/src/app/api/notification-preferences/route.ts",
+        "apps/web/src/app/api/notifications/route.ts",
+        "apps/web/src/app/api/notifications/[notificationId]/route.ts",
+        "apps/web/src/app/api/notification-status/route.ts",
+        "apps/web/src/app/api/notification-read-state/route.ts",
+        "apps/web/src/app/api/notification-preferences/route.ts",
     ):
         require_all(failures, route, ("privateNotificationResponse",))
 
     require_all(
         failures,
-        "api/docs/NOTIFICATIONS.md",
+        "apps/api/docs/NOTIFICATIONS.md",
         (
             "fastbuild notification:work",
             "same image, database",
@@ -327,7 +327,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/docs/NOTIFICATIONS.md",
+        "apps/web/docs/NOTIFICATIONS.md",
         (
             "NEXT_PUBLIC_OPTIONAL_FEATURES=notification",
             "strict Zod schemas",
@@ -336,7 +336,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         (
             'notification_flow="skipped"',
             'notification_migration_flow="skipped"',
@@ -348,7 +348,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/notification/service_test.go",
+        "apps/api/internal/modules/notification/service_test.go",
         (
             "TestPublishIsIdempotentAndRejectsConflictingReplay",
             "TestNotificationCenterEnforcesOwnershipAndReadHighWaterMark",
@@ -360,12 +360,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/console/commands/notification_test.go",
+        "apps/api/internal/infra/console/commands/notification_test.go",
         ("TestRunNotificationWorkerOnceReturnsDispatchErrorAndCompletedCount",),
     )
     require_all(
         failures,
-        "web/src/test/notification-route.test.ts",
+        "apps/web/src/test/notification-route.test.ts",
         (
             "does not reveal another mock user notification",
             "rejects cross-origin writes before authentication or body parsing",
@@ -373,10 +373,10 @@ def main() -> int:
         ),
     )
 
-    old_manager = ROOT / "api/internal/infra/notification/notification.go"
+    old_manager = ROOT / "apps/api/internal/infra/notification/notification.go"
     if old_manager.exists():
         failures.append(
-            "api/internal/infra/notification/notification.go must stay removed; the route-owning starter owns notification workflow"
+            "apps/api/internal/infra/notification/notification.go must stay removed; the route-owning starter owns notification workflow"
         )
 
     if failures:

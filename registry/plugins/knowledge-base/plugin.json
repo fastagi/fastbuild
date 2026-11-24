@@ -35,7 +35,7 @@
     "directory": "knowledge",
     "handler": "Knowledge"
   },
-  "fragment": "contracts/fragments/knowledge-base.yaml",
+  "fragment": "packages/contracts/fragments/knowledge-base.yaml",
   "wiring": [
     {
       "slot": "web.features",

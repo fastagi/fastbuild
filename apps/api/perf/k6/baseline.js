@@ -1,6 +1,6 @@
 // FastBuild API performance baseline. Each scenario drives a fixed arrival rate against one hot path and
 // fails the run when its p95 latency or error rate leaves the budget. Run it through
-// `make perf` (api/scripts/perf.sh), which prepares a disposable database and a release build.
+// `make perf` (apps/api/scripts/perf.sh), which prepares a disposable database and a release build.
 import http from 'k6/http';
 import { check, fail } from 'k6';
 

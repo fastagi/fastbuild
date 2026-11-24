@@ -37,7 +37,7 @@ export const usersService = {
   },
 };
 
-// Fails type-check when contracts/openapi.yaml allows a body these schemas would reject.
+// Fails type-check when packages/contracts/openapi.yaml allows a body these schemas would reject.
 assertContract<Accepts<z.input<typeof managedUserPageSchema>, ContractResponse<'listOperatorUsers', 200>>>();
 assertContract<Accepts<z.input<typeof managedUserSchema>, ContractData<'disableOperatorUser', 200>>>();
 assertContract<Accepts<z.input<typeof managedUserSchema>, ContractData<'enableOperatorUser', 200>>>();

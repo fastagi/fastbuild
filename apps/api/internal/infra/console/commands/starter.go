@@ -363,7 +363,7 @@ func resolveStarterEnvironmentPath(explicitPath string) (string, error) {
 			return candidate, nil
 		}
 	}
-	for _, candidate := range []string{".env.example", "api/.env.example"} {
+	for _, candidate := range []string{".env.example", "apps/api/.env.example"} {
 		if info, err := os.Stat(candidate); err == nil && info.Mode().IsRegular() {
 			return filepath.Join(filepath.Dir(candidate), ".env"), nil
 		}

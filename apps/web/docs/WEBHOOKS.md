@@ -15,7 +15,7 @@ WEBHOOK_ENCRYPTION_KEY=<at-least-32-random-characters>
 ```
 
 The canonical protocol, authorization, retry, signing, privacy, and error behavior lives in
-[`../../contracts/WEBHOOKS.md`](../../contracts/WEBHOOKS.md).
+[`../../../packages/contracts/WEBHOOKS.md`](../../../packages/contracts/WEBHOOKS.md).
 
 ## Browser Surface
 

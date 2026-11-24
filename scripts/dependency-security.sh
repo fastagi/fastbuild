@@ -13,7 +13,7 @@ usage() {
 Usage: scripts/dependency-security.sh scan
        scripts/dependency-security.sh sbom [output.cdx.json]
 
-scan  Check api/go.mod and all pnpm lockfiles against the OSV database.
+scan  Check apps/api/go.mod and all pnpm lockfiles against the OSV database.
 sbom  Export a validated CycloneDX 1.5 inventory without suppressing scan policy.
 EOF
 }
@@ -107,10 +107,10 @@ scanner_args() {
   SCAN_ARGS=(
     scan source
     "--config=${ROOT_DIR}/osv-scanner.toml"
-    "--lockfile=${ROOT_DIR}/api/go.mod"
-    "--lockfile=${ROOT_DIR}/contracts/pnpm-lock.yaml"
-    "--lockfile=${ROOT_DIR}/web/pnpm-lock.yaml"
-    "--lockfile=${ROOT_DIR}/admin/pnpm-lock.yaml"
+    "--lockfile=${ROOT_DIR}/apps/api/go.mod"
+    "--lockfile=${ROOT_DIR}/packages/contracts/pnpm-lock.yaml"
+    "--lockfile=${ROOT_DIR}/apps/web/pnpm-lock.yaml"
+    "--lockfile=${ROOT_DIR}/apps/admin/pnpm-lock.yaml"
     --verbosity=warn
   )
 }

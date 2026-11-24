@@ -18,22 +18,22 @@ func projectFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	files := map[string]string{
-		"api/go.mod":                   "module " + scaffoldModulePath + "\n\ngo 1.25\n",
-		"api/main.go":                  "package main\n\nimport _ \"" + scaffoldModulePath + "/internal/x\"\n",
-		"api/.env.example":             "APP_NAME=FastBuild\nOPTIONAL_STARTERS=\n",
-		"admin/.env.example":           "VITE_APP_NAME=FastBuild\nVITE_OPTIONAL_FEATURES=\n",
-		"web/.env.example":             "NEXT_PUBLIC_OPTIONAL_FEATURES=\n",
-		"web/package.json":             "{\n  \"name\": \"" + scaffoldSlug + "-web\"\n}\n",
-		"admin/package.json":           "{\n  \"name\": \"" + scaffoldSlug + "-admin\"\n}\n",
-		"contracts/package.json":       "{\n  \"name\": \"@" + scaffoldSlug + "/contracts\"\n}\n",
-		"contracts/openapi.yaml":       "openapi: 3.1.0\n",
-		"compose.dev.yaml":             "name: " + scaffoldSlug + "-dev\n",
-		"web/Dockerfile":               "ARG OCI_SOURCE=" + scaffoldRepository + "\n",
-		"scripts/dev.sh":               "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
-		"docs/untracked-is-ignored.md": scaffoldModulePath,
-		"api/assets/binary.bin":        "\x00" + scaffoldModulePath,
-		"README.md":                    "FastBuild scaffold docs stay as written.\n",
-		"registry/index.json":          "{\"version\": 1, \"plugins\": []}\n",
+		"apps/api/go.mod":                 "module " + scaffoldModulePath + "\n\ngo 1.25\n",
+		"api/main.go":                     "package main\n\nimport _ \"" + scaffoldModulePath + "/internal/x\"\n",
+		"apps/api/.env.example":           "APP_NAME=FastBuild\nOPTIONAL_STARTERS=\n",
+		"apps/admin/.env.example":         "VITE_APP_NAME=FastBuild\nVITE_OPTIONAL_FEATURES=\n",
+		"apps/web/.env.example":           "NEXT_PUBLIC_OPTIONAL_FEATURES=\n",
+		"apps/web/package.json":           "{\n  \"name\": \"" + scaffoldSlug + "-web\"\n}\n",
+		"apps/admin/package.json":         "{\n  \"name\": \"" + scaffoldSlug + "-admin\"\n}\n",
+		"packages/contracts/package.json": "{\n  \"name\": \"@" + scaffoldSlug + "/contracts\"\n}\n",
+		"packages/contracts/openapi.yaml": "openapi: 3.1.0\n",
+		"compose.dev.yaml":                "name: " + scaffoldSlug + "-dev\n",
+		"apps/web/Dockerfile":             "ARG OCI_SOURCE=" + scaffoldRepository + "\n",
+		"scripts/dev.sh":                  "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
+		"docs/untracked-is-ignored.md":    scaffoldModulePath,
+		"apps/api/assets/binary.bin":      "\x00" + scaffoldModulePath,
+		"README.md":                       "FastBuild scaffold docs stay as written.\n",
+		"registry/index.json":             "{\"version\": 1, \"plugins\": []}\n",
 	}
 	for path, content := range files {
 		full := filepath.Join(root, path)
@@ -71,23 +71,23 @@ func TestInitProjectRewritesIdentityAndSelectsStarters(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 11, changed)
 
-	assert.Contains(t, read(t, root, "api/go.mod"), "module github.com/example-demo/platform/api")
+	assert.Contains(t, read(t, root, "apps/api/go.mod"), "module github.com/example-demo/platform/api")
 	assert.Contains(t, read(t, root, "api/main.go"), `"github.com/example-demo/platform/api/internal/x"`)
-	assert.Equal(t, "APP_NAME=Acme Platform\nOPTIONAL_STARTERS=organization,webhook,operator\n", read(t, root, "api/.env.example"))
-	assert.Equal(t, "VITE_APP_NAME=Acme Platform\nVITE_OPTIONAL_FEATURES=operator,organization,webhook\n", read(t, root, "admin/.env.example"))
-	assert.Equal(t, "NEXT_PUBLIC_OPTIONAL_FEATURES=organization,webhook\n", read(t, root, "web/.env.example"))
-	assert.Contains(t, read(t, root, "web/package.json"), `"name": "acme-web"`)
-	assert.Contains(t, read(t, root, "admin/package.json"), `"name": "acme-admin"`)
-	assert.Contains(t, read(t, root, "contracts/package.json"), `"name": "@acme/contracts"`)
+	assert.Equal(t, "APP_NAME=Acme Platform\nOPTIONAL_STARTERS=organization,webhook,operator\n", read(t, root, "apps/api/.env.example"))
+	assert.Equal(t, "VITE_APP_NAME=Acme Platform\nVITE_OPTIONAL_FEATURES=operator,organization,webhook\n", read(t, root, "apps/admin/.env.example"))
+	assert.Equal(t, "NEXT_PUBLIC_OPTIONAL_FEATURES=organization,webhook\n", read(t, root, "apps/web/.env.example"))
+	assert.Contains(t, read(t, root, "apps/web/package.json"), `"name": "acme-web"`)
+	assert.Contains(t, read(t, root, "apps/admin/package.json"), `"name": "acme-admin"`)
+	assert.Contains(t, read(t, root, "packages/contracts/package.json"), `"name": "@acme/contracts"`)
 	assert.Equal(t, "name: acme-dev\n", read(t, root, "compose.dev.yaml"))
-	assert.Equal(t, "ARG OCI_SOURCE=https://github.com/example-demo/platform\n", read(t, root, "web/Dockerfile"))
+	assert.Equal(t, "ARG OCI_SOURCE=https://github.com/example-demo/platform\n", read(t, root, "apps/web/Dockerfile"))
 	dev := read(t, root, "scripts/dev.sh")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_STARTERS:-organization,webhook,operator}")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_WEB_FEATURES:-organization,webhook}")
 	assert.Contains(t, dev, "${FASTBUILD_DEV_ADMIN_FEATURES:-operator,organization,webhook}")
 
 	assert.Equal(t, scaffoldModulePath, read(t, root, "docs/untracked-is-ignored.md"), "untracked files are left alone")
-	assert.Contains(t, read(t, root, "api/assets/binary.bin"), scaffoldModulePath, "binary files are left alone")
+	assert.Contains(t, read(t, root, "apps/api/assets/binary.bin"), scaffoldModulePath, "binary files are left alone")
 	assert.Equal(t, "FastBuild scaffold docs stay as written.\n", read(t, root, "README.md"))
 
 	var recorded ProjectMarker
@@ -108,7 +108,7 @@ func TestInitProjectKeepsStarterDefaultsWhenNoneAreGiven(t *testing.T) {
 		Name: "Acme", Slug: "acme", Module: "gitlab.example.com/acme/api", Repository: "https://gitlab.example.com/acme",
 	}, "v0.21.1", time.Now())
 	require.NoError(t, err)
-	assert.Equal(t, "APP_NAME=Acme\nOPTIONAL_STARTERS=\n", read(t, root, "api/.env.example"))
+	assert.Equal(t, "APP_NAME=Acme\nOPTIONAL_STARTERS=\n", read(t, root, "apps/api/.env.example"))
 	assert.Contains(t, read(t, root, "scripts/dev.sh"), "${FASTBUILD_DEV_STARTERS:-a,b}")
 }
 
@@ -127,7 +127,7 @@ func TestInitProjectRejectsInvalidInputWithoutWriting(t *testing.T) {
 		assert.Error(t, err, "%+v", options)
 		assert.Zero(t, changed)
 	}
-	assert.Contains(t, read(t, root, "api/go.mod"), scaffoldModulePath)
+	assert.Contains(t, read(t, root, "apps/api/go.mod"), scaffoldModulePath)
 	_, err := os.Stat(filepath.Join(root, projectMarkerFile))
 	assert.True(t, os.IsNotExist(err))
 }
@@ -141,7 +141,7 @@ func TestInitProjectInstallsATemplateFromTheReleaseItStartsFrom(t *testing.T) {
 	}
 	write("registry/plugins/block-hero/plugin.json", `{"name":"block-hero","kind":"block","version":"0.1.0",`+
 		`"summary":"Hero","description":"Hero block.","use_when":["landing page"],"fastbuild":"0.25.0","requires":{}}`)
-	write("registry/plugins/block-hero/files/web/src/components/blocks/hero/index.tsx", "export {};\n")
+	write("registry/plugins/block-hero/files/apps/web/src/components/blocks/hero/index.tsx", "export {};\n")
 	write("registry/plugins/starter-site/plugin.json", `{"name":"starter-site","kind":"template","version":"0.1.0",`+
 		`"summary":"Site","description":"A site template.","use_when":["a marketing site"],"fastbuild":"0.25.0",`+
 		`"requires":{"starters":["organization"]},"includes":["block-hero"]}`)
@@ -157,8 +157,8 @@ func TestInitProjectInstallsATemplateFromTheReleaseItStartsFrom(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "starter-site", marker.Template)
 	assert.Equal(t, []string{"organization"}, marker.Starters, "the template's starters are selected")
-	assert.Contains(t, read(t, root, "api/.env.example"), "OPTIONAL_STARTERS=organization\n")
-	assert.FileExists(t, filepath.Join(root, "web/src/components/blocks/hero/index.tsx"))
+	assert.Contains(t, read(t, root, "apps/api/.env.example"), "OPTIONAL_STARTERS=organization\n")
+	assert.FileExists(t, filepath.Join(root, "apps/web/src/components/blocks/hero/index.tsx"))
 	lock, err := pluginregistry.ReadLock(root)
 	require.NoError(t, err)
 	assert.Equal(t, "github:"+scaffoldGitHubRepository+"@v0.25.0", lock.Plugins["block-hero"].Source)

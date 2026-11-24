@@ -24,7 +24,7 @@ func TestOfficialPluginsInstallBuildAndTest(t *testing.T) {
 	}
 	apiRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	require.NoError(t, err)
-	repoRoot := filepath.Dir(apiRoot)
+	repoRoot := filepath.Dir(filepath.Dir(apiRoot))
 	source := pluginregistry.NewLocalSource(scaffoldRegistry(t), "local:registry")
 	index, err := source.Index()
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestOfficialPluginsInstallBuildAndTest(t *testing.T) {
 				require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o755))
 				require.NoError(t, os.WriteFile(target, raw, 0o644))
 			}
-			require.NoError(t, os.WriteFile(filepath.Join(scratch, "api", "go.mod"), []byte("module "+scaffoldModulePath+"\n"), 0o644))
+			require.NoError(t, os.WriteFile(filepath.Join(scratch, "apps", "api", "go.mod"), []byte("module "+scaffoldModulePath+"\n"), 0o644))
 
 			installer, setupErr := newProjectInstaller(scratch, source)
 			require.NoError(t, setupErr)
@@ -61,7 +61,7 @@ func TestOfficialPluginsInstallBuildAndTest(t *testing.T) {
 			replace := map[string]string{}
 			for _, result := range results {
 				for _, file := range append(append([]string{}, result.Written...), result.Edited()...) {
-					if strings.HasPrefix(file, "api/") {
+					if strings.HasPrefix(file, "apps/api/") {
 						replace[filepath.Join(repoRoot, filepath.FromSlash(file))] = filepath.Join(scratch, filepath.FromSlash(file))
 					}
 				}
@@ -108,7 +108,7 @@ func TestOfficialPluginsInstallBuildAndTest(t *testing.T) {
 			binary := filepath.Join(t.TempDir(), entry.Name+".test")
 			run("test", "-c", "-vet=off", "-overlay="+overlayPath, "-o", binary, pluginPackage)
 			tests := exec.Command(binary, "-test.count=1")
-			tests.Dir = filepath.Join(scratch, "api", "internal", "modules", entry.Starter.Directory)
+			tests.Dir = filepath.Join(scratch, "apps", "api", "internal", "modules", entry.Starter.Directory)
 			output, testErr := tests.CombinedOutput()
 			require.NoError(t, testErr, "%s tests\n%s", entry.Name, output)
 		})

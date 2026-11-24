@@ -5,7 +5,7 @@ used at night. It restyles both browser shells through design tokens only, so ev
 component, page, and block picks it up without code changes.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add theme-midnight
+cd apps/api && go run ./cmd/fastbuild plugin:add theme-midnight
 ```
 
 | Token area | Change |
@@ -17,11 +17,11 @@ cd api && go run ./cmd/fastbuild plugin:add theme-midnight
 
 It installs two stylesheets and imports them at the theme slots:
 
-- `web/src/themes/presets/midnight.css`, imported at `web.theme` in `web/src/themes/index.css`
-- `admin/src/styles/themes/midnight.css`, imported at `admin.theme` in `admin/src/styles/globals.css`
+- `apps/web/src/themes/presets/midnight.css`, imported at `web.theme` in `apps/web/src/themes/index.css`
+- `apps/admin/src/styles/themes/midnight.css`, imported at `admin.theme` in `apps/admin/src/styles/globals.css`
 
 Tokens cannot choose the color scheme: the user's light, dark, or system preference still applies.
 To open in dark mode by default, set `defaultTheme="dark"` on the Web `ThemeProvider` in
-`web/src/app/layout.tsx` (see `INTEGRATION.md`). The Web and Admin contrast guards (`pnpm lint`)
+`apps/web/src/app/layout.tsx` (see `INTEGRATION.md`). The Web and Admin contrast guards (`pnpm lint`)
 check every readable pair against WCAG AA 4.5:1. Only one theme can be installed at a time; run
 `plugin:remove theme-midnight` to return to the default tokens.

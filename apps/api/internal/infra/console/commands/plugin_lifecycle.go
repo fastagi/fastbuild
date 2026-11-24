@@ -214,7 +214,7 @@ func (c *PluginRemoveCommand) Run(args []string) error {
 	c.output.Section("Next")
 	if result.Entry.Starter != "" {
 		c.output.Line("  - Remove %s from OPTIONAL_STARTERS in every environment.", result.Entry.Starter)
-		c.output.Line("  - cd api && make wire && make starter-catalog")
+		c.output.Line("  - cd apps/api && make wire && make starter-catalog")
 		c.output.Line("  - Tables created by the plugin's migrations stay in existing databases; drop them with a new migration if the data should go.")
 	}
 	for _, applied := range result.Unwired {
@@ -224,7 +224,7 @@ func (c *PluginRemoveCommand) Run(args []string) error {
 		}
 	}
 	if result.Entry.Contract != nil {
-		c.output.Line("  - cd contracts && corepack pnpm generate && corepack pnpm check")
+		c.output.Line("  - cd packages/contracts && corepack pnpm generate && corepack pnpm check")
 	}
 	c.output.Line("  - Run the checks, then review the diff before committing.")
 	return nil

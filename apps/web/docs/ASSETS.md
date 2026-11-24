@@ -1,7 +1,7 @@
 # Asset Web Feature
 
 The optional Web `asset` feature provides a private upload, list, download, and delete workflow for
-the API contract in [`../../contracts/ASSETS.md`](../../contracts/ASSETS.md). An asset is browser
+the API contract in [`../../../packages/contracts/ASSETS.md`](../../../packages/contracts/ASSETS.md). An asset is browser
 metadata and lifecycle, while the stored object is opaque provider bytes. The feature never exposes
 provider SDKs, bucket names, object keys, checksums, or durable public URLs to browser state.
 
@@ -90,7 +90,7 @@ To remove it:
 ## Verification
 
 ```bash
-cd web
+cd apps/web
 pnpm vitest run src/test/asset-contract.test.ts src/test/asset-route.test.ts src/test/asset-ui.test.tsx
 pnpm type-check
 pnpm lint

@@ -8,6 +8,6 @@
   "fastbuild": "0.24.0",
   "requires": { "starters": ["organization"] },
   "starter": { "name": "demonotes", "const": "StarterDemoNotes", "directory": "demonotes", "handler": "DemoNotes" },
-  "fragment": "contracts/fragments/demo-notes.yaml",
+  "fragment": "packages/contracts/fragments/demo-notes.yaml",
   "env": [{ "name": "DEMO_NOTES_LIMIT", "description": "Maximum notes per organization.", "default": "100" }]
 }

@@ -113,4 +113,4 @@ Select another skill only when its distinct concern is active.
 
 - [`testing-strategy`](../testing-strategy/): Where kest-flow fits in the broader testing layers.
 - [`api-development`](../api-development/): The endpoints these flows exercise.
-- [`systematic-debugging`](../../../../.agents/skills/systematic-debugging/): Use only when a flow fails for an unclear reason.
+- [`systematic-debugging`](../../../../../.agents/skills/systematic-debugging/): Use only when a flow fails for an unclear reason.

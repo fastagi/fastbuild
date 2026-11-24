@@ -10,7 +10,7 @@ The repository had inconsistent terms for scaffold core, starter modules, option
 
 ## Decision
 
-Use the vocabulary defined in the root [`CONTEXT.md`](../../../CONTEXT.md):
+Use the vocabulary defined in the root [`CONTEXT.md`](../../../../CONTEXT.md):
 
 - `core`
 - `starter`

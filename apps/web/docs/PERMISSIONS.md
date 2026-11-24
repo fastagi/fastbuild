@@ -2,7 +2,7 @@
 
 The optional Web `permission` feature manages the API permission starter without becoming an
 authorization authority. It consumes
-[`../../contracts/PERMISSIONS.md`](../../contracts/PERMISSIONS.md) and depends on the organization
+[`../../../packages/contracts/PERMISSIONS.md`](../../../packages/contracts/PERMISSIONS.md) and depends on the organization
 browser feature.
 
 ## Activate

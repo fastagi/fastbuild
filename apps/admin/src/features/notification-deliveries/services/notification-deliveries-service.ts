@@ -39,5 +39,5 @@ export const notificationDeliveriesService = {
   },
 };
 
-// Fails type-check when contracts/openapi.yaml allows a body these schemas would reject.
+// Fails type-check when packages/contracts/openapi.yaml allows a body these schemas would reject.
 assertContract<Accepts<z.input<typeof notificationDeliveryPageSchema>, ContractResponse<'listOperatorNotificationDeliveries', 200>>>();

@@ -1,11 +1,11 @@
 # FastBuild Web
 
-`web/` is FastBuild's customer-facing application. It owns public pages,
+`apps/web/` is FastBuild's customer-facing application. It owns public pages,
 authentication and account journeys, customer workspaces, and other product
 experiences intended for end users. Next.js provides SSR, Server Components,
 SEO, and same-origin server adapters where those capabilities are useful.
 
-FastBuild Web is independent from the project management system under `admin/`.
+FastBuild Web is independent from the project management system under `apps/admin/`.
 It may contain a signed-in customer console, but it must not become the place
 for operator-only administration. The two applications share HTTP contracts
 and design semantics, never source code or runtime state.
@@ -17,7 +17,7 @@ and design semantics, never source code or runtime state.
 | Public and customer-facing routes | Project operator and administrator workflows |
 | Registration, sign-in, account, and workspace journeys | API domain rules or PostgreSQL persistence |
 | SEO, SSR, Server Components, and server adapters | Static OSS/CDN-only delivery |
-| Customer UI state and development mock BFF behavior | Source code from `api/` or `admin/` |
+| Customer UI state and development mock BFF behavior | Source code from `apps/api/` or `apps/admin/` |
 
 ## Stack
 
@@ -65,7 +65,7 @@ demo-only `MOCK_BFF_ENABLED=true` is configured.
 The Go authentication-session endpoints and Web browser auth endpoints are not drop-in compatible. FastBuild ships a
 same-origin server adapter that performs the mapping without exposing bearer tokens to browser
 JavaScript. Changing `NEXT_PUBLIC_API_URL` alone still does not enable it; read
-[../contracts/AUTHENTICATION.md](../contracts/AUTHENTICATION.md) for its server-only configuration,
+[../../packages/contracts/AUTHENTICATION.md](../../packages/contracts/AUTHENTICATION.md) for its server-only configuration,
 cookie, timeout, trusted-proxy, and remote-revocation contract.
 
 See [docs/MOCK_BFF.md](docs/MOCK_BFF.md) before replacing, deleting, or intentionally enabling the mock BFF.
@@ -84,7 +84,7 @@ src/
 │   ├── (auth)/             # Public auth routes
 │   ├── (protected)/        # Authenticated route groups
 │   ├── (site)/             # Public site pages
-│   └── api/                # Browser HTTP routes: mock behavior + fixed production adapters
+│   └── apps/api/                # Browser HTTP routes: mock behavior + fixed production adapters
 ├── components/             # Shared UI and layout components
 ├── features/               # Feature-first folders
 ├── http/                   # Axios wrapper and error normalization
@@ -158,7 +158,7 @@ verification, profile, member, invitation, and ownership management. Development
 in-memory mock; production uses fixed same-origin adapter routes and the HttpOnly API session.
 Selection is derived from `/console/organizations/:id` and is never persisted globally. See
 [docs/ORGANIZATIONS.md](docs/ORGANIZATIONS.md) and
-[../contracts/ORGANIZATIONS.md](../contracts/ORGANIZATIONS.md).
+[../../packages/contracts/ORGANIZATIONS.md](../../packages/contracts/ORGANIZATIONS.md).
 
 ## Permission Feature
 
@@ -172,7 +172,7 @@ NEXT_PUBLIC_OPTIONAL_FEATURES=organization,permission
 The organization detail page then lazy-loads access-role CRUD and member assignment management.
 Every browser call carries the URL-derived organization ID; strict schemas validate responses before
 caching, and Go remains authoritative. See [docs/PERMISSIONS.md](docs/PERMISSIONS.md) and
-[../contracts/PERMISSIONS.md](../contracts/PERMISSIONS.md).
+[../../packages/contracts/PERMISSIONS.md](../../packages/contracts/PERMISSIONS.md).
 
 ## Notification Feature
 
@@ -188,7 +188,7 @@ and explicit in-app/email preferences. Development may use the isolated mock BFF
 uses fixed same-origin adapter routes and the HttpOnly API session. Provider content is rendered as
 plain text, action URLs are restricted to safe local paths, and preference mutations are same-origin
 only. See [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) and
-[../contracts/NOTIFICATIONS.md](../contracts/NOTIFICATIONS.md).
+[../../packages/contracts/NOTIFICATIONS.md](../../packages/contracts/NOTIFICATIONS.md).
 
 ## Asset Feature
 
@@ -203,7 +203,7 @@ The console then exposes private upload, lifecycle status, download, and delete 
 remain ephemeral, successful payloads are strictly parsed, and browser transfers reject unsafe URLs,
 headers, credentials, and redirects. Development uses a bounded per-user mock object store;
 production uses fixed same-origin management adapters and direct short-lived R2 grants. See
-[docs/ASSETS.md](docs/ASSETS.md) and [../contracts/ASSETS.md](../contracts/ASSETS.md).
+[docs/ASSETS.md](docs/ASSETS.md) and [../../packages/contracts/ASSETS.md](../../packages/contracts/ASSETS.md).
 
 ## Setting Feature
 
@@ -216,7 +216,7 @@ NEXT_PUBLIC_OPTIONAL_FEATURES=organization,setting
 
 The console validates the finite typed catalog, preserves ETag/version preconditions, and exposes
 only real user and organization preferences. See [docs/SETTINGS.md](docs/SETTINGS.md) and
-[../contracts/SETTINGS.md](../contracts/SETTINGS.md).
+[../../packages/contracts/SETTINGS.md](../../packages/contracts/SETTINGS.md).
 
 ## Usage Feature
 
@@ -230,14 +230,14 @@ NEXT_PUBLIC_OPTIONAL_FEATURES=organization,usage
 The console validates the complete finite metric catalog and displays private current-period user
 or owner/admin organization summaries. Event recording, atomic consumption, quota writes, receipts,
 and billing semantics remain server-side. See [docs/USAGE.md](docs/USAGE.md) and
-[../contracts/USAGE.md](../contracts/USAGE.md).
+[../../packages/contracts/USAGE.md](../../packages/contracts/USAGE.md).
 
 ## Webhook Feature
 
 The optional webhook workspace is enabled with `organization` and `webhook` in
 `NEXT_PUBLIC_OPTIONAL_FEATURES`. Organization owners and admins manage endpoints, see the signing
 secret once on create or rotation, queue the fixed test event, and read deliveries and attempts.
-See [docs/WEBHOOKS.md](docs/WEBHOOKS.md) and [../contracts/WEBHOOKS.md](../contracts/WEBHOOKS.md).
+See [docs/WEBHOOKS.md](docs/WEBHOOKS.md) and [../../packages/contracts/WEBHOOKS.md](../../packages/contracts/WEBHOOKS.md).
 
 ## HTTP Contract
 
@@ -252,7 +252,7 @@ The default request client is configured by `NEXT_PUBLIC_API_URL`. Error handlin
 }
 ```
 
-See [../contracts/README.md](../contracts/README.md) for the shared contract.
+See [../../packages/contracts/README.md](../../packages/contracts/README.md) for the shared contract.
 
 ## Browser Security
 
@@ -283,7 +283,7 @@ Yarn. Build, start, health-check, and terminate it with:
 bash scripts/verify-container.sh fastbuild-web:container-check
 ```
 
-The root [container security contract](../docs/CONTAINER_SECURITY.md) defines BuildKit evidence,
+The root [container security contract](../../docs/CONTAINER_SECURITY.md) defines BuildKit evidence,
 CycloneDX 1.7 inventory, Trivy policy, CI artifacts, and the downstream signing boundary.
 
 ## Scripts
@@ -304,4 +304,4 @@ Use `make check` from the repository root to run the canonical API, Next.js Web,
 verification tiers together.
 Dependency tooling is exact-versioned; use Corepack instead of an unrelated global pnpm. Root
 vulnerability scanning, SBOM, update, and exception policy lives in
-[`../docs/DEPENDENCY_SECURITY.md`](../docs/DEPENDENCY_SECURITY.md).
+[`../../docs/DEPENDENCY_SECURITY.md`](../../docs/DEPENDENCY_SECURITY.md).

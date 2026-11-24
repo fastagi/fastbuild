@@ -16,7 +16,7 @@ Use this skill when:
 - a bug report has a concrete expected behavior,
 - a regression appears after refactor, dependency upgrade, or contract change,
 - API and Web disagree on an HTTP envelope, `error_code`, `request_id`, pagination, or validation behavior,
-- mock BFF behavior drifts from `contracts/README.md`,
+- mock BFF behavior drifts from the contracts README,
 - a flaky test reveals a real race or state leak,
 - a fix would otherwise be hard to prove after the turn ends.
 
@@ -49,7 +49,7 @@ testing skill only when test ownership or browser strategy is itself unclear.
 4. **Refactor locally**
    - Clean up names, duplicated setup, and test fixtures introduced by the fix.
    - Keep the regression assertion intact while refactoring.
-   - If the fix changed vocabulary or contracts, update `CONTEXT.md`, `contracts/README.md`, or the owning docs in the same slice.
+   - If the fix changed vocabulary or contracts, update `CONTEXT.md`, the contracts README, or the owning docs in the same slice.
 
 5. **Prove the guard**
    - Re-run the targeted test and the relevant verification tier.
@@ -75,7 +75,7 @@ Use the highest-level test that can reproduce the bug without making the suite b
 
 For contract-sensitive bugs:
 
-- Update `contracts/README.md` first if the expected contract changes.
+- Update `packages/contracts/README.md` first if the expected contract changes.
 - Keep server-scoped `ApiErrorCode` and client-only `ClientErrorCode` separate.
 - Keep mock BFF routes aligned with the shared envelope and their owning browser contract; disable them in production by default.
 - Assert both HTTP status and response body shape.
@@ -93,10 +93,9 @@ Report these in the final answer:
 Typical commands:
 
 ```bash
-cd api && go test ./internal/modules/<module>/...
-cd api && go test ./internal/interfaces/http/...
-cd web && pnpm vitest run src/test/<file>.test.ts
-cd web && pnpm type-check && pnpm lint
+cd apps/api && go test ./internal/modules/<module>/... ./internal/interfaces/http/...
+cd apps/web && pnpm vitest run src/test/<file>.test.ts
+cd apps/web && pnpm type-check && pnpm lint
 ```
 
 Use `make check` only when the fix crosses deployable units/contracts or is an

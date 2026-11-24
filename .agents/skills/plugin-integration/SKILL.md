@@ -23,7 +23,7 @@ ordinary project code; the project owns installed plugins).
 
 ## Workflow
 
-Run commands from `api/` with `go run ./cmd/fastbuild` (or the installed `fastbuild` binary).
+Run commands from `apps/api/` with `go run ./cmd/fastbuild` (or the installed `fastbuild` binary).
 
 1. **Search.** `plugin:search <words> --format=json`. Search with the builder's own words and with
    synonyms in English and their language. Read `summary`, `use_when`, and `requires_starters`.
@@ -68,7 +68,7 @@ Updating and removing:
 | Step | Proof |
 |---|---|
 | Install | `plugin:status` lists the plugin with every file `unchanged`; `plugin:doctor` passes |
-| Contract | `cd contracts && corepack pnpm check && corepack pnpm check:routes` |
+| Contract | `cd packages/contracts && corepack pnpm check && corepack pnpm check:routes` |
 | Behavior | The plugin's package tests, with `FASTBUILD_TEST_POSTGRES_DSN` for PostgreSQL tests |
 | Whole project | `make check` |
 

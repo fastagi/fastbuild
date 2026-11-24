@@ -1,2 +1,2 @@
-# Generated code: resolve conflicts by regenerating (cd api && make wire), never by hand.
-api/internal/wiring/wire_gen.go linguist-generated=true
+# Generated code: resolve conflicts by regenerating (cd apps/api && make wire), never by hand.
+apps/api/internal/wiring/wire_gen.go linguist-generated=true

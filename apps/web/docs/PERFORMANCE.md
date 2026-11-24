@@ -41,7 +41,7 @@ The baseline captured on 2026-07-16 with Next.js 16.2.9 is:
 | `/console` | 925,000 | 884,030 | 268,755 |
 | `/console/organizations/[organizationId]` | 1,070,000 | 1,023,736 | 305,892 |
 
-Run the supported tools from `web/`:
+Run the supported tools from `apps/web/`:
 
 ```bash
 pnpm build
@@ -57,7 +57,7 @@ frozen installs see the same reviewed security overrides. It also preserves the 
 asset seam when a downstream app has no public files yet. Its builder runs `pnpm build`, which means
 the image cannot bypass route budgets. The cleaned final layer removes development package managers;
 digest identity, image inventory, and scan policy are owned by
-[`../../docs/CONTAINER_SECURITY.md`](../../docs/CONTAINER_SECURITY.md):
+[`../../../docs/CONTAINER_SECURITY.md`](../../../docs/CONTAINER_SECURITY.md):
 
 ```bash
 bash scripts/verify-container.sh fastbuild-web:container-check

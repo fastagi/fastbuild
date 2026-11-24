@@ -45,9 +45,9 @@ func Doctor(root string, lock *Lock) []Problem {
 			if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(file+IncomingSuffix))); err == nil {
 				report(file+IncomingSuffix+" waits to be merged", "merge it into "+file+", then delete it")
 			}
-			if strings.HasPrefix(file, "contracts/fragments/") {
+			if strings.HasPrefix(file, "packages/contracts/fragments/") {
 				report(file+" is not merged into the contract",
-					"cd contracts && corepack pnpm merge-fragment ../"+file+" && corepack pnpm generate")
+					"cd packages/contracts && corepack pnpm merge-fragment ../../"+file+" && corepack pnpm generate")
 			}
 		}
 		for _, applied := range entry.Wiring {

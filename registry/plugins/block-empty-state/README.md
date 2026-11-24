@@ -11,10 +11,10 @@ with its own decorative icon and tone:
 | `no-access` | Missing permission (403) | Labelled region |
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-empty-state
+cd apps/api && go run ./cmd/fastbuild plugin:add block-empty-state
 ```
 
-Installs `web/src/components/blocks/empty-state/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/empty-state/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy.
 
 ## Usage

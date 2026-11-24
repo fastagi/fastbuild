@@ -92,7 +92,7 @@ func parseDoctorArgs(args []string) (string, error) {
 		return *envExample, nil
 	}
 
-	for _, candidate := range []string{".env.example", "api/.env.example"} {
+	for _, candidate := range []string{".env.example", "apps/api/.env.example"} {
 		info, err := os.Stat(candidate)
 		if err == nil && info.Mode().IsRegular() {
 			return candidate, nil

@@ -27,7 +27,7 @@ normal downstream production runtime and production builds can omit this mock-on
 Authentication is an explicit exception to generic base-URL replacement: the default Web
 `/auth/*` cookie/session contract and Go `/v1/*` authentication-session contract have different paths, DTOs, and
 credential ownership. Use the production adapter documented in
-[`../../contracts/AUTHENTICATION.md`](../../contracts/AUTHENTICATION.md) instead of pointing the
+[`../../../packages/contracts/AUTHENTICATION.md`](../../../packages/contracts/AUTHENTICATION.md) instead of pointing the
 existing auth service directly at Go.
 
 Authentication mode is derived from adapter ownership, mock availability, and the browser target.
@@ -47,7 +47,7 @@ production configuration tests. Delete the route group in downstream apps that d
 
 ## Replacement Checklist
 
-1. Confirm the real API follows [`../../contracts/README.md`](../../contracts/README.md), especially
+1. Confirm the real API follows [`../../../packages/contracts/README.md`](../../../packages/contracts/README.md), especially
    response envelopes, `error_code`, `request_id`, and validation error shapes.
 2. Set `NEXT_PUBLIC_API_URL` to the production base URL or same-origin adapter path whose browser
    contract is documented.

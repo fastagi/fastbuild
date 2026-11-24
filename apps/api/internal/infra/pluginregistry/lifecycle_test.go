@@ -38,10 +38,10 @@ type fixturePlugin struct {
 }
 
 const (
-	notesFile  = "api/internal/modules/notes/notes.go"
-	helperFile = "api/internal/modules/notes/helper.go"
-	extraFile  = "api/internal/modules/notes/extra.go"
-	notesFrag  = "contracts/fragments/notes.yaml"
+	notesFile  = "apps/api/internal/modules/notes/notes.go"
+	helperFile = "apps/api/internal/modules/notes/helper.go"
+	extraFile  = "apps/api/internal/modules/notes/extra.go"
+	notesFrag  = "packages/contracts/fragments/notes.yaml"
 	notesBody1 = "package notes\n\n// Limit caps notes.\nconst Limit = 10\n\n// Title names the page.\nconst Title = \"Notes\"\n"
 	notesBody2 = "package notes\n\n// Limit caps notes.\nconst Limit = 20\n\n// Title names the page.\nconst Title = \"Notes\"\n"
 )
@@ -89,7 +89,7 @@ func TestRemoveRestoresTheProjectExactly(t *testing.T) {
 	for file, content := range slotFixtures {
 		assert.Equal(t, content, readFile(t, root, file), file)
 	}
-	assert.NoDirExists(t, filepath.Join(root, "api/internal/modules/notes"))
+	assert.NoDirExists(t, filepath.Join(root, "apps/api/internal/modules/notes"))
 	assert.NoFileExists(t, filepath.Join(root, LockFile))
 	require.Len(t, contract.removed, 1)
 	assert.Equal(t, []string{"/v1/demo-notes"}, contract.removed[0].Paths)
@@ -219,7 +219,7 @@ func TestUpdateReplacesAChangedContract(t *testing.T) {
 
 func TestOnlyOneThemeIsInstalled(t *testing.T) {
 	root := projectWithSlots(t)
-	writeFile(t, root, "web/src/themes/index.css", "@import \"./light.css\";\n/* fastbuild:slot web.theme */\n")
+	writeFile(t, root, "apps/web/src/themes/index.css", "@import \"./light.css\";\n/* fastbuild:slot web.theme */\n")
 	theme := func(name string) fixturePlugin {
 		return fixturePlugin{
 			manifest: Manifest{
@@ -227,14 +227,14 @@ func TestOnlyOneThemeIsInstalled(t *testing.T) {
 				UseWhen: []string{"style"}, FastBuild: "0.24.0",
 				Wiring: []Insert{{Slot: "web.theme", Lines: []string{`@import "./presets/` + name + `.css";`}}},
 			},
-			files: map[string]string{"web/src/themes/presets/" + name + ".css": ":root {}\n"},
+			files: map[string]string{"apps/web/src/themes/presets/" + name + ".css": ":root {}\n"},
 		}
 	}
 	installer := &Installer{Root: root, Source: registryWith(t, theme("ocean"), theme("forest")), ScaffoldModule: testModule}
 	_, err := installer.Install("ocean")
 	require.NoError(t, err)
 	assert.Equal(t, "@import \"./light.css\";\n@import \"./presets/ocean.css\";\n/* fastbuild:slot web.theme */\n",
-		readFile(t, root, "web/src/themes/index.css"))
+		readFile(t, root, "apps/web/src/themes/index.css"))
 
 	_, err = installer.Install("forest")
 	require.ErrorContains(t, err, `theme "ocean" is installed`)
@@ -290,7 +290,7 @@ func TestManifestValidatesKindsAndWiring(t *testing.T) {
 	theme := base
 	theme.Kind = KindTheme
 	assert.ErrorContains(t, theme.Validate(), "a theme must wire at least one *.theme slot")
-	theme.Fragment = "contracts/fragments/x.yaml"
+	theme.Fragment = "packages/contracts/fragments/x.yaml"
 	assert.ErrorContains(t, theme.Validate(), "only feature plugins install")
 
 	wired := base
@@ -305,12 +305,12 @@ func TestManifestValidatesKindsAndWiring(t *testing.T) {
 
 func TestTemplatesInstallTheirPluginsTogetherOrNotAtAll(t *testing.T) {
 	root := projectWithSlots(t)
-	writeFile(t, root, "web/src/themes/index.css", "/* fastbuild:slot web.theme */\n")
+	writeFile(t, root, "apps/web/src/themes/index.css", "/* fastbuild:slot web.theme */\n")
 	block := func(name string, requires ...string) fixturePlugin {
 		return fixturePlugin{
 			manifest: Manifest{Name: name, Kind: KindBlock, Version: "0.1.0", Summary: "Block", Description: "Block.",
 				UseWhen: []string{"page"}, FastBuild: "0.24.0", Requires: Requirements{Plugins: requires}},
-			files: map[string]string{"web/src/components/blocks/" + name + "/index.tsx": "export {};\n"},
+			files: map[string]string{"apps/web/src/components/blocks/" + name + "/index.tsx": "export {};\n"},
 		}
 	}
 	template := fixturePlugin{manifest: Manifest{
@@ -330,13 +330,13 @@ func TestTemplatesInstallTheirPluginsTogetherOrNotAtAll(t *testing.T) {
 	assert.NoFileExists(t, filepath.Join(root, LockFile))
 
 	installer.DryRun = false
-	writeFile(t, root, "web/src/components/blocks/block-b/index.tsx", "mine\n")
+	writeFile(t, root, "apps/web/src/components/blocks/block-b/index.tsx", "mine\n")
 	_, err = installer.InstallTemplate("portal")
 	require.ErrorContains(t, err, "would overwrite existing files")
-	assert.NoFileExists(t, filepath.Join(root, "web/src/components/blocks/block-a/index.tsx"), "block-a is removed again")
+	assert.NoFileExists(t, filepath.Join(root, "apps/web/src/components/blocks/block-a/index.tsx"), "block-a is removed again")
 	assert.NoFileExists(t, filepath.Join(root, LockFile))
 
-	require.NoError(t, os.Remove(filepath.Join(root, "web/src/components/blocks/block-b/index.tsx")))
+	require.NoError(t, os.Remove(filepath.Join(root, "apps/web/src/components/blocks/block-b/index.tsx")))
 	result, err := installer.InstallTemplate("portal")
 	require.NoError(t, err)
 	assert.Len(t, result.Installed, 2)

@@ -5,10 +5,10 @@ primary and secondary calls to action, optional media beside the copy on wide sc
 responsive feature grid with decorative icons.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-landing-hero
+cd apps/api && go run ./cmd/fastbuild plugin:add block-landing-hero
 ```
 
-Installs `web/src/components/blocks/landing-hero/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/landing-hero/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy.
 
 ## Usage

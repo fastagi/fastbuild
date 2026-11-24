@@ -4,7 +4,7 @@ type JsonContent<Response> = Response extends { content: { 'application/json': i
   ? Body
   : never;
 
-/** The JSON body that `contracts/openapi.yaml` declares for one operation and status. */
+/** The JSON body that `packages/contracts/openapi.yaml` declares for one operation and status. */
 export type ContractResponse<
   Operation extends keyof operations,
   Status extends keyof operations[Operation]['responses'],
@@ -28,7 +28,7 @@ export function assertContract<Holds extends true>(): void {
   return undefined as unknown as Holds extends true ? void : never;
 }
 
-/** The JSON request body that `contracts/openapi.yaml` declares for one operation. */
+/** The JSON request body that `packages/contracts/openapi.yaml` declares for one operation. */
 export type ContractRequest<Operation extends keyof operations> = operations[Operation] extends {
   requestBody?: infer Body;
 }

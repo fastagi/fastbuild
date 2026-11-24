@@ -49,7 +49,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/USAGE.md",
+        "packages/contracts/USAGE.md",
         (
             "optional `usage` starter",
             "OPTIONAL_STARTERS=organization,usage",
@@ -85,7 +85,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/domain/usage.go",
+        "apps/api/internal/domain/usage.go",
         (
             "type UsageReader interface",
             "type UsageRecorder interface",
@@ -99,7 +99,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/domain/error_codes.go",
+        "apps/api/internal/domain/error_codes.go",
         (
             '"USAGE.METRIC_NOT_FOUND"',
             '"USAGE.INVALID_EVENT"',
@@ -112,7 +112,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/error_mappings.go",
+        "apps/api/internal/modules/usage/error_mappings.go",
         (
             "ErrUsageMetricNotFound, http.StatusNotFound",
             "ErrUsageIdempotencyConflict, http.StatusConflict",
@@ -125,7 +125,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/provider.go",
+        "apps/api/internal/modules/usage/provider.go",
         (
             'config.StarterUsage',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit, config.StarterOrganization)',
@@ -139,7 +139,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/catalog.go",
+        "apps/api/internal/modules/usage/catalog.go",
         (
             "maxUsageDefinitions     = 64",
             "maxUsageDimensions      = 8",
@@ -158,7 +158,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/model.go",
+        "apps/api/internal/modules/usage/model.go",
         (
             "idx_usage_events_source_event",
             "usage_events_quantity_check",
@@ -173,7 +173,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/repository.go",
+        "apps/api/internal/modules/usage/repository.go",
         (
             "ResolveContextDB",
             "clause.OnConflict{DoNothing: true}",
@@ -193,7 +193,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/service.go",
+        "apps/api/internal/modules/usage/service.go",
         (
             "usageMaxEventAge      = 24 * time.Hour",
             "usageMaxFutureSkew    = 5 * time.Minute",
@@ -208,7 +208,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/handler.go",
+        "apps/api/internal/modules/usage/handler.go",
         (
             "CanManageOrganization()",
             "private, no-store",
@@ -219,7 +219,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/routes.go",
+        "apps/api/internal/modules/usage/routes.go",
         (
             'auth.GET("/usage/user"',
             'contextual.WithMiddleware("organization_context")',
@@ -228,12 +228,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/internal/modules/usage/routes.go",
+        "apps/api/internal/modules/usage/routes.go",
         (".POST(", ".PUT(", ".PATCH(", ".DELETE("),
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_15_050000_create_usage_tables.go",
+        "apps/api/database/migrations/2026_07_15_050000_create_usage_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE usage_counters (',
@@ -244,7 +244,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/bootstrap/operatorcommands/usage.go",
+        "apps/api/internal/bootstrap/operatorcommands/usage.go",
         (
             'return "usage:list',
             'return "usage:record',
@@ -261,7 +261,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/service_test.go",
+        "apps/api/internal/modules/usage/service_test.go",
         (
             "TestUsageRecordIsIdempotentAndSupportsBoundedCorrections",
             "TestUsageConsumeAtomicallyPersistsAcceptedAndDeniedDecisions",
@@ -272,7 +272,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/usage/handler_test.go",
+        "apps/api/internal/modules/usage/handler_test.go",
         (
             "TestUsageUserListReturnsFinitePrivateSummaryOnly",
             "TestUsageOrganizationListRequiresManagerRoleAndPrivateContext",
@@ -280,7 +280,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         (
             'usage_flow="skipped"',
             "concurrent usage quota expected one success and three denials",
@@ -300,12 +300,12 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/config/optional-features.ts",
+        "apps/web/src/config/optional-features.ts",
         ("'usage'", "usage: ['organization']"),
     )
     require_all(
         failures,
-        "web/src/features/usage/schemas.ts",
+        "apps/web/src/features/usage/schemas.ts",
         (
             "strictObject",
             "maximum(Number.MAX_SAFE_INTEGER)",
@@ -320,12 +320,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "web/src/features/usage/schemas.ts",
+        "apps/web/src/features/usage/schemas.ts",
         ("record(", "unknown()", "any()"),
     )
     require_all(
         failures,
-        "web/src/features/usage/services/usage-service.ts",
+        "apps/web/src/features/usage/services/usage-service.ts",
         (
             "expectedMetrics",
             "usageSummaryWireListSchema.safeParse(value)",
@@ -337,7 +337,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/usage/server/usage-route.ts",
+        "apps/web/src/features/usage/server/usage-route.ts",
         (
             "resolveUsageRoute(",
             "isWebFeatureEnabled('usage')",
@@ -351,7 +351,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/usage/server/mock-usage-store.ts",
+        "apps/web/src/features/usage/server/mock-usage-store.ts",
         (
             "const metricCatalog = [",
             "user(_user: AuthUser",
@@ -361,27 +361,27 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/app/api/usage/user/route.ts",
+        "apps/web/src/app/api/usage/user/route.ts",
         ("export async function GET", "privateUsageResponse"),
     )
     require_all(
         failures,
-        "web/src/app/api/organization-usage/route.ts",
+        "apps/web/src/app/api/organization-usage/route.ts",
         ("export async function GET", "privateUsageResponse"),
     )
     forbid_any(
         failures,
-        "web/src/app/api/usage/user/route.ts",
+        "apps/web/src/app/api/usage/user/route.ts",
         ("function POST", "function PUT", "function PATCH", "function DELETE"),
     )
     forbid_any(
         failures,
-        "web/src/app/api/organization-usage/route.ts",
+        "apps/web/src/app/api/organization-usage/route.ts",
         ("function POST", "function PUT", "function PATCH", "function DELETE"),
     )
     require_all(
         failures,
-        "web/src/test/usage-service.test.ts",
+        "apps/web/src/test/usage-service.test.ts",
         (
             "exact finite user and organization catalogs",
             "ignores metrics a larger server catalog adds",
@@ -390,7 +390,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/test/usage-route.test.ts",
+        "apps/web/src/test/usage-route.test.ts",
         (
             "private user usage",
             "organization managers",
@@ -400,17 +400,17 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/docs/USAGE.md",
+        "apps/api/docs/USAGE.md",
         ("UsageRecorder", "ConsumeUsage", "usage:prune", "## Verification"),
     )
     require_all(
         failures,
-        "web/docs/USAGE.md",
+        "apps/web/docs/USAGE.md",
         ("read-only", "organization,usage", "## Verification"),
     )
     require_all(
         failures,
-        "api/docs/adr/0008-usage-metering-and-quota-boundary.md",
+        "apps/api/docs/adr/0008-usage-metering-and-quota-boundary.md",
         ("code-owned", "There is no public or browser write endpoint", "## Consequences"),
     )
     require_all(

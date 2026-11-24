@@ -7,7 +7,7 @@ quota overrides, and atomic consume decisions. It depends on `user`, `audit`, an
 OPTIONAL_STARTERS=organization,usage
 ```
 
-The browser feature is activated independently. See [`../../contracts/USAGE.md`](../../contracts/USAGE.md)
+The browser feature is activated independently. See [`../../../packages/contracts/USAGE.md`](../../../packages/contracts/USAGE.md)
 for the canonical HTTP and domain contract.
 
 ## Ownership Boundary
@@ -68,7 +68,7 @@ durable. User account deletion removes user-owned usage state in the shared dele
 
 ## Operator CLI
 
-Run commands from `api/` with the same `OPTIONAL_STARTERS` selection and database configuration as
+Run commands from `apps/api/` with the same `OPTIONAL_STARTERS` selection and database configuration as
 the deployed API:
 
 ```bash

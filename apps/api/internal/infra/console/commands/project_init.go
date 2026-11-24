@@ -102,10 +102,10 @@ func (c *ProjectInitCommand) Run(args []string) error {
 		c.output.Line("Installed template %s; finish each plugin's INTEGRATION.md steps, then plugin:doctor.", marker.Template)
 	}
 	c.output.Line("Next:")
-	c.output.Line("  1. cd api && go mod tidy && go build ./... && cd .. && make check")
+	c.output.Line("  1. cd apps/api && go mod tidy && go build ./... && cd ../.. && make check")
 	c.output.Line("  2. make dev, then sign in with the seeded accounts")
 	c.output.Line("  3. Remove examples and unused starters: .agents/skills/downstream-app-extraction/SKILL.md")
-	c.output.Line("  4. Add capabilities from the plugin registry: cd api && go run ./cmd/fastbuild plugin:search <words>")
+	c.output.Line("  4. Add capabilities from the plugin registry: cd apps/api && go run ./cmd/fastbuild plugin:search <words>")
 	return nil
 }
 
@@ -239,17 +239,17 @@ func projectRewriter(options ProjectOptions) func(relative string, content []byt
 		`"name": "@`+scaffoldSlug+`/contracts"`, `"name": "@`+options.Slug+`/contracts"`,
 	)
 	fileRewrites := map[string]func(string) string{
-		"api/.env.example":   setLine("APP_NAME=", options.Name),
-		"admin/.env.example": setLine("VITE_APP_NAME=", options.Name),
-		"compose.dev.yaml":   setLine("name: ", options.Slug+"-dev"),
+		"apps/api/.env.example":   setLine("APP_NAME=", options.Name),
+		"apps/admin/.env.example": setLine("VITE_APP_NAME=", options.Name),
+		"compose.dev.yaml":        setLine("name: ", options.Slug+"-dev"),
 	}
 	if options.Starters != nil {
 		starters := append(append([]string{}, options.Starters...), options.pluginStarters...)
 		web, admin := browserFeatures(starters)
-		fileRewrites["api/.env.example"] = chain(fileRewrites["api/.env.example"],
+		fileRewrites["apps/api/.env.example"] = chain(fileRewrites["apps/api/.env.example"],
 			setLine("OPTIONAL_STARTERS=", strings.Join(starters, ",")))
-		fileRewrites["web/.env.example"] = setLine("NEXT_PUBLIC_OPTIONAL_FEATURES=", strings.Join(web, ","))
-		fileRewrites["admin/.env.example"] = chain(fileRewrites["admin/.env.example"],
+		fileRewrites["apps/web/.env.example"] = setLine("NEXT_PUBLIC_OPTIONAL_FEATURES=", strings.Join(web, ","))
+		fileRewrites["apps/admin/.env.example"] = chain(fileRewrites["apps/admin/.env.example"],
 			setLine("VITE_OPTIONAL_FEATURES=", strings.Join(admin, ",")))
 		fileRewrites["scripts/dev.sh"] = chain(
 			setShellDefault("FASTBUILD_DEV_STARTERS", strings.Join(starters, ",")),
@@ -370,7 +370,7 @@ func repositoryRoot() (string, error) {
 		return "", fmt.Errorf("project:init must run inside the project's git repository: %w", err)
 	}
 	root := strings.TrimSpace(string(output))
-	for _, required := range []string{"api/go.mod", "contracts/openapi.yaml"} {
+	for _, required := range []string{"apps/api/go.mod", "packages/contracts/openapi.yaml"} {
 		if _, err := os.Stat(filepath.Join(root, required)); err != nil {
 			return "", fmt.Errorf("%s is not a FastBuild repository: %s is missing", root, required)
 		}

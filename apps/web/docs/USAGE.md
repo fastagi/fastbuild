@@ -13,7 +13,7 @@ The API must use the matching selection:
 OPTIONAL_STARTERS=organization,usage
 ```
 
-The canonical behavior is defined in [`../../contracts/USAGE.md`](../../contracts/USAGE.md).
+The canonical behavior is defined in [`../../../packages/contracts/USAGE.md`](../../../packages/contracts/USAGE.md).
 
 ## Browser Routes
 

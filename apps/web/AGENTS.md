@@ -1,6 +1,6 @@
 # AGENTS.md - FastBuild Web
 
-Rules for the Next.js frontend under `web/`.
+Rules for the Next.js frontend under `apps/web/`.
 
 ## Scope
 
@@ -114,7 +114,7 @@ legacy `middleware.ts` beside it.
 - Preserve `request_id` for diagnostics without exposing sensitive provider or
   server details.
 
-Update the owning file under `../contracts/` when public request, response,
+Update the owning file under `../../packages/contracts/` when public request, response,
 status, error, session, or pagination behavior changes.
 
 ## UI And Internationalization
@@ -153,7 +153,7 @@ status, error, session, or pagination behavior changes.
 | Mock BFF replacement | [docs/MOCK_BFF.md](docs/MOCK_BFF.md) |
 | Browser security | [docs/SECURITY.md](docs/SECURITY.md) |
 | Route performance | [docs/PERFORMANCE.md](docs/PERFORMANCE.md) |
-| Optional starter UI | The matching file under `docs/` and `../contracts/` |
+| Optional starter UI | The matching file under `docs/` and `../../packages/contracts/` |
 
 Open the matching optional-starter document only when changing that feature.
 
@@ -176,7 +176,7 @@ corepack pnpm test -- --run
 corepack pnpm build
 
 # Full Web tier
-bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
 ```
 
 Use browser verification for changed user workflows and visual behavior. Use

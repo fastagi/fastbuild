@@ -20,7 +20,7 @@ type openAPIContract struct {
 }
 
 func TestAPIKeyDTOFieldsMatchOpenAPI(t *testing.T) {
-	contractPath := filepath.Join("..", "..", "..", "..", "contracts", "openapi.yaml")
+	contractPath := filepath.Join("..", "..", "..", "..", "..", "packages", "contracts", "openapi.yaml")
 	content, err := os.ReadFile(contractPath)
 	if err != nil {
 		t.Fatalf("read OpenAPI contract: %v", err)

@@ -66,6 +66,15 @@ This file is the canonical glossary for the whole repository. Use these terms wh
 **Seam**
 : A place where behavior can vary without editing callers. Good seams are small, named, testable, and located where the concept naturally belongs.
 
+**App**
+: An independently deployable unit under `apps/`: the Go API, the Web application, the Admin
+  Console. Apps never import each other's source.
+
+**Package**
+: Shared, non-deployable code under `packages/`, such as the contract. Packages never depend on
+  apps, depend on each other in one direction, and stay platform-neutral unless their name states
+  a platform.
+
 **Contract**
 : Stable HTTP behavior shared across the scaffold. A contract includes request shape, response shape, status code, `error_code`, `request_id`, pagination, and compatibility expectations.
 
@@ -88,12 +97,12 @@ This file is the canonical glossary for the whole repository. Use these terms wh
   independent deployables; downstream apps may operate either or both.
 
 **Web application**
-: The customer-facing Next.js implementation under `web/`. It includes public
+: The customer-facing Next.js implementation under `apps/web/`. It includes public
   routes, account journeys, user workspace flows, providers, i18n, mock auth,
   and server-only production adapters.
 
 **Admin Console**
-: The project management application under `admin/`, implemented as a Vite
+: The project management application under `apps/admin/`, implemented as a Vite
   and TanStack Router SPA. It owns operator and administrative workflows while
   preserving the shared contract, error, state, i18n, and design-system
   architecture. It emits static OSS/CDN assets and has no BFF, server function,
@@ -266,10 +275,12 @@ This file is the canonical glossary for the whole repository. Use these terms wh
 - A starter may span persistence, HTTP routes, contracts, mock BFF behavior, UI, tests, and docs.
 - A feature is product-facing behavior; a module is the internal implementation shape behind a seam.
 - Core and capabilities are reusable; starters and features express application behavior.
-- Contracts connect deployable units. Source code is not shared across the API,
-  Web application, or Admin Console.
+- Contracts connect apps. Apps never import each other's source; shared TypeScript lives in
+  platform-neutral packages that depend only on other packages, and the Go API consumes only the
+  contract.
 - The Web application and Admin Console have different audiences and may run
-  together. Shared behavior comes from contracts and tests, not source imports.
+  together. Shared behavior comes from contracts, packages, and tests, never from one app
+  importing another.
 - The Admin Console authenticates through the optional `operator` starter, which issues an HttpOnly
   operator session from the Go API. Without that starter the console has no protected feature;
   browser storage never replaces HttpOnly credential custody.
@@ -304,7 +315,7 @@ This file is the canonical glossary for the whole repository. Use these terms wh
 - **Web application vs Admin Console**: Web serves customer-facing journeys
   through Next.js and server-owned adapters. Admin serves project management
   workflows through a static Vite/TanStack application. They may coexist and
-  share contracts and vocabulary, never source code.
+  share contracts, vocabulary, and packages, never each other's source.
 - **Admin Console vs browser gateway**: The Admin Console owns browser UI and public build configuration. A
   browser gateway owns HttpOnly credentials, unsafe-request protection, and fixed server mappings;
   CDN fallback routing or browser storage is not a gateway.

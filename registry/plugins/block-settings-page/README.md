@@ -6,10 +6,10 @@ optional footer for actions. Sections with `tone: 'danger'` get the destructive 
 irreversible settings.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-settings-page
+cd apps/api && go run ./cmd/fastbuild plugin:add block-settings-page
 ```
 
-Installs `web/src/components/blocks/settings-page/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/settings-page/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy. Forms are passed in.
 
 ## Usage

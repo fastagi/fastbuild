@@ -28,7 +28,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   JavaScript/CSS budgets, validates public environment and API responses, and keeps protected auth
   explicitly behind a same-origin browser gateway rather than browser token storage.
 - Error contracts have been aligned around `code`, `error_code`, `message`, optional `errors`, and optional `request_id`.
-- Scaffold-level error contracts are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`, keeping `contracts/README.md`, API response constants, and Web status fallbacks aligned.
+- Scaffold-level error contracts are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`, keeping `packages/contracts/README.md`, API response constants, and Web status fallbacks aligned.
 - API default HTTP guardrails now include security headers, request body limit, cooperative request timeout, production-default rate limiting, CORS, and standard `error_code` responses for body-limit, timeout, and rate-limit failures. Process-local rate-limit stores are atomically enforced, cardinality-bounded with configurable LRU eviction, exact at window expiry, and own no cleanup goroutines; the misleading unassembled Redis limiter and inert `REDIS_*` runtime config were removed. Opt-in `RATE_LIMIT_STORE=postgres` shares one fixed-window budget per key across replicas for the global limiter and every authentication quota: one atomic upsert per decision on an UNLOGGED table using the database clock, SHA-256 key digests only, bounded opportunistic expiry plus `ratelimit:prune`, and a bounded decision timeout (default 50ms) whose `local` (default), `open`, or `closed` fallback is counted in `rate_limit_store_failures_total` and logged at a rate-limited warn level. The trade-off is one PostgreSQL round trip and pooled connection per rate-limited request and no cardinality cap on shared rows; volumetric and bot protection remain a gateway/WAF responsibility.
 - The optional API cache capability now has one byte-oriented contract across memory and Redis, atomic `Add`/`Take`, explicit positive TTLs, typed JSON helpers, per-store request coalescing, bounded memory cardinality/payloads, and zero persistent cleanup goroutines. Redis requires a namespace and borrowed client; cache remains non-authoritative and unassembled until a downstream business seam owns invalidation and outage policy.
 - API transport configuration now owns the real socket boundary: local defaults bind to `127.0.0.1`,
@@ -39,7 +39,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   precedence. Runtime-only process values remain highest priority, stale file values are removed by
   test/diagnostic reloads, and misleading dynamic-key, hot-reload, and no-op cache surfaces have been
   removed. The lifecycle and secret ownership contract lives in
-  [`../api/docs/CONFIGURATION.md`](../api/docs/CONFIGURATION.md).
+  [`../apps/api/docs/CONFIGURATION.md`](../apps/api/docs/CONFIGURATION.md).
 - Outbound email now uses one reusable HTTP client, caller context plus a 10-second provider budget,
   a 50-recipient request cap, 64 KiB response cap, all-or-none typed configuration, address
   validation, HTML-escaped template values, and status-only provider errors. Recipient, subject,
@@ -48,7 +48,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   than pretending to be a notification workflow. Against `e6ff2a1`, a Go 1.25.12 `darwin/arm64`
   stripped `cmd/server` moved from 34,544,338 to 34,527,826 bytes (-16,512, -0.048%), while the
   `go list -deps` package count stayed at 632. These are binary/dependency measurements, not an email
-  provider latency claim. See [`../api/docs/EMAIL.md`](../api/docs/EMAIL.md).
+  provider latency claim. See [`../apps/api/docs/EMAIL.md`](../apps/api/docs/EMAIL.md).
 - The API production image no longer embeds development environment files. It runs non-root with
   production/release defaults, JSON request logs on stdout, file logging disabled, and an executable
   loopback liveness check. Local Compose is explicitly development-only, and CI builds and exercises
@@ -59,14 +59,14 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   activity writes are throttled, logout revokes the presented session, and password/account security
   events revoke all sessions transactionally. A bounded `auth-session:prune` command owns retention;
   Web keeps the credential HttpOnly and performs remote logout. See
-  [`../api/docs/AUTHENTICATION.md`](../api/docs/AUTHENTICATION.md) and
-  [`../contracts/AUTHENTICATION.md`](../contracts/AUTHENTICATION.md).
+  [`../apps/api/docs/AUTHENTICATION.md`](../apps/api/docs/AUTHENTICATION.md) and
+  [`../packages/contracts/AUTHENTICATION.md`](../packages/contracts/AUTHENTICATION.md).
 - The API minimum toolchain is now Go 1.25.13 and `quic-go` is at 0.59.1, closing the reachable standard-library and HTTP/3 findings reported against Go 1.25.0 / `quic-go` 0.58.0. A full `govulncheck ./...` reports zero reachable vulnerabilities; three advisories remain only in required modules with no called symbols. With both trees built by Go 1.25.12 using `-trimpath -ldflags='-s -w'`, the auth/proxy/tooling slice moves `cmd/server` from 34,412,002 to 34,445,090 bytes (+33,088 bytes, 0.10%) against baseline `fcb58b1`; `x/tools` and `x/vuln` remain absent from the server package dependency graph.
 - Dependency supply-chain policy is executable across the API and both browser shells. The browser
   projects reject unsupported Node lines, use Node 22.12+/24 LTS with Node 22 type semantics, and
   pin pnpm 10.34.5 with a 24-hour resolution quarantine, trust non-downgrade, blocked exotic
   transitive sources, and a strict five-version build-script allowlist. A checksum-pinned
-  OSV-Scanner 2.3.8 scans `api/go.mod` and the `contracts`, `web`, and `admin` pnpm lockfiles, exports a
+  OSV-Scanner 2.3.8 scans `apps/api/go.mod` and the `contracts`, `web`, and `admin` pnpm lockfiles, exports a
   validated CycloneDX 1.5 SBOM, and permits only reasoned, expiring exceptions.
 - Container supply-chain policy covers the API, Next.js Web, and Admin Console images. The Admin
   image is optional static nginx; its `dist/` remains a standalone OSS/CDN artifact. Dockerfile frontend and every
@@ -75,10 +75,10 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   Checksum-pinned Trivy 0.72.0 exports CycloneDX 1.7 runtime inventories and blocks HIGH/CRITICAL
   vulnerabilities, secrets, and known EOL bases in dedicated read-only API/Web/Admin workflows.
 - API operational routes now keep health probes always available while Prometheus instrumentation and `/metrics` follow `METRICS_ENABLED` (enabled outside production, disabled by default in production). Unmatched URLs collapse to one bounded metric label, and the broken default `/monitor` and `/swagger` surfaces have been removed until they have real assembly and contracts.
-- `db_*` Prometheus series are now fed by a GORM callback plugin (operation/table labels, capped at 256 tables, two allocations per statement) and a scrape-time `sql.DBStats` collector. Worker commands share the HTTP server's tracing bootstrap and flush on exit, and outbound AI, webhook, and R2 calls emit URL-free client spans; see [`../api/docs/OBSERVABILITY.md`](../api/docs/OBSERVABILITY.md).
+- `db_*` Prometheus series are now fed by a GORM callback plugin (operation/table labels, capped at 256 tables, two allocations per statement) and a scrape-time `sql.DBStats` collector. Worker commands share the HTTP server's tracing bootstrap and flush on exit, and outbound AI, webhook, and R2 calls emit URL-free client spans; see [`../apps/api/docs/OBSERVABILITY.md`](../apps/api/docs/OBSERVABILITY.md).
 - Removing the unwired Swagger runtime dependencies reduced the local Go module graph from 298 to 271 modules and the stripped `cmd/server` binary from 44,835,362 to 34,395,426 bytes (23.29%) on Go 1.25.0 `darwin/arm64`. This is a dependency and binary-footprint baseline measured with `go list -m all` and `go build -trimpath -ldflags='-s -w'`; it is not a throughput claim.
 - Compression is intentionally not part of the default API kernel; prefer deployment/CDN compression or explicit route/starter middleware.
-- API middleware ownership is now cataloged in [`../api/docs/MIDDLEWARE.md`](../api/docs/MIDDLEWARE.md).
+- API middleware ownership is now cataloged in [`../apps/api/docs/MIDDLEWARE.md`](../apps/api/docs/MIDDLEWARE.md).
 - Web error-code vocabulary is contract-tested so `ApiErrorCode` remains server-scoped, `ClientErrorCode` remains frontend-only, and legacy underscore codes stay normalization input only.
 - Web mock BFF routes are disabled in production runtime by default through `guardMockBffRoute()` and require explicit `MOCK_BFF_ENABLED=true` opt-in for demo-only deployments.
 - Web browser responses now use one centralized policy with nine exact production response headers:
@@ -100,15 +100,15 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   bounded `namespace:action` scope grammar, and a route-level exact scope guard. The Web replaces its
   fabricated settings key with strict fixed-path production/mock routes and a real create/list/revoke
   workflow; plaintext is shown once, immediately removed from mutation state, and forbidden from list
-  metadata. [`../contracts/API_KEYS.md`](../contracts/API_KEYS.md) and an executable boundary check own
+  metadata. [`../packages/contracts/API_KEYS.md`](../packages/contracts/API_KEYS.md) and an executable boundary check own
   the cross-service semantics.
 - Sensitive telemetry now has one standard-library-only `pkg/redact` boundary. HTTP logs use route
   templates (plus a bounded unmatched sentinel) and omit concrete paths/query values/bodies; HTTP
   traces omit concrete paths and free-form errors; logger context and audit metadata are recursively
   sanitized; the development exception center redacts credential headers/query values and escapes
   every dynamic HTML field; and all GORM trace paths are permanently parameterized. An executable
-  governance check keeps these seams aligned with [`../api/docs/OBSERVABILITY.md`](../api/docs/OBSERVABILITY.md).
-- Web mock BFF replacement is documented in [`../web/docs/MOCK_BFF.md`](../web/docs/MOCK_BFF.md), including production modes, deletion seams, and verification.
+  governance check keeps these seams aligned with [`../apps/api/docs/OBSERVABILITY.md`](../apps/api/docs/OBSERVABILITY.md).
+- Web mock BFF replacement is documented in [`../apps/web/docs/MOCK_BFF.md`](../apps/web/docs/MOCK_BFF.md), including production modes, deletion seams, and verification.
 - Web Query/Auth providers are route-scoped: root keeps only app-wide UI context, `(auth)` owns React Query mutations, and `(protected)` owns authenticated providers.
 - Web public route hydration boundaries are guarded by `src/test/public-route-boundary.test.ts`, which blocks auth, query, HTTP, mock BFF, mock session, toast, and Zustand runtime dependencies from `(site)` routes.
 - The auth visual shell is now a Server Component, while `LanguageSwitcher`, forms, and `QueryProvider` remain client leaves. Moving Zod validation behind the server-only environment boundary also removed the full validator from browser chunks. On Next.js 16.2.9, the `/login` route client entry set fell from 702,002 to 409,986 raw bytes and from 195,929 to 129,095 gzip bytes (41.60% and 34.11%), and the auth layout itself left the client reference graph. This is build-manifest evidence, not a field Core Web Vitals claim.
@@ -148,7 +148,7 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
   unreviewed action repositories, unsafe triggers, runtime drift, and duplicated pnpm version authority.
 - The root `fastbuild-framework-review` skill now defines the long-running review loop.
 - `fastbuild-framework-review` can now generate optional HTML architecture review reports in `$TMPDIR` for multi-candidate or cross-turn recommendations.
-- HTTP contract changes now have a dedicated root `contract-evolution` skill that orders changes through `contracts/`, API behavior, Web services, mock BFF behavior, and verification.
+- HTTP contract changes now have a dedicated root `contract-evolution` skill that orders changes through `packages/contracts/`, API behavior, Web services, mock BFF behavior, and verification.
 - Vocabulary and boundary decisions now have a dedicated root `domain-modeling` skill that routes new terms to `CONTEXT.md`, ADRs, local docs, skills, or nowhere.
 - FastBuild diff review now has a dedicated root `fastbuild-code-review` skill that separates Standards findings from Spec findings.
 - Bugs and contract-sensitive regressions now have a dedicated root `tdd-regression` skill that requires a failing test before production fixes.
@@ -157,15 +157,15 @@ Use [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md) for the 30/60/90-day 
 - Skill governance now has a dedicated 30/60/90-day and long-term plan in [`SKILL_GOVERNANCE_PLAN.md`](SKILL_GOVERNANCE_PLAN.md).
 - High-signal docs and every non-template `SKILL.md` are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-vocabulary.sh` and CI.
 - Local Markdown links across docs and agent guidance are guarded by `.agents/skills/fastbuild-framework-review/scripts/check-doc-links.py` and CI.
-- API package boundary drift is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`, with any current exceptions documented in [`../api/docs/PACKAGE_BOUNDARIES.md`](../api/docs/PACKAGE_BOUNDARIES.md).
+- API package boundary drift is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`, with any current exceptions documented in [`../apps/api/docs/PACKAGE_BOUNDARIES.md`](../apps/api/docs/PACKAGE_BOUNDARIES.md).
 - API boundary baseline exceptions are currently zero. `internal/domain` is guarded as standard-library-only, starter registry interfaces live in `internal/starter/assembly`, and the grab-bag packages (`pkg/support`, `pkg/utils`, and the `internal/infra/{queue,schedule,retry,http}` compatibility wrappers) are deleted; `make governance` rejects new `support`, `utils`, `common`, or `helpers` packages under `pkg/` and `internal/infra/`. `pkg/response` does not import `internal/domain`, and queue, retry, and scheduler primitives are owned by `internal/capabilities/workflow`.
 - Branch and release governance now lives in [`BRANCHING_AND_RELEASES.md`](BRANCHING_AND_RELEASES.md): `dev` is an optional testing branch, the scaffold deploys nothing from CI, and `release/*` or accepted feature PRs are the normal path to `main`.
 - Branch/release governance is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-branch-governance.sh` and CI so docs stay aligned with deployment branch mappings.
 - Scaffold surface classification is guarded by `.agents/skills/fastbuild-framework-review/scripts/check-surface-catalog.py` and CI so the catalog, glossary, and downstream extraction workflow stay aligned.
 - Starter business readiness is now reviewed in [`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md). Optional `organization` includes the complete ownership/member/invitation/context lifecycle; dependent `permission` adds exact grants and access roles; independent `notification` adds durable user delivery; independent `asset` adds private inspected object lifecycles; dependent `setting` adds finite typed overrides; dependent `usage` adds trusted idempotent metering and atomic quota decisions; dependent `webhook` adds signed durable outbound integration. All seven are ready when explicitly enabled in the API and Next.js Web shell. The optional `operator` starter is the Admin Console's browser gateway and gives platform operators user, audit, app-setting, and system screens plus read-mostly organization, webhook, and notification-delivery support views; tenant self-service stays in Web. Billing and AI workspace remain planned.
-- API assembly is guarded against drift: released migrations are frozen SQL checked against a golden schema, starter names and handlers have one source (`config.Starter*`, `starter.Handlers`), each starter owns its error mappings through `assembly.ErrorModule`, `make wire-check` fails CI on a stale `wire_gen.go`, and `make:module` generates a wired optional starter. The decision to keep Wire and the deferred assembly changes, each with a revisit trigger, are recorded in [`../api/docs/adr/0014-wire-maintenance-posture.md`](../api/docs/adr/0014-wire-maintenance-posture.md) and [`../api/docs/adr/0003-starter-registry.md`](../api/docs/adr/0003-starter-registry.md).
+- API assembly is guarded against drift: released migrations are frozen SQL checked against a golden schema, starter names and handlers have one source (`config.Starter*`, `starter.Handlers`), each starter owns its error mappings through `assembly.ErrorModule`, `make wire-check` fails CI on a stale `wire_gen.go`, and `make:module` generates a wired optional starter. The decision to keep Wire and the deferred assembly changes, each with a revisit trigger, are recorded in [`../apps/api/docs/adr/0014-wire-maintenance-posture.md`](../apps/api/docs/adr/0014-wire-maintenance-posture.md) and [`../apps/api/docs/adr/0003-starter-registry.md`](../apps/api/docs/adr/0003-starter-registry.md).
 - Downstream-facing changes from each round are listed by impact in [`../UPGRADING.md`](../UPGRADING.md).
-- The Web mock BFF is checked against the browser services that consume it: `web/src/test/mock-bff-service-parity.test.ts` runs every feature service unchanged against the mock route handlers, so a mock response that drifts from a service schema fails.
+- The Web mock BFF is checked against the browser services that consume it: `apps/web/src/test/mock-bff-service-parity.test.ts` runs every feature service unchanged against the mock route handlers, so a mock response that drifts from a service schema fails.
 
 ## Candidate Queue
 
@@ -188,7 +188,7 @@ UTF-8 fail before provider execution, and direct adapter calls repeat the manage
 
 AI is now disabled by default and has no framework-selected model. Enabling it requires an explicit
 provider-owned model, provider secret, validated endpoint, timeout, and byte limits; production
-requires HTTPS. [`../api/docs/AI.md`](../api/docs/AI.md) fixes the semantic boundary: this capability
+requires HTTPS. [`../apps/api/docs/AI.md`](../apps/api/docs/AI.md) fixes the semantic boundary: this capability
 owns bounded execution, while any future AI workspace starter must own prompts, conversations, runs,
 evaluations, cost attribution, permissions, retention, and durable retry policy. Root governance now
 guards that boundary with `check-ai-boundary.py`.
@@ -199,9 +199,9 @@ and a 2 MiB prompt reaching the provider. The same tests now pass with bounded, 
 
 Verification:
 
-- `cd api && go test ./internal/capabilities/ai ./internal/infra/config ./internal/infra/console/commands`
-- `cd api && go test -race ./internal/capabilities/ai`
-- `make governance`, `make check`, `cd api && make vuln`, and `cd api && make container-check`
+- `cd apps/api && go test ./internal/capabilities/ai ./internal/infra/config ./internal/infra/console/commands`
+- `cd apps/api && go test -race ./internal/capabilities/ai`
+- `make governance`, `make check`, `cd apps/api && make vuln`, and `cd apps/api && make container-check`
 
 ### Completed P0 — Sensitive Telemetry And Diagnostic Output Boundary
 
@@ -231,7 +231,7 @@ Verification:
 
 - red/green tests across `pkg/logger`, `pkg/errors`, `internal/infra/exception`, HTTP tracing,
   database diagnostics, and audit service
-- `cd api && go test ./pkg/redact -run '^$' -bench '^BenchmarkMap$' -benchmem -count=5`
+- `cd apps/api && go test ./pkg/redact -run '^$' -bench '^BenchmarkMap$' -benchmem -count=5`
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-sensitive-telemetry.py`
 - `make check`
 
@@ -247,8 +247,8 @@ keeps create plaintext out of list and mutation caches.
 
 Verification:
 
-- `cd api && go test ./internal/modules/apikey -count=1`
-- `cd web && pnpm vitest run src/test/api-key-contract.test.ts src/test/api-key-route.test.ts src/test/api-key-ui.test.tsx`
+- `cd apps/api && go test ./internal/modules/apikey -count=1`
+- `cd apps/web && pnpm vitest run src/test/api-key-contract.test.ts src/test/api-key-route.test.ts src/test/api-key-ui.test.tsx`
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-api-key-boundary.py`
 - `make check`
 
@@ -264,7 +264,7 @@ server starts.
 
 Verification:
 
-- `cd api && go test ./internal/bootstrap ./internal/infra/config`
+- `cd apps/api && go test ./internal/bootstrap ./internal/infra/config`
 - Real server socket inspection for loopback and wildcard binds, plus an oversized-header request.
 
 ### Completed P0 — Production Container Runtime Contract
@@ -284,10 +284,10 @@ measurements, not a registry transfer or multi-platform budget.
 
 Verification:
 
-- `cd api && make container-check`
-- `cd api && make compose-check`
-- `cd api && docker compose config --quiet`
-- `cd api && go test ./internal/infra/console/commands ./pkg/logger ./internal/infra/config`
+- `cd apps/api && make container-check`
+- `cd apps/api && make compose-check`
+- `cd apps/api && docker compose config --quiet`
+- `cd apps/api && go test ./internal/infra/console/commands ./pkg/logger ./internal/infra/config`
 
 ### P1 — Security Defaults
 
@@ -295,14 +295,14 @@ Problem: API security middleware now has default guardrails and ownership docs, 
 
 Recommended slice:
 
-1. Keep [`../api/docs/MIDDLEWARE.md`](../api/docs/MIDDLEWARE.md) as the source of truth when moving middleware between default, starter-owned, opt-in, and deployment-owned categories.
+1. Keep [`../apps/api/docs/MIDDLEWARE.md`](../apps/api/docs/MIDDLEWARE.md) as the source of truth when moving middleware between default, starter-owned, opt-in, and deployment-owned categories.
 2. Add production configuration checks when new middleware knobs are introduced.
 3. Keep default kernel tests in sync when guardrails change.
 
 Verification:
 
-- `cd api && go test ./internal/bootstrap/... ./internal/infra/middleware/... ./internal/infra/ratelimit/...`
-- `cd api && golangci-lint run ./...`
+- `cd apps/api && go test ./internal/bootstrap/... ./internal/infra/middleware/... ./internal/infra/ratelimit/...`
+- `cd apps/api && golangci-lint run ./...`
 
 ### Completed P1 — CI Action Runtime And Supply Chain
 
@@ -313,7 +313,7 @@ golangci-lint action use Node 24-compatible releases. Read-only validation workf
 `contents: read`; only deployment-branch synchronization retains `contents: write`; and
 `pull_request_target` is forbidden for repository-code verification.
 
-The pnpm version now has one authority in `web/package.json` instead of a duplicate workflow value.
+The pnpm version now has one authority in `apps/web/package.json` instead of a duplicate workflow value.
 The executable `check-ci-actions.py` guard validates every workflow, reviewed repository/SHA/version
 triples, action runtime metadata, token-permission declarations, trigger safety, pnpm ownership, and
 the runner contract in [`CI.md`](CI.md). Remote acceptance includes annotation inspection because a
@@ -359,8 +359,8 @@ invented role fields.
 
 Verification:
 
-- `cd web && pnpm exec vitest run src/test/go-api-auth-adapter.test.ts src/test/auth-adapter-route.test.ts src/test/auth-session-cookie.test.ts src/test/auth-route-backend.test.ts`
-- `cd web && pnpm type-check && pnpm lint && pnpm build`
+- `cd apps/web && pnpm exec vitest run src/test/go-api-auth-adapter.test.ts src/test/auth-adapter-route.test.ts src/test/auth-session-cookie.test.ts src/test/auth-route-backend.test.ts`
+- `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
 - `make governance` and `make check`
 - Real Web-to-Go registration, server-resolved session, invalid login, logout, and API-outage flows.
 
@@ -410,8 +410,8 @@ and cross-origin logout `403`; organization context returned `Vary: Cookie, Orga
 
 Verification:
 
-- `cd web && pnpm exec vitest run src/test/private-response.test.ts src/test/auth-route-backend.test.ts src/test/auth-adapter-route.test.ts src/test/api-error-contract.test.ts src/test/mock-bff-route-contract.test.ts src/test/organization-route.test.ts`
-- `cd web && pnpm type-check && pnpm lint && pnpm build`
+- `cd apps/web && pnpm exec vitest run src/test/private-response.test.ts src/test/auth-route-backend.test.ts src/test/auth-adapter-route.test.ts src/test/api-error-contract.test.ts src/test/mock-bff-route-contract.test.ts src/test/organization-route.test.ts`
+- `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
 - `make governance` and `make check`
 - Production HTTP replay across auth success/error/origin branches and organization context.
 
@@ -443,10 +443,10 @@ non-root, health, environment-file exclusion, and graceful-shutdown contracts.
 
 Verification:
 
-- `cd api && go test ./pkg/env ./pkg/logger ./pkg/errors ./internal/infra/config ./internal/bootstrap ./internal/infra/console/commands ./tests/unit`
-- `cd api && go test -race ./tests/unit ./internal/infra/config ./internal/infra/console/commands ./internal/bootstrap ./pkg/env ./pkg/logger ./pkg/errors`
-- `cd api && env DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild doctor`
-- `make governance`, `make check`, `cd api && make container-check`, and `cd api && make compose-check`
+- `cd apps/api && go test ./pkg/env ./pkg/logger ./pkg/errors ./internal/infra/config ./internal/bootstrap ./internal/infra/console/commands ./tests/unit`
+- `cd apps/api && go test -race ./tests/unit ./internal/infra/config ./internal/infra/console/commands ./internal/bootstrap ./pkg/env ./pkg/logger ./pkg/errors`
+- `cd apps/api && env DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild doctor`
+- `make governance`, `make check`, `cd apps/api && make container-check`, and `cd apps/api && make compose-check`
 
 ### Completed P1 — Database-Disabled Runtime Degradation
 
@@ -460,8 +460,8 @@ mutations plus authenticated user, API key, and audit routes with the database d
 
 Verification:
 
-- `cd api && go test ./internal/bootstrap -run '^TestHTTPKernelDatabaseDisabledDoesNotPanic$'`
-- `cd api && go test ./internal/modules/user ./internal/modules/apikey ./internal/modules/audit`
+- `cd apps/api && go test ./internal/bootstrap -run '^TestHTTPKernelDatabaseDisabledDoesNotPanic$'`
+- `cd apps/api && go test ./internal/modules/user ./internal/modules/apikey ./internal/modules/audit`
 - Real server with `DB_ENABLED=false`, including 401 and 503 JSON envelopes plus readiness.
 
 ### Completed P1 — Queue Lifecycle Concurrency
@@ -471,7 +471,7 @@ an explicit close barrier, bounded FIFO state, delayed-task cancellation, and in
 tracking. Pending delayed deliveries also use a bounded, context-aware backpressure budget instead
 of allowing unbounded timer goroutines. `Close` is concurrent-safe and idempotent; blocked producers,
 consumers, and workers exit without a send/close race or a closed-channel panic. The contract and
-durable replacement boundary are documented in [`../api/docs/WORKFLOW.md`](../api/docs/WORKFLOW.md).
+durable replacement boundary are documented in [`../apps/api/docs/WORKFLOW.md`](../apps/api/docs/WORKFLOW.md).
 
 Measured locally on an Apple M3 Max with Go 1.25.12, a 256-byte push/pop round trip changed from
 approximately `56 ns/op`, `0 B/op`, `0 allocs/op` to `80 ns/op`, `0 B/op`, `0 allocs/op`. The roughly
@@ -480,9 +480,9 @@ about 12.5 million in-process round trips per second. This is evidence, not a CI
 
 Verification:
 
-- `cd api && make test-race-critical`
-- `cd api && go test ./...`
-- `cd api && make benchmark-workflow`
+- `cd apps/api && make test-race-critical`
+- `cd apps/api && go test ./...`
+- `cd apps/api && make benchmark-workflow`
 
 ### Completed P0 — Cache Capability Runtime Boundary
 
@@ -513,9 +513,9 @@ store adds none. These are local comparison measurements, not a CI latency budge
 
 Verification:
 
-- `cd api && go test ./internal/infra/cache -count=20`
-- `cd api && go test -race ./internal/infra/cache -count=10`
-- `cd api && make benchmark-cache`
+- `cd apps/api && go test ./internal/infra/cache -count=20`
+- `cd apps/api && go test -race ./internal/infra/cache -count=10`
+- `cd apps/api && make benchmark-cache`
 - Real Redis contract run through `FASTBUILD_TEST_REDIS_ADDR`.
 - `make governance` and `make check`
 
@@ -551,8 +551,8 @@ change. These are host-local comparison measurements, not an SLO or CI timing bu
 
 Verification:
 
-- `cd api && go test ./internal/infra/config ./internal/infra/database ./internal/modules/user`
-- `cd api && FASTBUILD_TEST_POSTGRES_DSN=... make benchmark-database`
+- `cd apps/api && go test ./internal/infra/config ./internal/infra/database ./internal/modules/user`
+- `cd apps/api && FASTBUILD_TEST_POSTGRES_DSN=... make benchmark-database`
 - `make governance` and `make check`
 
 ### Completed P1 — Web Route Bundle Budget And Public Shell
@@ -560,7 +560,7 @@ Verification:
 The Web production build now turns route size into a reviewed regression contract. The gate reads
 the official Next.js 16 diagnostics, validates route and chunk evidence, rejects project path
 escapes, enforces named uncompressed first-load limits plus a global maximum, and reports gzip only
-as diagnostic evidence. The policy lives in `web/performance-budgets.json`; intentional increases
+as diagnostic evidence. The policy lives in `apps/web/performance-budgets.json`; intentional increases
 must update the governance expectation and explain route ownership plus before/after measurements.
 
 The first measured reduction removed a custom Radix menu runtime from the globally visible theme
@@ -592,10 +592,10 @@ an SLO, or a CI timing budget.
 
 Verification:
 
-- `cd web && pnpm build && pnpm bundle:check`
-- `cd web && pnpm bundle:analyze`
-- `cd web && docker build --tag fastbuild-web:local .`
-- `cd web && pnpm type-check && pnpm lint && pnpm test -- --run`
+- `cd apps/web && pnpm build && pnpm bundle:check`
+- `cd apps/web && pnpm bundle:analyze`
+- `cd apps/web && docker build --tag fastbuild-web:local .`
+- `cd apps/web && pnpm type-check && pnpm lint && pnpm test -- --run`
 - Three production Lighthouse runs plus desktop and 390 by 844 browser interaction/overflow checks
 - `make governance` and `make check`
 
@@ -624,9 +624,9 @@ rendered. Routes whose client graph already hydrates `Button` gained 1,133 raw b
 
 Verification:
 
-- `cd web && pnpm vitest run src/test/button-composition.test.tsx`
+- `cd apps/web && pnpm vitest run src/test/button-composition.test.tsx`
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-web-ui-primitive-boundary.py`
-- `cd web && pnpm type-check && pnpm lint && pnpm build`
+- `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
 - `make governance` and `make check`
 
 ### Completed P1 — Web Browser Security Response Boundary
@@ -668,9 +668,9 @@ and zero secrets. The tiny image delta is build noise, not a performance improve
 
 Verification:
 
-- `cd web && pnpm vitest run src/test/security-headers.test.ts src/test/auth-runtime-boundary.test.ts`
-- `cd web && pnpm type-check && pnpm lint && pnpm build`
-- `cd web && bash scripts/verify-container.sh fastbuild-web:container-check`
+- `cd apps/web && pnpm vitest run src/test/security-headers.test.ts src/test/auth-runtime-boundary.test.ts`
+- `cd apps/web && pnpm type-check && pnpm lint && pnpm build`
+- `cd apps/web && bash scripts/verify-container.sh fastbuild-web:container-check`
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py`
 - `make governance` and `make check`
 
@@ -698,10 +698,10 @@ Recommended slice:
 
 Verification:
 
-- `cd api && go test -run '^$' -bench . -benchmem ./internal/bootstrap/... ./internal/infra/metrics/...`
-- `cd api && make benchmark-cache`
-- `cd api && go build -trimpath -ldflags='-s -w' -o /tmp/fastbuild-server ./cmd/server`
-- `cd web && pnpm build && pnpm bundle:check`
+- `cd apps/api && go test -run '^$' -bench . -benchmem ./internal/bootstrap/... ./internal/infra/metrics/...`
+- `cd apps/api && make benchmark-cache`
+- `cd apps/api && go build -trimpath -ldflags='-s -w' -o /tmp/fastbuild-server ./cmd/server`
+- `cd apps/web && pnpm build && pnpm bundle:check`
 
 ### P1 — Web Hydration Boundaries
 
@@ -719,7 +719,7 @@ Recommended slice:
 
 Verification:
 
-- `cd web && pnpm build`
+- `cd apps/web && pnpm build`
 - Bundle comparison before/after.
 
 ### P1 — i18n Runtime Boundary
@@ -734,8 +734,8 @@ Recommended slice:
 
 Verification:
 
-- `cd web && pnpm type-check`
-- `cd web && pnpm build`
+- `cd apps/web && pnpm type-check`
+- `cd apps/web && pnpm build`
 
 ### P1 — Demo and Mock Production Guardrails
 
@@ -747,28 +747,28 @@ Recommended slice:
 2. Return mock success payloads through `apiSuccessResponse()` and errors through the shared error response helpers.
 3. Keep the client/server env split and conditional `SESSION_SECRET` requirement covered by `src/test/env-contract.test.ts` when changing mock auth or deployment behavior.
 4. Run `src/test/mock-bff-route-contract.test.ts` when adding or deleting mock route handlers, and add a case to `src/test/mock-bff-service-parity.test.ts` when a feature service gains a method backed by a new mock route.
-5. Keep `web/docs/MOCK_BFF.md` current when mock route handlers, demo credentials, or auth session behavior change.
+5. Keep `apps/web/docs/MOCK_BFF.md` current when mock route handlers, demo credentials, or auth session behavior change.
 6. Add production configuration tests when adding new demo-only flows.
 
 Verification:
 
-- `cd web && pnpm vitest run`
-- `cd web && pnpm build`
+- `cd apps/web && pnpm vitest run`
+- `cd apps/web && pnpm build`
 
 ### P1 — Scaffold Error Contract Drift
 
-Problem: scaffold-level HTTP status and `error_code` behavior spans `contracts/README.md`, API response constants, Web fallback mapping, and mock BFF behavior; changing one without the others makes downstream apps branch on stale assumptions.
+Problem: scaffold-level HTTP status and `error_code` behavior spans `packages/contracts/README.md`, API response constants, Web fallback mapping, and mock BFF behavior; changing one without the others makes downstream apps branch on stale assumptions.
 
 Recommended slice:
 
-1. Keep `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py` aligned with the scaffold-level errors documented in `contracts/README.md`.
+1. Keep `.agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py` aligned with the scaffold-level errors documented in `packages/contracts/README.md`.
 2. Add new scaffold-level `error_code` values to the contract first, then API response constants, then Web `ApiErrorCode` and status fallback behavior.
 3. Keep domain-specific codes out of the scaffold-level table until they become shared HTTP contract behavior.
 
 Verification:
 
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-error-contracts.py`
-- `cd web && pnpm vitest run src/test/error-code-vocabulary.test.ts src/test/api-error-contract.test.ts`
+- `cd apps/web && pnpm vitest run src/test/error-code-vocabulary.test.ts src/test/api-error-contract.test.ts`
 - `make check`
 
 ### Completed P1 — Runtime Route And Contract Discovery
@@ -794,9 +794,9 @@ OpenAPI Description must be delivered as its own complete and validated slice.
 Verification:
 
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py`
-- `cd api && make route-catalog-check`
-- `cd api && go test ./internal/bootstrap ./internal/infra/console ./internal/infra/console/commands`
-- `cd web && pnpm vitest run src/test/console-public-boundary.test.ts`
+- `cd apps/api && make route-catalog-check`
+- `cd apps/api && go test ./internal/bootstrap ./internal/infra/console ./internal/infra/console/commands`
+- `cd apps/web && pnpm vitest run src/test/console-public-boundary.test.ts`
 
 ### Completed P1 — Open-Source Project Entry Point
 
@@ -1055,7 +1055,7 @@ or verified the signature.
 
 Verification:
 
-- `cd api && go test ./...`
+- `cd apps/api && go test ./...`
 - Targeted race-enabled user, organization, bootstrap, and feature tests
 - Targeted Web adapter, body-boundary, optional-feature, organization-contract, route, and UI tests
 - Web production builds with the optional organization feature enabled and disabled
@@ -1091,7 +1091,7 @@ Enforcement:
 Verification:
 
 - `python3 .agents/skills/fastbuild-framework-review/scripts/check-database-boundary.py`
-- `cd api && go test ./...`
+- `cd apps/api && go test ./...`
 - PostgreSQL integration tier against a disposable database
 - `make check`
 
@@ -1100,7 +1100,7 @@ Verification:
 Adding a starter used to mean coordinated edits to provider sets, manifests, migrations, generated
 Wire output, configuration validation, and the route catalog, with nothing failing when one was
 missed. A comparison with Kratos, go-zero, uber-go/fx, Goravel, and Grafana kept compile-time Wire
-([ADR 0014](../api/docs/adr/0014-wire-maintenance-posture.md)) and removed the drift instead:
+([ADR 0014](../apps/api/docs/adr/0014-wire-maintenance-posture.md)) and removed the drift instead:
 
 - Released migrations are frozen SQL and no longer call `AutoMigrate` on live persistence structs.
   `TestMigrationsProduceGoldenSchema` compares a fresh database with
@@ -1114,12 +1114,12 @@ missed. A comparison with Kratos, go-zero, uber-go/fx, Goravel, and Grafana kept
   were removed.
 
 Deferred assembly changes and their triggers are listed in
-[ADR 0003](../api/docs/adr/0003-starter-registry.md#revisit-triggers).
+[ADR 0003](../apps/api/docs/adr/0003-starter-registry.md#revisit-triggers).
 
 Verification:
 
-- `cd api && make wire-check && make route-catalog-check`
-- `cd api && make test-postgres-compatibility`
+- `cd apps/api && make wire-check && make route-catalog-check`
+- `cd apps/api && make test-postgres-compatibility`
 - `make governance`
 
 ### Completed P1 — Dead Code And Dialect Cleanup
@@ -1127,7 +1127,7 @@ Verification:
 Packages with no production caller made the API look larger than it is and gave agents false seams
 to extend. Removed: `internal/infra/{queue,schedule,retry,http,lang,types,contracts}`, the global
 event dispatcher, `pkg/{hash,utils,request,resource,encryption,validation,support,events}`, the
-`api/tests/unit` directory (tests moved beside their packages), the MySQL schema grammar, the
+`apps/api/tests/unit` directory (tests moved beside their packages), the MySQL schema grammar, the
 deprecated default migration and seeder registries, and unused Web utilities. `make governance` now
 rejects `support`, `utils`, `common`, and `helpers` packages under `pkg/` and `internal/infra/`, so
 the `pkg/support` item of the package-deepening candidate is closed by deletion.
@@ -1135,8 +1135,8 @@ the `pkg/support` item of the package-deepening candidate is closed by deletion.
 Verification:
 
 - `bash .agents/skills/fastbuild-framework-review/scripts/check-api-boundaries.sh`
-- `cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./...`
-- `cd web && corepack pnpm type-check && corepack pnpm vitest run`
+- `cd apps/api && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./...`
+- `cd apps/web && corepack pnpm type-check && corepack pnpm vitest run`
 
 ### Completed P1 — Platform Operator Starter And Admin Console
 
@@ -1155,13 +1155,13 @@ at build time with `VITE_OPTIONAL_FEATURES`.
 
 Plans and contract: [`plans/admin-operator-console.md`](plans/admin-operator-console.md),
 [`plans/admin-operator-starters.md`](plans/admin-operator-starters.md),
-[`../contracts/OPERATORS.md`](../contracts/OPERATORS.md).
+[`../packages/contracts/OPERATORS.md`](../packages/contracts/OPERATORS.md).
 
 Verification:
 
-- `cd api && go test ./internal/modules/operator ./internal/modules/organization ./internal/modules/webhook ./internal/modules/notification`
-- `cd api && make test-postgres-compatibility`
-- `cd admin && corepack pnpm type-check && corepack pnpm lint && corepack pnpm vitest run && corepack pnpm build`
+- `cd apps/api && go test ./internal/modules/operator ./internal/modules/organization ./internal/modules/webhook ./internal/modules/notification`
+- `cd apps/api && make test-postgres-compatibility`
+- `cd apps/admin && corepack pnpm type-check && corepack pnpm lint && corepack pnpm vitest run && corepack pnpm build`
 - Live browser run against a real API and PostgreSQL: sign-in, disable a user, replay a webhook
   delivery, and find both in the audit log attributed to the operator.
 
@@ -1176,7 +1176,7 @@ CRUD routes were public before this change.
 
 Verification:
 
-- `cd api && go test ./internal/bootstrap ./internal/infra/testing ./internal/infra/console/commands`
+- `cd apps/api && go test ./internal/bootstrap ./internal/infra/testing ./internal/infra/console/commands`
 
 ### Completed P2 — Durable Task Operations And CLI Plugin Hardening
 
@@ -1187,8 +1187,8 @@ code-execution risk.
 
 Verification:
 
-- `cd api && go test ./internal/capabilities/workflow ./internal/infra/plugin ./internal/infra/console/commands`
-- `cd api && make test-race-critical`
+- `cd apps/api && go test ./internal/capabilities/workflow ./internal/infra/plugin ./internal/infra/console/commands`
+- `cd apps/api && make test-race-critical`
 
 ### Completed P1 — Mock BFF And Browser Service Parity
 
@@ -1201,7 +1201,7 @@ webhooks.
 
 Verification:
 
-- `cd web && corepack pnpm vitest run src/test/mock-bff-service-parity.test.ts`
+- `cd apps/web && corepack pnpm vitest run src/test/mock-bff-service-parity.test.ts`
 
 ### Completed P3 — Notification Preference Key Sequence
 
@@ -1211,7 +1211,7 @@ frozen and the golden schema records the change.
 
 Verification:
 
-- `cd api && go test ./database/migrations ./internal/starter`
+- `cd apps/api && go test ./database/migrations ./internal/starter`
 
 ### Completed P1 — Security Review Fixes (2026-10-03)
 
@@ -1233,8 +1233,8 @@ others); `make dependency-scan` reports zero findings.
 
 Verification:
 
-- `cd api && go test ./internal/modules/user ./internal/modules/operator ./internal/modules/webhook`
-- `cd api && make test-postgres-compatibility`
+- `cd apps/api && go test ./internal/modules/user ./internal/modules/operator ./internal/modules/webhook`
+- `cd apps/api && make test-postgres-compatibility`
 - `make dependency-scan`
 
 ### Completed P2 — Authentication Hardening Follow-Ups
@@ -1256,12 +1256,12 @@ The same review left four lower-severity items; all are closed.
 
 Verification:
 
-- `cd api && go test ./internal/modules/user ./internal/modules/operator ./internal/infra/plugin ./internal/infra/config`
-- `cd api && make test-postgres-compatibility`
+- `cd apps/api && go test ./internal/modules/user ./internal/modules/operator ./internal/infra/plugin ./internal/infra/config`
+- `cd apps/api && make test-postgres-compatibility`
 
 ### Completed P1 — Machine-Checkable Contracts For Every Operation
 
-`contracts/openapi.yaml` described three API key operations; every other capability lived only in
+`packages/contracts/openapi.yaml` described three API key operations; every other capability lived only in
 Markdown and in hand-written client schemas. It now describes all 92 operations, including every
 optional starter and the operator console. The route check assembles the Go catalog with every
 optional starter and fails in both directions, so a route cannot ship without its description.
@@ -1277,7 +1277,7 @@ setting, usage, and webhook pages broke when the server catalog grew.
 Verification:
 
 - `make contract-check`
-- `cd web && corepack pnpm type-check` and `cd admin && corepack pnpm type-check`
+- `cd apps/web && corepack pnpm type-check` and `cd apps/admin && corepack pnpm type-check`
 
 ### P2 — Operator Console Follow-Ups
 
@@ -1295,7 +1295,7 @@ Recommended slice:
 
 Verification:
 
-- The owning starter's PostgreSQL tests and boundary guard, plus `contracts/OPERATORS.md`.
+- The owning starter's PostgreSQL tests and boundary guard, plus `packages/contracts/OPERATORS.md`.
 
 ### Completed P2 — Versioning, Deprecation, And Tag-Driven Releases
 
@@ -1354,7 +1354,7 @@ Problem: packages such as `pkg/errors`, `pkg/response`, and `internal/starter/as
 
 Recommended slice:
 
-1. Pick one seam from [`../api/docs/PACKAGE_BOUNDARIES.md`](../api/docs/PACKAGE_BOUNDARIES.md) or the package list above.
+1. Pick one seam from [`../apps/api/docs/PACKAGE_BOUNDARIES.md`](../apps/api/docs/PACKAGE_BOUNDARIES.md) or the package list above.
 2. Apply the deletion test.
 3. Either document why the seam is valid, deepen/rename it, or remove one baseline exception.
 4. For `internal/capabilities/workflow`, keep queue, retry, and scheduler primitives workflow-owned; do not reintroduce `internal/infra` wrappers around them.
@@ -1437,7 +1437,7 @@ Problem: FastBuild now has a downstream extraction workflow, but future scaffold
 
 Recommended slice:
 
-1. Keep [`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md), `downstream-app-extraction`, `CONTEXT.md`, `web/docs/MOCK_BFF.md`, `api/docs/ADDING_MODULE.md`, and `web/docs/ADDING_FEATURE.md` aligned.
+1. Keep [`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md), `downstream-app-extraction`, `CONTEXT.md`, `apps/web/docs/MOCK_BFF.md`, `apps/api/docs/ADDING_MODULE.md`, and `apps/web/docs/ADDING_FEATURE.md` aligned.
 2. Run the product-leakage helper with task-specific identifiers before committing scaffold-mode changes that touched downstream examples or docs.
 3. Keep surface classification checks in CI; avoid baking product names into FastBuild.
 
@@ -1468,7 +1468,7 @@ Verification:
 
 - Pick one candidate per turn unless the changes are purely documentary and tightly related.
 - Update `CONTEXT.md` when new vocabulary is introduced.
-- Update `contracts/README.md` before changing API/Web contract behavior.
+- Update `packages/contracts/README.md` before changing API/Web contract behavior.
 - Prefer tests at public seams over implementation-coupled tests.
 - Record verification commands in the final report.
 - Leave deferred candidates visible so the long-running task keeps continuity.

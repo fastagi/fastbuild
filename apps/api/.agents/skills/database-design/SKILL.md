@@ -11,8 +11,8 @@ ordering, deploy compatibility, lock duration, and backfill rollout belong to
 
 ## Authority
 
-Read `api/AGENTS.md` for naming, layering, and the PostgreSQL-only boundary.
-Read `api/docs/DATABASE.md` only when runtime configuration, pool behavior,
+Read `apps/api/AGENTS.md` for naming, layering, and the PostgreSQL-only boundary.
+Read `apps/api/docs/DATABASE.md` only when runtime configuration, pool behavior,
 supported versions, or database performance evidence is active.
 
 ## Design Decisions

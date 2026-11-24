@@ -45,7 +45,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/pkg/redact/redact.go",
+        "apps/api/pkg/redact/redact.go",
         (
             'Placeholder = "[REDACTED]"',
             "func IsSensitiveKey(",
@@ -56,8 +56,8 @@ def main() -> int:
         ),
     )
     for relative_path in (
-        "api/pkg/logger/gin.go",
-        "api/internal/infra/middleware/logger.go",
+        "apps/api/pkg/logger/gin.go",
+        "apps/api/internal/infra/middleware/logger.go",
     ):
         require_all(failures, relative_path, ("c.FullPath()", 'path = "unmatched"'))
         forbid_all(
@@ -68,17 +68,17 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/pkg/logger/core.go",
+        "apps/api/pkg/logger/core.go",
         ('"github.com/fastagi/fastbuild/api/pkg/redact"', "return redact.Map(merged)"),
     )
     require_all(
         failures,
-        "api/internal/infra/exception/collector.go",
+        "apps/api/internal/infra/exception/collector.go",
         ("redact.Headers(req.Header)", "redact.Query(req.URL.Query())"),
     )
     require_all(
         failures,
-        "api/internal/infra/exception/recovery.go",
+        "apps/api/internal/infra/exception/recovery.go",
         (
             "redact.URLWithPath",
             "json.MarshalIndent(redact.Map(ctx)",
@@ -88,7 +88,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/pkg/errors/handler.go",
+        "apps/api/pkg/errors/handler.go",
         (
             "redact.URLWithPath",
             "escapeDebugPageData",
@@ -99,23 +99,23 @@ def main() -> int:
     )
     forbid_all(
         failures,
-        "api/pkg/errors/handler.go",
+        "apps/api/pkg/errors/handler.go",
         ("fmt.Println", "c.Errors.String()"),
     )
     require_all(
         failures,
-        "api/pkg/logger/gin.go",
+        "apps/api/pkg/logger/gin.go",
         ('fields["error_count"]', 'fields["error_types"]'),
     )
-    forbid_all(failures, "api/pkg/logger/gin.go", ("c.Errors.String()",))
+    forbid_all(failures, "apps/api/pkg/logger/gin.go", ("c.Errors.String()",))
     require_all(
         failures,
-        "api/internal/infra/database/database.go",
+        "apps/api/internal/infra/database/database.go",
         ("ParameterizedQueries:      true",),
     )
     require_all(
         failures,
-        "api/internal/infra/database/observed_logger.go",
+        "apps/api/internal/infra/database/observed_logger.go",
         (
             "func (l *observedLogger) ParamsFilter",
             "logger.RecorderParamsFilter = parameterizedQueryFilter",
@@ -124,7 +124,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/tracing/middleware.go",
+        "apps/api/internal/infra/tracing/middleware.go",
         (
             "semconv.HTTPRoute(route)",
             'attribute.Int("http.error_count"',
@@ -133,43 +133,43 @@ def main() -> int:
     )
     forbid_all(
         failures,
-        "api/internal/infra/tracing/middleware.go",
+        "apps/api/internal/infra/tracing/middleware.go",
         ("semconv.URLPath", "c.Errors.String()", "span.RecordError"),
     )
     require_all(
         failures,
-        "api/internal/infra/tracing/tracing.go",
+        "apps/api/internal/infra/tracing/tracing.go",
         ("func recordErrorType", "semconv.ErrorTypeKey", 'span.SetStatus(codes.Error, "")'),
     )
     require_all(
         failures,
-        "api/internal/infra/tracing/gorm.go",
+        "apps/api/internal/infra/tracing/gorm.go",
         ("recordErrorType(span, db.Error)",),
     )
     forbid_all(
         failures,
-        "api/internal/infra/tracing/gorm.go",
+        "apps/api/internal/infra/tracing/gorm.go",
         ("span.RecordError", "db.Error.Error()"),
     )
     require_all(
         failures,
-        "api/internal/modules/audit/context.go",
+        "apps/api/internal/modules/audit/context.go",
         ("redactChanges", "redact.IsSensitiveKey", "redact.Map(change.Metadata)"),
     )
     require_all(
         failures,
-        "api/internal/modules/audit/service.go",
+        "apps/api/internal/modules/audit/service.go",
         ("entry.Changes = redactChanges", "entry.Metadata = redact.Map"),
     )
 
     for relative_path in (
-        "api/pkg/redact/redact_test.go",
-        "api/pkg/logger/gin_test.go",
-        "api/internal/infra/exception/recovery_test.go",
-        "api/internal/infra/database/database_test.go",
-        "api/internal/infra/tracing/middleware_test.go",
-        "api/internal/modules/audit/service_test.go",
-        "api/docs/OBSERVABILITY.md",
+        "apps/api/pkg/redact/redact_test.go",
+        "apps/api/pkg/logger/gin_test.go",
+        "apps/api/internal/infra/exception/recovery_test.go",
+        "apps/api/internal/infra/database/database_test.go",
+        "apps/api/internal/infra/tracing/middleware_test.go",
+        "apps/api/internal/modules/audit/service_test.go",
+        "apps/api/docs/OBSERVABILITY.md",
     ):
         if not (ROOT / relative_path).is_file():
             failures.append(f"missing sensitive telemetry evidence: {relative_path}")

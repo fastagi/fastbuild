@@ -69,10 +69,10 @@ the application or ingress rather than emitting conflicting duplicates.
 ## Verification
 
 ```bash
-(cd web && pnpm vitest run src/test/security-headers.test.ts src/test/auth-runtime-boundary.test.ts)
-(cd web && pnpm build)
-(cd web && pnpm proxy:check)
-bash web/scripts/verify-container.sh fastbuild-web:container-check
+(cd apps/web && pnpm vitest run src/test/security-headers.test.ts src/test/auth-runtime-boundary.test.ts)
+(cd apps/web && pnpm build)
+(cd apps/web && pnpm proxy:check)
+bash apps/web/scripts/verify-container.sh fastbuild-web:container-check
 python3 .agents/skills/fastbuild-framework-review/scripts/check-web-security-boundary.py
 make governance
 ```

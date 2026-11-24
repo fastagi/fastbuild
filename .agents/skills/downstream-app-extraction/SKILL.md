@@ -33,14 +33,14 @@ Always read:
 
 Read additional authorities only when their boundary is active:
 
-- `contracts/README.md` when public HTTP behavior changes.
-- `api/docs/ADDING_MODULE.md` for retained or added API starter behavior.
-- `web/docs/ADDING_FEATURE.md` or `admin/docs/ADDING_FEATURE.md` for the
+- `packages/contracts/README.md` when public HTTP behavior changes.
+- `apps/api/docs/ADDING_MODULE.md` for retained or added API starter behavior.
+- `apps/web/docs/ADDING_FEATURE.md` or `apps/admin/docs/ADDING_FEATURE.md` for the
   downstream audience being implemented.
-- `web/docs/MOCK_BFF.md`, `contracts/AUTHENTICATION.md`, and
+- `apps/web/docs/MOCK_BFF.md`, `packages/contracts/AUTHENTICATION.md`, and
   [references/mock-bff-auth.md](references/mock-bff-auth.md) when replacing
   mock routes or authentication adapters.
-- `contracts/ASSETS.md`, `api/docs/ASSETS.md`, `web/docs/ASSETS.md`, and the
+- `packages/contracts/ASSETS.md`, `apps/api/docs/ASSETS.md`, `apps/web/docs/ASSETS.md`, and the
   asset reference below only when asset behavior is retained or removed.
 
 For a retained optional starter, read only its matching reference:
@@ -74,7 +74,7 @@ Do not load references for starters outside the requested downstream slice.
    one, remove its catalog/provider contribution, owned contracts and
    migrations, browser feature, jobs, and environment selection together.
    Delete disposable examples and devtools; rename console surfaces only in
-   downstream mode. Keep `web/`, `admin/`, or both according to the audiences
+   downstream mode. Keep `apps/web/`, `apps/admin/`, or both according to the audiences
    the downstream product will maintain.
 4. **Preserve contracts.** Update the owning contract first when behavior
    changes. Keep `error_code`, `request_id`, validation, pagination, and auth

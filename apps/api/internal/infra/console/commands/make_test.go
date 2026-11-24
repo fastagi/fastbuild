@@ -118,8 +118,8 @@ func TestMakeModuleGeneratesAWiredStarterThatBuilds(t *testing.T) {
 	apiRoot, err := filepath.Abs(filepath.Join(wd, "..", "..", "..", ".."))
 	require.NoError(t, err)
 
-	// make:module runs in the api directory of a checkout and wires the starter at its slots.
-	tmp := filepath.Join(t.TempDir(), "api")
+	// make:module runs in the apps/api directory of a checkout and wires the starter at its slots.
+	tmp := filepath.Join(t.TempDir(), "apps", "api")
 	wiringFiles := []string{
 		filepath.Join("internal", "infra", "config", "starters.go"),
 		filepath.Join("internal", "starter", "defaults.go"),

@@ -181,7 +181,7 @@ Selecting `operator` requires `OPERATOR_ALLOWED_ORIGINS`: the exact Admin Consol
 operator requests must carry one of these origins. `OPERATOR_SESSION_COOKIE_NAME` optionally renames
 the session cookie; the default is `__Host-fastbuild_operator` in production and `fastbuild_operator` elsewhere,
 and the `__Host-` prefix is rejected outside production because it requires a `Secure` cookie. See
-[`../../contracts/OPERATORS.md`](../../contracts/OPERATORS.md).
+[`../../../packages/contracts/OPERATORS.md`](../../../packages/contracts/OPERATORS.md).
 
 ## Outbound Webhook Configuration
 
@@ -276,7 +276,7 @@ Do not add dot-notation string accessors, parallel dynamic repositories, or pack
 Run the diagnostic from the API directory:
 
 ```bash
-cd api && go run ./cmd/fastbuild doctor
+cd apps/api && go run ./cmd/fastbuild doctor
 ```
 
 Use `--env-example=/path/to/.env.example` for a downstream schema. Doctor rejects malformed or

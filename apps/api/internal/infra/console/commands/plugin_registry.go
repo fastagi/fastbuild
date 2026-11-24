@@ -196,7 +196,7 @@ func (c *PluginIndexCommand) Run(args []string) error {
 	if hasFlag(args, "check") {
 		current, readErr := os.ReadFile(target)
 		if readErr != nil || string(current) != string(raw) {
-			return errors.New("registry/index.json is stale; run: cd api && go run ./cmd/fastbuild plugin:index")
+			return errors.New("registry/index.json is stale; run: cd apps/api && go run ./cmd/fastbuild plugin:index")
 		}
 		c.output.Success("registry/index.json is current (%d plugins)", len(index.Plugins))
 		return nil
@@ -285,20 +285,20 @@ func projectReleaseSource(root string) (pluginregistry.Source, error) {
 	return pluginregistry.ParseRemoteSource("github:" + scaffoldGitHubRepository + "@v" + version.String())
 }
 
-// findProjectRoot walks up from the working directory to the checkout that holds api/go.mod and
-// contracts/openapi.yaml, so plugin commands work from the root or from api/.
+// findProjectRoot walks up from the working directory to the checkout that holds apps/api/go.mod and
+// packages/contracts/openapi.yaml, so plugin commands work from the root or from api/.
 func findProjectRoot() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 	for {
-		if fileExists(filepath.Join(dir, "api", "go.mod")) && fileExists(filepath.Join(dir, "contracts", "openapi.yaml")) {
+		if fileExists(filepath.Join(dir, "apps", "api", "go.mod")) && fileExists(filepath.Join(dir, "packages", "contracts", "openapi.yaml")) {
 			return dir, nil
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			return "", errors.New("not inside a FastBuild checkout (api/go.mod and contracts/openapi.yaml not found)")
+			return "", errors.New("not inside a FastBuild checkout (apps/api/go.mod and packages/contracts/openapi.yaml not found)")
 		}
 		dir = parent
 	}
@@ -442,7 +442,7 @@ func (c *PluginAddCommand) Run(args []string) error {
 	}
 	if entry.Fragment != "" && !result.FragmentMerged {
 		c.output.Warning("Node.js or contract tooling is unavailable, so %s was not merged yet.", entry.Fragment)
-		c.output.Line("  cd contracts && corepack pnpm install && corepack pnpm merge-fragment ../%s", entry.Fragment)
+		c.output.Line("  cd packages/contracts && corepack pnpm install && corepack pnpm merge-fragment ../../%s", entry.Fragment)
 	}
 	if len(entry.Env) > 0 {
 		c.output.Section("Configuration")
@@ -565,13 +565,13 @@ func newProjectInstaller(root string, source pluginregistry.Source) (*pluginregi
 			return []byte(strings.ReplaceAll(string(content), scaffoldModulePath, module))
 		},
 	}
-	if node, lookErr := exec.LookPath("node"); lookErr == nil && fileExists(filepath.Join(root, "contracts", "node_modules", "yaml", "package.json")) {
+	if node, lookErr := exec.LookPath("node"); lookErr == nil && fileExists(filepath.Join(root, "packages", "contracts", "node_modules", "yaml", "package.json")) {
 		installer.Contract = nodeContract{root: root, node: node}
 	}
 	return installer, nil
 }
 
-// nodeContract runs the contract tooling in contracts/scripts, which owns the openapi.yaml layout.
+// nodeContract runs the contract tooling in packages/contracts/scripts, which owns the openapi.yaml layout.
 type nodeContract struct {
 	root string
 	node string
@@ -579,7 +579,7 @@ type nodeContract struct {
 
 func (n nodeContract) run(args ...string) ([]byte, error) {
 	command := exec.Command(n.node, args...)
-	command.Dir = filepath.Join(n.root, "contracts")
+	command.Dir = filepath.Join(n.root, "packages", "contracts")
 	var stderr strings.Builder
 	command.Stderr = &stderr
 	output, err := command.Output()
@@ -611,7 +611,7 @@ func (n nodeContract) Remove(additions pluginregistry.ContractAdditions) error {
 }
 
 func projectModulePath(root string) (string, error) {
-	raw, err := os.ReadFile(filepath.Join(root, "api", "go.mod"))
+	raw, err := os.ReadFile(filepath.Join(root, "apps", "api", "go.mod"))
 	if err != nil {
 		return "", err
 	}
@@ -620,7 +620,7 @@ func projectModulePath(root string) (string, error) {
 			return strings.TrimSpace(module), nil
 		}
 	}
-	return "", errors.New("api/go.mod declares no module")
+	return "", errors.New("apps/api/go.mod declares no module")
 }
 
 func sortedLockNames(lock *pluginregistry.Lock) []string {

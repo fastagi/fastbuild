@@ -2,16 +2,16 @@
 
 ## Decision
 
-`admin/` is a pure client-rendered application built with Vite and TanStack
+`apps/admin/` is a pure client-rendered application built with Vite and TanStack
 Router. Production consists only of static HTML, JavaScript, CSS, and related
 assets. It requires no Node.js process, edge function, server function, or
 framework runtime.
 
 The downstream application chooses deployables by audience:
 
-- `web/` for customer-facing journeys that need SSR, server components,
+- `apps/web/` for customer-facing journeys that need SSR, server components,
   metadata rendering, or the shipped Next.js production adapter;
-- `admin/` for project management workflows that can use a reviewed API
+- `apps/admin/` for project management workflows that can use a reviewed API
   gateway and benefit from static OSS/CDN delivery.
 
 Projects may deploy either application or both. Each remains independently
@@ -21,7 +21,7 @@ buildable and communicates with the API only through reviewed contracts.
 
 TanStack Start adds full-document SSR, streaming, server functions, API routes,
 middleware, and client/server builds. Those are valuable when they are active
-requirements, but they overlap the reason `web/` already exists.
+requirements, but they overlap the reason `apps/web/` already exists.
 
 TanStack Router provides the parts this surface needs:
 
@@ -68,8 +68,8 @@ src/config/
 ```
 
 Route files import feature pages. Features may import shared core modules.
-Shared core modules never import a feature. No SPA source imports `web/` or
-`api/` source.
+Shared core modules never import a feature. No SPA source imports `apps/web/` or
+`apps/api/` source.
 
 ## Data Flow
 
@@ -106,7 +106,7 @@ remain outside browser persistence.
 
 ## Contract Parity
 
-Architecture parity with `web/` means the same vocabulary and behavior:
+Architecture parity with `apps/web/` means the same vocabulary and behavior:
 
 - feature-first ownership;
 - documented HTTP DTOs;

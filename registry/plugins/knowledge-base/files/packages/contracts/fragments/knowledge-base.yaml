@@ -1,4 +1,4 @@
-# OpenAPI fragment of the knowledge-base plugin. plugin:add merges it into contracts/openapi.yaml.
+# OpenAPI fragment of the knowledge-base plugin. plugin:add merges it into packages/contracts/openapi.yaml.
 x-error-codes:
   - KNOWLEDGE.ARTICLE_NOT_FOUND
   - KNOWLEDGE.INVALID_ARTICLE

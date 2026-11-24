@@ -59,7 +59,7 @@ browser inspection can perform it.
 For a repeatable CLI-only flow:
 
 ```bash
-python web/.agents/skills/webapp-testing/scripts/with_server.py --help
+python apps/web/.agents/skills/webapp-testing/scripts/with_server.py --help
 ```
 
 The examples directory contains optional Python references. Load one only when

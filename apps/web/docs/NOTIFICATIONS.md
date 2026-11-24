@@ -2,7 +2,7 @@
 
 The optional Web `notification` feature presents user-scoped in-app notifications and global
 channel preferences. It consumes the fixed browser resources in
-[`../../contracts/NOTIFICATIONS.md`](../../contracts/NOTIFICATIONS.md); publication and provider
+[`../../../packages/contracts/NOTIFICATIONS.md`](../../../packages/contracts/NOTIFICATIONS.md); publication and provider
 delivery remain API-only concerns.
 
 ## Activation
@@ -77,7 +77,7 @@ To remove it:
 ## Verification
 
 ```bash
-cd web
+cd apps/web
 pnpm vitest run \
   src/test/notification-contract.test.ts \
   src/test/notification-route.test.ts \

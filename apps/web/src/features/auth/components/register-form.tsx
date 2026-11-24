@@ -22,7 +22,7 @@ import { useRegister } from '@/features/auth/hooks/use-auth';
 import { hasAuthFieldError, resolveAuthErrorKey } from '@/features/auth/utils/auth-error';
 import { useT } from '@/i18n';
 
-// The browser-facing register contract (contracts/AUTHENTICATION.md), which the Route Handler
+// The browser-facing register contract (packages/contracts/AUTHENTICATION.md), which the Route Handler
 // enforces before the looser Go DTO ever sees the payload.
 const NAME_MIN_LENGTH = 2;
 const NAME_MAX_LENGTH = 50;

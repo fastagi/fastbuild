@@ -1,7 +1,7 @@
 # pagination
 
 Offset and cursor pagination for list endpoints. The response shape is defined by
-[`../../../contracts/README.md`](../../../contracts/README.md); this package builds it.
+[`../../../../packages/contracts/README.md`](../../../../packages/contracts/README.md); this package builds it.
 
 ## Request
 
