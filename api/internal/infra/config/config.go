@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/mail"
@@ -65,6 +66,12 @@ const (
 	DefaultAuthenticationSessionRetention = 30 * 24 * time.Hour
 	// DefaultAuthenticationNativeAccessTTL is the short lifetime of a native-client access token.
 	DefaultAuthenticationNativeAccessTTL = 15 * time.Minute
+	// DefaultAuthenticationMFAChallengeTTL bounds one pending MFA login challenge.
+	DefaultAuthenticationMFAChallengeTTL = 5 * time.Minute
+	// DefaultAuthenticationSSOOIDCStateTTL bounds one pending OIDC PKCE state/nonce record.
+	DefaultAuthenticationSSOOIDCStateTTL = 10 * time.Minute
+	// DefaultAuthenticationSSOOIDCTimeout bounds outbound OIDC discovery, token exchange, and JWKS fetches.
+	DefaultAuthenticationSSOOIDCTimeout = 10 * time.Second
 	// DefaultObjectStorageRequestTimeout bounds one provider metadata or object operation.
 	DefaultObjectStorageRequestTimeout = 30 * time.Second
 	// DefaultAssetMaxBytes bounds the first single-object asset workflow.
@@ -366,13 +373,36 @@ type SchedulerConfig struct {
 	Enabled bool
 }
 
-// AuthenticationConfig owns the server-side user session lifecycle.
+// SSOOIDCProviderConfig defines one configured OpenID Connect enterprise SSO provider.
+type SSOOIDCProviderConfig struct {
+	Slug                  string   `json:"slug"`
+	Name                  string   `json:"name"`
+	Enabled               bool     `json:"enabled"`
+	Issuer                string   `json:"issuer"`
+	AuthorizationEndpoint string   `json:"authorization_endpoint"`
+	TokenEndpoint         string   `json:"token_endpoint"`
+	JWKSURI               string   `json:"jwks_uri"`
+	ClientID              string   `json:"client_id"`
+	ClientSecret          string   `json:"client_secret"`
+	RedirectURI           string   `json:"redirect_uri"`
+	AllowedRedirectURIs   []string `json:"allowed_redirect_uris"`
+	Scopes                []string `json:"scopes"`
+}
+
+// AuthenticationConfig owns the server-side user session, MFA, and SSO lifecycle.
 type AuthenticationConfig struct {
 	SessionTTL           time.Duration
 	SessionIdleTimeout   time.Duration
 	SessionTouchInterval time.Duration
 	SessionRetention     time.Duration
 	NativeAccessTTL      time.Duration
+	MFAEncryptionKey     string
+	MFAIssuer            string
+	MFAChallengeTTL      time.Duration
+	SSOOIDCProviders     []SSOOIDCProviderConfig
+	SSOOIDCProvidersRaw  string
+	SSOOIDCStateTTL      time.Duration
+	SSOOIDCTimeout       time.Duration
 }
 
 type LogConfig struct {
@@ -534,6 +564,12 @@ func Load() (*Config, error) {
 			SessionTouchInterval: env.GetDuration("AUTH_SESSION_TOUCH_INTERVAL", DefaultAuthenticationSessionTouchInterval),
 			SessionRetention:     env.GetDuration("AUTH_SESSION_RETENTION", DefaultAuthenticationSessionRetention),
 			NativeAccessTTL:      env.GetDuration("AUTH_NATIVE_ACCESS_TTL", DefaultAuthenticationNativeAccessTTL),
+			MFAEncryptionKey:     strings.TrimSpace(env.Get("AUTH_MFA_ENCRYPTION_KEY", "")),
+			MFAIssuer:            strings.TrimSpace(env.Get("AUTH_MFA_ISSUER", env.Get("APP_NAME", "FastBuild"))),
+			MFAChallengeTTL:      env.GetDuration("AUTH_MFA_CHALLENGE_TTL", DefaultAuthenticationMFAChallengeTTL),
+			SSOOIDCProvidersRaw:  strings.TrimSpace(env.Get("AUTH_SSO_OIDC_PROVIDERS", "")),
+			SSOOIDCStateTTL:      env.GetDuration("AUTH_SSO_OIDC_STATE_TTL", DefaultAuthenticationSSOOIDCStateTTL),
+			SSOOIDCTimeout:       env.GetDuration("AUTH_SSO_OIDC_TIMEOUT", DefaultAuthenticationSSOOIDCTimeout),
 		},
 		Log: LogConfig{
 			Level:       env.Get("LOG_LEVEL", defaultLogLevel(isProd)),
@@ -867,7 +903,7 @@ func validate(cfg *Config) error {
 	if err := validateAIConfig(cfg.AI, isProd); err != nil {
 		return err
 	}
-	if err := validateAuthenticationConfig(cfg.Authentication); err != nil {
+	if err := validateAuthenticationConfig(&cfg.Authentication, cfg.IsProduction()); err != nil {
 		return err
 	}
 	if err := validateQueueConfig(cfg.Queue, cfg.Database.Enabled); err != nil {
@@ -1000,15 +1036,23 @@ func validateQueueConfig(queue QueueConfig, databaseEnabled bool) error {
 	return nil
 }
 
-func validateAuthenticationConfig(cfg AuthenticationConfig) error {
+func validateAuthenticationConfig(cfg *AuthenticationConfig, production bool) error {
 	const (
-		minSessionTTL      = 15 * time.Minute
-		maxSessionTTL      = 180 * 24 * time.Hour
-		minIdleTimeout     = 5 * time.Minute
-		maxTouch           = time.Hour
-		maxRetention       = 365 * 24 * time.Hour
-		minNativeAccessTTL = time.Minute
-		maxNativeAccessTTL = 24 * time.Hour
+		minSessionTTL       = 15 * time.Minute
+		maxSessionTTL       = 180 * 24 * time.Hour
+		minIdleTimeout      = 5 * time.Minute
+		maxTouch            = time.Hour
+		maxRetention        = 365 * 24 * time.Hour
+		minNativeAccessTTL  = time.Minute
+		maxNativeAccessTTL  = 24 * time.Hour
+		minMFAChallengeTTL  = time.Minute
+		maxMFAChallengeTTL  = 15 * time.Minute
+		minSSOOIDCStateTTL  = time.Minute
+		maxSSOOIDCStateTTL  = 30 * time.Minute
+		minSSOOIDCTimeout   = time.Second
+		maxSSOOIDCTimeout   = 30 * time.Second
+		minMFAKeyLength     = 32
+		maxSSOProviderCount = 64
 	)
 
 	if cfg.SessionTTL < minSessionTTL || cfg.SessionTTL > maxSessionTTL {
@@ -1025,6 +1069,91 @@ func validateAuthenticationConfig(cfg AuthenticationConfig) error {
 	}
 	if cfg.NativeAccessTTL != 0 && (cfg.NativeAccessTTL < minNativeAccessTTL || cfg.NativeAccessTTL > maxNativeAccessTTL || cfg.NativeAccessTTL > cfg.SessionTTL) {
 		return fmt.Errorf("AUTH_NATIVE_ACCESS_TTL must be between %s and min(%s, AUTH_SESSION_TTL)", minNativeAccessTTL, maxNativeAccessTTL)
+	}
+	if cfg.MFAEncryptionKey != "" && len(cfg.MFAEncryptionKey) < minMFAKeyLength {
+		return fmt.Errorf("AUTH_MFA_ENCRYPTION_KEY must be at least %d characters when set", minMFAKeyLength)
+	}
+	if cfg.MFAChallengeTTL != 0 && (cfg.MFAChallengeTTL < minMFAChallengeTTL || cfg.MFAChallengeTTL > maxMFAChallengeTTL) {
+		return fmt.Errorf("AUTH_MFA_CHALLENGE_TTL must be between %s and %s", minMFAChallengeTTL, maxMFAChallengeTTL)
+	}
+	if cfg.SSOOIDCStateTTL != 0 && (cfg.SSOOIDCStateTTL < minSSOOIDCStateTTL || cfg.SSOOIDCStateTTL > maxSSOOIDCStateTTL) {
+		return fmt.Errorf("AUTH_SSO_OIDC_STATE_TTL must be between %s and %s", minSSOOIDCStateTTL, maxSSOOIDCStateTTL)
+	}
+	if cfg.SSOOIDCTimeout != 0 && (cfg.SSOOIDCTimeout < minSSOOIDCTimeout || cfg.SSOOIDCTimeout > maxSSOOIDCTimeout) {
+		return fmt.Errorf("AUTH_SSO_OIDC_TIMEOUT must be between %s and %s", minSSOOIDCTimeout, maxSSOOIDCTimeout)
+	}
+	if cfg.SSOOIDCProvidersRaw != "" && len(cfg.SSOOIDCProviders) == 0 {
+		var providers []SSOOIDCProviderConfig
+		if err := json.Unmarshal([]byte(cfg.SSOOIDCProvidersRaw), &providers); err != nil {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS must be a valid JSON array")
+		}
+		cfg.SSOOIDCProviders = providers
+	}
+	if len(cfg.SSOOIDCProviders) > maxSSOProviderCount {
+		return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS must contain at most %d providers", maxSSOProviderCount)
+	}
+	seenSlugs := make(map[string]struct{}, len(cfg.SSOOIDCProviders))
+	for i := range cfg.SSOOIDCProviders {
+		p := &cfg.SSOOIDCProviders[i]
+		p.Slug = strings.TrimSpace(strings.ToLower(p.Slug))
+		p.Name = strings.TrimSpace(p.Name)
+		p.Issuer = strings.TrimRight(strings.TrimSpace(p.Issuer), "/")
+		p.AuthorizationEndpoint = strings.TrimSpace(p.AuthorizationEndpoint)
+		p.TokenEndpoint = strings.TrimSpace(p.TokenEndpoint)
+		p.JWKSURI = strings.TrimSpace(p.JWKSURI)
+		p.ClientID = strings.TrimSpace(p.ClientID)
+		p.ClientSecret = strings.TrimSpace(p.ClientSecret)
+		p.RedirectURI = strings.TrimSpace(p.RedirectURI)
+
+		if p.Slug == "" || len(p.Slug) > 64 {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d].slug must be 1-64 characters", i)
+		}
+		for _, r := range p.Slug {
+			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' && r != '_' {
+				return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d].slug contains invalid characters", i)
+			}
+		}
+		if _, dup := seenSlugs[p.Slug]; dup {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS contains duplicate slug %q", p.Slug)
+		}
+		seenSlugs[p.Slug] = struct{}{}
+		if p.Name == "" || len(p.Name) > 100 {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d].name must be 1-100 characters", i)
+		}
+		if !p.Enabled {
+			continue
+		}
+		if err := validateSSOURL("issuer", p.Issuer, production); err != nil {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d]: %w", i, err)
+		}
+		if p.ClientID == "" {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d].client_id is required when enabled", i)
+		}
+		if err := validateSSOURL("redirect_uri", p.RedirectURI, production); err != nil {
+			return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d]: %w", i, err)
+		}
+		for _, allowed := range p.AllowedRedirectURIs {
+			if err := validateSSOURL("allowed_redirect_uris", strings.TrimSpace(allowed), production); err != nil {
+				return fmt.Errorf("AUTH_SSO_OIDC_PROVIDERS[%d]: %w", i, err)
+			}
+		}
+	}
+	return nil
+}
+
+func validateSSOURL(field, raw string, production bool) error {
+	if raw == "" {
+		return fmt.Errorf("%s is required when enabled", field)
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Host == "" {
+		return fmt.Errorf("%s must be a valid URL", field)
+	}
+	if production && parsed.Scheme != "https" {
+		return fmt.Errorf("%s must use https in production", field)
+	}
+	if parsed.Scheme != "https" && parsed.Scheme != "http" {
+		return fmt.Errorf("%s must use http or https", field)
 	}
 	return nil
 }

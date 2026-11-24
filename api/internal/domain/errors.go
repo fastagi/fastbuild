@@ -18,6 +18,13 @@ var (
 	ErrPasswordResetTokenInvalid = errors.New("password reset token is invalid")
 	ErrPasswordResetTokenExpired = errors.New("password reset token is expired")
 	ErrSignInThrottled           = errors.New("too many failed sign-in attempts")
+	ErrMFAInvalidCode            = errors.New("invalid MFA verification code")
+	ErrMFAChallengeInvalid       = errors.New("MFA challenge is invalid or expired")
+	ErrMFAAlreadyEnabled         = errors.New("MFA is already enabled")
+	ErrMFANotEnabled             = errors.New("MFA is not enabled")
+	ErrSSOProviderNotFound       = errors.New("SSO provider not found")
+	ErrSSOStateInvalid           = errors.New("SSO state is invalid or expired")
+	ErrSSOExchangeFailed         = errors.New("SSO identity verification failed")
 
 	// Permission errors
 	ErrPermissionDenied            = errors.New("permission denied")

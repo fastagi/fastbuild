@@ -210,7 +210,7 @@ func TestNativeAuthHandlersValidateAndMapResponses(t *testing.T) {
 		rotateUser: alice,
 	}
 	svc := NewService(repo, repo, authority, events.NewEventBus(), &fakeUserMailer{}, NewAccountDeletionPolicy())
-	h := NewHandler(svc, svc, svc, nil, nil, newAuthAbuseGuard(config.AuthenticationRateLimitConfig{}))
+	h := NewHandler(svc, svc, svc, nil, nil, newAuthAbuseGuard(config.AuthenticationRateLimitConfig{}), nil, nil)
 	h.RegisterErrorMappings(response.DefaultErrorMapper)
 
 	engine := gin.New()

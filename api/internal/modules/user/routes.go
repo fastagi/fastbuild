@@ -18,6 +18,10 @@ func (h *Handler) RegisterRoutes(r *router.Router) {
 	h.protectPublicRoute(r.POST("/auth/native/login", h.NativeLogin).Name("auth.native.login"), authEndpointLogin)
 	h.protectPublicRoute(r.POST("/auth/native/refresh", h.NativeRefresh).Name("auth.native.refresh"), authEndpointLogin)
 	h.protectPublicRoute(r.POST("/auth/native/logout", h.NativeLogout).Name("auth.native.logout"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/mfa/challenge/verify", h.VerifyMFAChallenge).Name("auth.mfa.challenge.verify"), authEndpointLogin)
+	h.protectPublicRoute(r.GET("/auth/sso/providers", h.ListSSOProviders).Name("auth.sso.providers"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/sso/oidc/start", h.StartSSOOIDC).Name("auth.sso.oidc.start"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/sso/oidc/callback", h.CallbackSSOOIDC).Name("auth.sso.oidc.callback"), authEndpointLogin)
 	h.protectPublicRoute(r.POST("/password/reset", h.RequestPasswordReset).Name("auth.password.reset.request"), authEndpointPasswordReset)
 	h.protectPublicRoute(r.POST("/password/reset/confirm", h.ConfirmPasswordReset).Name("auth.password.reset.confirm"), authEndpointPasswordResetConfirm)
 
@@ -26,6 +30,12 @@ func (h *Handler) RegisterRoutes(r *router.Router) {
 		auth.WithMiddleware("auth")
 
 		auth.POST("/logout", h.Logout).Name("auth.logout")
+
+		// Multi-factor authentication (TOTP + recovery codes)
+		auth.GET("/auth/mfa/status", h.GetMFAStatus).Name("auth.mfa.status")
+		auth.POST("/auth/mfa/totp/enroll", h.EnrollMFATOTP).Name("auth.mfa.totp.enroll")
+		auth.POST("/auth/mfa/totp/verify", h.VerifyMFATOTP).Name("auth.mfa.totp.verify")
+		auth.POST("/auth/mfa/totp/disable", h.DisableMFATOTP).Name("auth.mfa.totp.disable")
 
 		// Profile
 		auth.GET("/users/profile", h.GetProfile).Name("users.profile")

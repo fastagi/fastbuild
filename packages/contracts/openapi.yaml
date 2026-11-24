@@ -115,6 +115,239 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiVersionHealth'
+  /v1/auth/mfa/challenge/verify:
+    post:
+      operationId: verifyMfaChallenge
+      summary: Complete a pending MFA login challenge using a TOTP or one-time recovery code
+      description: Validates a single-use time-bounded MFA challenge, consumes a recovery code atomically if used, and issues a revocable session or native token pair.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationMFAChallengeVerifyRequest'
+      responses:
+        '200':
+          description: A newly issued revocable session or native token pair.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMFAChallengeVerifyResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/mfa/status:
+    get:
+      operationId: getMfaStatus
+      summary: Get the authenticated user's MFA enrollment status
+      tags:
+        - Authentication
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          description: Current MFA enrollment status and remaining recovery code count.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMFAStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/mfa/totp/disable:
+    post:
+      operationId: disableMfaTotp
+      summary: Disable TOTP MFA for the authenticated user
+      description: Verifies a valid TOTP or recovery code, disables MFA, and clears stored secret and recovery codes.
+      tags:
+        - Authentication
+      security:
+        - bearerSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationMFACodeRequest'
+      responses:
+        '200':
+          description: MFA has been disabled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMFADisableResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/mfa/totp/enroll:
+    post:
+      operationId: enrollMfaTotp
+      summary: Start RFC 6238 TOTP MFA enrollment for the authenticated user
+      description: Generates a 160-bit base32 secret, stores it encrypted at rest as a pending enrollment, and returns provisioning metadata.
+      tags:
+        - Authentication
+      security:
+        - bearerSession: []
+      responses:
+        '200':
+          description: Pending TOTP enrollment secret and otpauth provisioning URI.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMFATOTPEnrollResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/mfa/totp/verify:
+    post:
+      operationId: verifyMfaTotp
+      summary: Verify a TOTP code to activate MFA and generate one-time recovery codes
+      tags:
+        - Authentication
+      security:
+        - bearerSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationMFACodeRequest'
+      responses:
+        '200':
+          description: MFA activated with one-time plaintext recovery codes returned once.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationMFATOTPVerifyResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/sso/oidc/callback:
+    post:
+      operationId: callbackSsoOidc
+      summary: Complete an OIDC SSO callback and issue a revocable session
+      description: Atomically consumes the single-use OIDC state, exchanges the authorization code with PKCE verification, verifies the ID token, links or JIT-provisions the account, and issues a session or MFA challenge.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationSSOOIDCCallbackRequest'
+      responses:
+        '200':
+          description: A revocable session or an MFA challenge when MFA is enabled on the resolved account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationSSOOIDCCallbackResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/sso/oidc/start:
+    post:
+      operationId: startSsoOidc
+      summary: Start an OIDC SSO login flow with PKCE S256 and single-use state
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationSSOOIDCStartRequest'
+      responses:
+        '200':
+          description: Authorization URL and single-use state token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationSSOOIDCStartResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/sso/providers:
+    get:
+      operationId: listSsoProviders
+      summary: List configured enabled OIDC SSO providers
+      description: Returns an empty array when no OIDC providers are configured and never exposes client secrets.
+      tags:
+        - Authentication
+      security: []
+      responses:
+        '200':
+          description: Enabled OIDC provider catalog.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationSSOProviderListResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /v1/auth/native/login:
     post:
       operationId: nativeLogin
@@ -4031,6 +4264,13 @@ components:
         - AUTH.ACCOUNT_DISABLED
         - AUTH.PASSWORD_RESET_TOKEN_INVALID
         - AUTH.PASSWORD_RESET_TOKEN_EXPIRED
+        - AUTH.MFA_INVALID_CODE
+        - AUTH.MFA_CHALLENGE_INVALID
+        - AUTH.MFA_ALREADY_ENABLED
+        - AUTH.MFA_NOT_ENABLED
+        - AUTH.SSO_PROVIDER_NOT_FOUND
+        - AUTH.SSO_STATE_INVALID
+        - AUTH.SSO_EXCHANGE_FAILED
         - USER.NOT_FOUND
         - USER.EMAIL_ALREADY_EXISTS
         - USER.USERNAME_ALREADY_EXISTS
@@ -4574,6 +4814,297 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/AuthenticationNativeSession'
+    AuthenticationMFAChallenge:
+      type: object
+      additionalProperties: false
+      required:
+        - mfa_required
+        - challenge_token
+        - challenge_expires_in
+        - method
+      properties:
+        mfa_required:
+          const: true
+        challenge_token:
+          type: string
+          minLength: 1
+          description: Opaque single-use MFA challenge credential.
+        challenge_expires_in:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Whole seconds until the MFA challenge expires.
+        method:
+          type: string
+          enum:
+            - totp
+    AuthenticationMFACodeRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          minLength: 6
+          maxLength: 32
+          description: 6-digit TOTP code or one-time recovery code.
+    AuthenticationMFAChallengeVerifyRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - challenge_token
+        - code
+      properties:
+        challenge_token:
+          type: string
+          minLength: 1
+          maxLength: 128
+        code:
+          type: string
+          minLength: 6
+          maxLength: 32
+    AuthenticationMFAStatus:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+        - method
+        - remaining_recovery_codes
+      properties:
+        enabled:
+          type: boolean
+        method:
+          type: string
+          description: Active MFA method (e.g. "totp") or empty when disabled.
+        remaining_recovery_codes:
+          type: integer
+          minimum: 0
+        enrolled_at:
+          type: string
+          format: date-time
+    AuthenticationMFAStatusResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationMFAStatus'
+    AuthenticationMFATOTPEnroll:
+      type: object
+      additionalProperties: false
+      required:
+        - secret
+        - otpauth_uri
+        - issuer
+        - account_name
+      properties:
+        secret:
+          type: string
+          minLength: 16
+        otpauth_uri:
+          type: string
+          minLength: 1
+        issuer:
+          type: string
+          minLength: 1
+        account_name:
+          type: string
+          minLength: 1
+    AuthenticationMFATOTPEnrollResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationMFATOTPEnroll'
+    AuthenticationMFATOTPVerify:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+        - recovery_codes
+      properties:
+        enabled:
+          const: true
+        recovery_codes:
+          type: array
+          items:
+            type: string
+            minLength: 8
+    AuthenticationMFATOTPVerifyResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationMFATOTPVerify'
+    AuthenticationMFADisable:
+      type: object
+      additionalProperties: false
+      required:
+        - enabled
+      properties:
+        enabled:
+          const: false
+    AuthenticationMFADisableResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationMFADisable'
+    AuthenticationMFAChallengeVerifyResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/AuthenticationSession'
+            - $ref: '#/components/schemas/AuthenticationNativeSession'
+    AuthenticationSSOProviderSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - slug
+        - name
+      properties:
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 64
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+    AuthenticationSSOProviderListResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthenticationSSOProviderSummary'
+    AuthenticationSSOOIDCStartRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - provider
+      properties:
+        provider:
+          type: string
+          minLength: 1
+          maxLength: 64
+        redirect_uri:
+          type: string
+          maxLength: 512
+    AuthenticationSSOOIDCStart:
+      type: object
+      additionalProperties: false
+      required:
+        - authorize_url
+        - state
+      properties:
+        authorize_url:
+          type: string
+          format: uri
+        state:
+          type: string
+          minLength: 1
+    AuthenticationSSOOIDCStartResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationSSOOIDCStart'
+    AuthenticationSSOOIDCCallbackRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - provider
+        - code
+        - state
+      properties:
+        provider:
+          type: string
+          minLength: 1
+          maxLength: 64
+        code:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        state:
+          type: string
+          minLength: 1
+          maxLength: 256
+    AuthenticationSSOOIDCCallbackResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/AuthenticationSession'
+            - $ref: '#/components/schemas/AuthenticationMFAChallenge'
     AuthenticationLogoutResponse:
       type: object
       additionalProperties: false

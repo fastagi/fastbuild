@@ -31,6 +31,15 @@ var ProviderSet = wire.NewSet(
 	wire.Bind(new(domain.CredentialSignIn), new(*service)),
 	wire.Bind(new(domain.UserAdministrator), new(*service)),
 	NewAuthAbuseGuard,
+	NewMFARepository,
+	wire.Bind(new(mfaRepository), new(*mfaRepo)),
+	NewMFAService,
+	wire.Bind(new(MFAService), new(*mfaService)),
+	NewSSORepository,
+	wire.Bind(new(ssoRepository), new(*ssoRepo)),
+	NewOIDCClient,
+	NewSSOService,
+	wire.Bind(new(SSOService), new(*ssoService)),
 	NewHandler,
 )
 
@@ -52,6 +61,7 @@ func NewStarterManifest(handler *Handler) assembly.StarterManifest {
 			"2026_04_27_000003_create_authentication_sessions_table",
 			"2026_10_04_000000_add_audience_to_authentication_sessions",
 			"2026_11_24_000000_add_native_refresh_to_authentication_sessions",
+			"2026_11_24_010000_add_mfa_and_sso_tables",
 			"2025_06_18_000001_seed_default_users",
 		),
 		assembly.WithStarterSeederNames("users"),

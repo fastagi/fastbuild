@@ -22,6 +22,8 @@ type Handler struct {
 	sessions  *SessionService
 	mailer    UserMailer
 	authGuard *AuthAbuseGuard
+	mfa       MFAService
+	sso       SSOService
 }
 
 var (
@@ -39,6 +41,8 @@ func NewHandler(
 	sessions *SessionService,
 	mailer UserMailer,
 	authGuard *AuthAbuseGuard,
+	mfa MFAService,
+	sso SSOService,
 ) *Handler {
 	return &Handler{
 		auth:      auth,
@@ -47,6 +51,8 @@ func NewHandler(
 		sessions:  sessions,
 		mailer:    mailer,
 		authGuard: authGuard,
+		mfa:       mfa,
+		sso:       sso,
 	}
 }
 
@@ -115,6 +121,15 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
+	if resp.MFARequired {
+		response.Success(c, &MFAChallengeResponse{
+			MFARequired:        true,
+			ChallengeToken:     resp.ChallengeToken,
+			ChallengeExpiresIn: resp.ChallengeExpiresIn,
+			Method:             resp.Method,
+		})
+		return
+	}
 	if resp.User != nil {
 		c.Set("userID", resp.User.ID)
 	}
@@ -133,6 +148,15 @@ func (h *Handler) NativeLogin(c *gin.Context) {
 		return
 	}
 
+	if resp.MFARequired {
+		response.Success(c, &MFAChallengeResponse{
+			MFARequired:        true,
+			ChallengeToken:     resp.ChallengeToken,
+			ChallengeExpiresIn: resp.ChallengeExpiresIn,
+			Method:             resp.Method,
+		})
+		return
+	}
 	if resp.User != nil {
 		c.Set("userID", resp.User.ID)
 	}

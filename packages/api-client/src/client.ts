@@ -9,8 +9,19 @@ import type {
   ApiVersionHealth,
   AuthenticationLoginRequest,
   AuthenticationLogoutData,
+  AuthenticationMFAChallenge,
+  AuthenticationMFAChallengeVerifyRequest,
+  AuthenticationMFACodeRequest,
+  AuthenticationMFADisable,
+  AuthenticationMFAStatus,
+  AuthenticationMFATOTPEnroll,
+  AuthenticationMFATOTPVerify,
   AuthenticationRegisterRequest,
   AuthenticationSession,
+  AuthenticationSSOOIDCCallbackRequest,
+  AuthenticationSSOOIDCStart,
+  AuthenticationSSOOIDCStartRequest,
+  AuthenticationSSOProviderSummary,
   AuthenticationUser,
   HealthReport,
   NativeAuthenticationSession,
@@ -96,6 +107,22 @@ export interface FastBuildClient {
     ): Promise<AuthenticationSession | NativeAuthenticationSession>;
     register(payload: AuthenticationRegisterRequest): Promise<AuthenticationUser>;
     logout(path?: string): Promise<AuthenticationLogoutData>;
+    readonly mfa: {
+      status(): Promise<AuthenticationMFAStatus>;
+      enrollTotp(): Promise<AuthenticationMFATOTPEnroll>;
+      verifyTotp(payload: AuthenticationMFACodeRequest): Promise<AuthenticationMFATOTPVerify>;
+      disableTotp(payload: AuthenticationMFACodeRequest): Promise<AuthenticationMFADisable>;
+      verifyChallenge(
+        payload: AuthenticationMFAChallengeVerifyRequest,
+      ): Promise<AuthenticationSession | NativeAuthenticationSession>;
+    };
+    readonly sso: {
+      providers(): Promise<readonly AuthenticationSSOProviderSummary[]>;
+      startOidc(payload: AuthenticationSSOOIDCStartRequest): Promise<AuthenticationSSOOIDCStart>;
+      callbackOidc(
+        payload: AuthenticationSSOOIDCCallbackRequest,
+      ): Promise<AuthenticationSession | AuthenticationMFAChallenge>;
+    };
   };
   readonly user: {
     profile(): Promise<AuthenticationUser>;
@@ -444,6 +471,69 @@ export function createFastBuildClient(options: FastBuildClientOptions): FastBuil
             await tokenStore.clearTokens();
           }
         }
+      },
+      mfa: {
+        status: () =>
+          request<AuthenticationMFAStatus>('/v1/auth/mfa/status', { method: 'GET' }),
+        enrollTotp: () =>
+          request<AuthenticationMFATOTPEnroll>('/v1/auth/mfa/totp/enroll', { method: 'POST' }),
+        verifyTotp: (payload) =>
+          request<AuthenticationMFATOTPVerify>('/v1/auth/mfa/totp/verify', {
+            method: 'POST',
+            body: payload,
+          }),
+        disableTotp: (payload) =>
+          request<AuthenticationMFADisable>('/v1/auth/mfa/totp/disable', {
+            method: 'POST',
+            body: payload,
+          }),
+        async verifyChallenge(payload) {
+          const session = await request<AuthenticationSession | NativeAuthenticationSession>(
+            '/v1/auth/mfa/challenge/verify',
+            {
+              method: 'POST',
+              body: payload,
+              skipAuth: true,
+            },
+          );
+          if (authMode === 'bearer' && tokenStore && session?.access_token) {
+            await tokenStore.setTokens(tokensFromSession(session));
+          }
+          return session;
+        },
+      },
+      sso: {
+        providers: () =>
+          request<readonly AuthenticationSSOProviderSummary[]>('/v1/auth/sso/providers', {
+            method: 'GET',
+            skipAuth: true,
+          }),
+        startOidc: (payload) =>
+          request<AuthenticationSSOOIDCStart>('/v1/auth/sso/oidc/start', {
+            method: 'POST',
+            body: payload,
+            skipAuth: true,
+          }),
+        async callbackOidc(payload) {
+          const result = await request<AuthenticationSession | AuthenticationMFAChallenge>(
+            '/v1/auth/sso/oidc/callback',
+            {
+              method: 'POST',
+              body: payload,
+              skipAuth: true,
+            },
+          );
+          if (
+            authMode === 'bearer' &&
+            tokenStore &&
+            'access_token' in result &&
+            typeof result.access_token === 'string' &&
+            result.access_token
+          ) {
+            await tokenStore.setTokens(tokensFromSession(result));
+          }
+          return result;
+        },
       },
     },
 

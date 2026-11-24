@@ -63,22 +63,38 @@ type NativeLogoutRequest struct {
 // Response DTOs (Output)
 // ============================================================================
 
-// UserLoginResponse represents the login response
-type UserLoginResponse struct {
-	AccessToken string       `json:"access_token"`
-	TokenType   string       `json:"token_type"`
-	ExpiresIn   int64        `json:"expires_in"`
-	User        *domain.User `json:"user"`
+// MFAChallengeResponse represents a pending MFA challenge returned when a user has MFA enabled.
+type MFAChallengeResponse struct {
+	MFARequired        bool   `json:"mfa_required"`
+	ChallengeToken     string `json:"challenge_token"`
+	ChallengeExpiresIn int64  `json:"challenge_expires_in"`
+	Method             string `json:"method"`
 }
 
-// NativeSessionResponse represents the native-client login and refresh response.
+// UserLoginResponse represents the login response (or an MFA challenge when MFA is enabled).
+type UserLoginResponse struct {
+	AccessToken        string       `json:"access_token"`
+	TokenType          string       `json:"token_type"`
+	ExpiresIn          int64        `json:"expires_in"`
+	User               *domain.User `json:"user"`
+	MFARequired        bool         `json:"mfa_required,omitempty"`
+	ChallengeToken     string       `json:"challenge_token,omitempty"`
+	ChallengeExpiresIn int64        `json:"challenge_expires_in,omitempty"`
+	Method             string       `json:"method,omitempty"`
+}
+
+// NativeSessionResponse represents the native-client login and refresh response (or an MFA challenge).
 type NativeSessionResponse struct {
-	AccessToken      string       `json:"access_token"`
-	TokenType        string       `json:"token_type"`
-	ExpiresIn        int64        `json:"expires_in"`
-	RefreshToken     string       `json:"refresh_token"`
-	RefreshExpiresIn int64        `json:"refresh_expires_in"`
-	User             *domain.User `json:"user"`
+	AccessToken        string       `json:"access_token"`
+	TokenType          string       `json:"token_type"`
+	ExpiresIn          int64        `json:"expires_in"`
+	RefreshToken       string       `json:"refresh_token"`
+	RefreshExpiresIn   int64        `json:"refresh_expires_in"`
+	User               *domain.User `json:"user"`
+	MFARequired        bool         `json:"mfa_required,omitempty"`
+	ChallengeToken     string       `json:"challenge_token,omitempty"`
+	ChallengeExpiresIn int64        `json:"challenge_expires_in,omitempty"`
+	Method             string       `json:"method,omitempty"`
 }
 
 // ============================================================================

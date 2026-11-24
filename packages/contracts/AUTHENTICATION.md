@@ -288,3 +288,52 @@ sessions. Instead, the Go `user` starter exposes a dedicated native-client token
 ```dotenv
 AUTH_NATIVE_ACCESS_TTL=15m
 ```
+
+## Multi-Factor Authentication (TOTP + Recovery Codes)
+
+The Go `user` starter provides RFC 6238 TOTP multi-factor authentication with one-time SHA-256-hashed recovery codes under `/v1/auth/mfa/*`:
+
+| Operation | API endpoint | Auth | Request | Successful `data` |
+|---|---|---|---|---|
+| MFA status | `GET /v1/auth/mfa/status` | Bearer | none | `{ enabled, method, remaining_recovery_codes, enrolled_at? }` |
+| Start TOTP enrollment | `POST /v1/auth/mfa/totp/enroll` | Bearer | none | `{ secret, otpauth_uri, issuer, account_name }` |
+| Verify & activate TOTP | `POST /v1/auth/mfa/totp/verify` | Bearer | `{ code }` | `{ enabled: true, recovery_codes }` |
+| Disable TOTP | `POST /v1/auth/mfa/totp/disable` | Bearer | `{ code }` | `{ enabled: false }` |
+| Verify login challenge | `POST /v1/auth/mfa/challenge/verify` | Public | `{ challenge_token, code }` | Session or native token pair |
+
+### MFA Security Semantics
+
+- **RFC 6238 TOTP**: 160-bit CSPRNG secret encoded as unpadded base32, HMAC-SHA1, 30-second time step, 6 digits, constant-time comparison across a ±1 step window. Replaying a code from the same or earlier time step is rejected via persisted `last_used_step`.
+- **Encryption at rest**: Pending and active TOTP secrets are encrypted with AES-256-GCM using `AUTH_MFA_ENCRYPTION_KEY`. If `AUTH_MFA_ENCRYPTION_KEY` is unset, enrollment and verification fail closed with `503 COMMON.SERVICE_UNAVAILABLE`.
+- **One-time recovery codes**: Activating TOTP generates 8 single-use recovery codes returned once in plaintext and stored only as SHA-256 hashes. Each code is consumed atomically on use.
+- **Challenge flow**: When an account with active MFA signs in via `POST /v1/login`, `POST /v1/auth/native/login`, or `POST /v1/auth/sso/oidc/callback`, the API creates a single-use, time-bounded `mfa_challenges` record (stored only by SHA-256 hash) and returns `{ mfa_required: true, challenge_token, challenge_expires_in, method: "totp" }`. Submitting `{ challenge_token, code }` to `POST /v1/auth/mfa/challenge/verify` atomically consumes the challenge and issues the appropriate revocable session (or native token pair if initiated from native login).
+- **Telemetry redaction**: Secrets, TOTP codes, recovery codes, and raw challenge tokens are never logged, traced, or recorded in audit metadata.
+
+```dotenv
+AUTH_MFA_ENCRYPTION_KEY=
+AUTH_MFA_ISSUER=FastBuild
+AUTH_MFA_CHALLENGE_TTL=5m
+```
+
+## Enterprise SSO (OIDC)
+
+The Go `user` starter provides fail-closed OpenID Connect (OIDC) authentication with PKCE (`S256`) and single-use `state`/`nonce` protection under `/v1/auth/sso/*`:
+
+| Operation | API endpoint | Auth | Request | Successful `data` |
+|---|---|---|---|---|
+| List enabled providers | `GET /v1/auth/sso/providers` | Public | none | `[{ slug, name }]` |
+| Start OIDC sign-in | `POST /v1/auth/sso/oidc/start` | Public | `{ provider, redirect_uri? }` | `{ authorize_url, state }` |
+| Complete OIDC callback | `POST /v1/auth/sso/oidc/callback` | Public | `{ provider, code, state }` | Session or MFA challenge |
+
+### OIDC Security Semantics
+
+- **Disabled by default (fail-closed)**: `AUTH_SSO_OIDC_PROVIDERS` defaults to empty; `GET /v1/auth/sso/providers` returns `[]` and unknown or disabled providers fail closed with `404 AUTH.SSO_PROVIDER_NOT_FOUND`. `client_secret` is never returned in API responses or logs.
+- **PKCE S256 & single-use state**: `POST /v1/auth/sso/oidc/start` generates CSPRNG `state`, `nonce`, and PKCE `S256` `code_verifier`/`code_challenge` stored with a short TTL (`AUTH_SSO_OIDC_STATE_TTL`, default `10m`). Optional `redirect_uri` overrides are validated against the provider's configured `redirect_uri` / `allowed_redirect_uris`.
+- **Token exchange & ID token verification**: `POST /v1/auth/sso/oidc/callback` atomically consumes the single-use `state`, exchanges the authorization `code` + `code_verifier` over a bounded traced HTTP client (`AUTH_SSO_OIDC_TIMEOUT`, default `10s`), and verifies the ID token signature, `iss`, `aud`, `exp`, and `nonce`.
+- **Account linking & JIT provisioning**: Verified identities resolve an existing `user_identities` link, link to an existing user with a verified matching email, or JIT-provision a new active user with a `user_identities` record. Disabled accounts receive `403 AUTH.ACCOUNT_DISABLED`. If MFA is enabled on the resolved user, an MFA challenge is returned instead of an active session.
+
+```dotenv
+AUTH_SSO_OIDC_PROVIDERS=
+AUTH_SSO_OIDC_STATE_TTL=10m
+AUTH_SSO_OIDC_TIMEOUT=10s
+```

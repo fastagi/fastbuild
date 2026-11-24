@@ -29,6 +29,13 @@ const (
 	CodeAccountDisabled           = "AUTH.ACCOUNT_DISABLED"
 	CodePasswordResetTokenInvalid = "AUTH.PASSWORD_RESET_TOKEN_INVALID"
 	CodePasswordResetTokenExpired = "AUTH.PASSWORD_RESET_TOKEN_EXPIRED"
+	CodeMFAInvalidCode            = "AUTH.MFA_INVALID_CODE"
+	CodeMFAChallengeInvalid       = "AUTH.MFA_CHALLENGE_INVALID"
+	CodeMFAAlreadyEnabled         = "AUTH.MFA_ALREADY_ENABLED"
+	CodeMFANotEnabled             = "AUTH.MFA_NOT_ENABLED"
+	CodeSSOProviderNotFound       = "AUTH.SSO_PROVIDER_NOT_FOUND"
+	CodeSSOStateInvalid           = "AUTH.SSO_STATE_INVALID"
+	CodeSSOExchangeFailed         = "AUTH.SSO_EXCHANGE_FAILED"
 
 	CodePermissionDenied            = "PERMISSION.DENIED"
 	CodePermissionUnknown           = "PERMISSION.UNKNOWN"

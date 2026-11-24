@@ -153,6 +153,70 @@ export interface UserChangePasswordRequest {
   readonly new_password: string;
 }
 
+/* --- MFA (TOTP + Recovery Codes) --- */
+
+export interface AuthenticationMFAChallenge {
+  readonly mfa_required: true;
+  readonly challenge_token: string;
+  readonly challenge_expires_in: number;
+  readonly method: 'totp';
+}
+
+export interface AuthenticationMFAStatus {
+  readonly enabled: boolean;
+  readonly method: string;
+  readonly remaining_recovery_codes: number;
+  readonly enrolled_at?: string;
+}
+
+export interface AuthenticationMFATOTPEnroll {
+  readonly secret: string;
+  readonly otpauth_uri: string;
+  readonly issuer: string;
+  readonly account_name: string;
+}
+
+export interface AuthenticationMFACodeRequest {
+  readonly code: string;
+}
+
+export interface AuthenticationMFATOTPVerify {
+  readonly enabled: true;
+  readonly recovery_codes: readonly string[];
+}
+
+export interface AuthenticationMFADisable {
+  readonly enabled: false;
+}
+
+export interface AuthenticationMFAChallengeVerifyRequest {
+  readonly challenge_token: string;
+  readonly code: string;
+}
+
+/* --- Enterprise SSO (OIDC) --- */
+
+export interface AuthenticationSSOProviderSummary {
+  readonly slug: string;
+  readonly name: string;
+}
+
+export interface AuthenticationSSOOIDCStartRequest {
+  readonly provider: string;
+  readonly redirect_uri?: string;
+}
+
+export interface AuthenticationSSOOIDCStart {
+  readonly authorize_url: string;
+  readonly state: string;
+}
+
+export interface AuthenticationSSOOIDCCallbackRequest {
+  readonly provider: string;
+  readonly code: string;
+  readonly state: string;
+}
+
 /* --- System --- */
 
 export interface OperatorSystemStatus {

@@ -95,6 +95,7 @@ type service struct {
 	mailer         UserMailer
 	deletionPolicy *AccountDeletionPolicy
 	admin          userAdministrationStore
+	mfa            MFAService
 	verifyPassword func(hashedPassword, password []byte) error
 	signIns        signInThrottle
 	// runPasswordReset starts reset delivery; tests replace it with an inline runner.
@@ -140,7 +141,7 @@ func NewService(
 	return svc
 }
 
-// ProvideService builds the service with the configured per-account sign-in failure budget.
+// ProvideService builds the service with the configured per-account sign-in failure budget and MFA hook.
 func ProvideService(
 	repo userRepository,
 	passwordResets passwordResetStore,
@@ -149,9 +150,11 @@ func ProvideService(
 	mailer UserMailer,
 	deletionPolicy *AccountDeletionPolicy,
 	guard *AuthAbuseGuard,
+	mfa MFAService,
 ) *service {
 	svc := NewService(repo, passwordResets, sessions, eventBus, mailer, deletionPolicy)
 	svc.signIns = guard.loginThrottle()
+	svc.mfa = mfa
 	return svc
 }
 
@@ -207,10 +210,36 @@ func (s *service) Register(ctx context.Context, req *UserRegisterRequest) (*doma
 
 // Login handles user login
 func (s *service) Login(ctx context.Context, req *UserLoginRequest) (*UserLoginResponse, error) {
-	user, issued, err := s.signIn(ctx, req.Username, req.Password, domain.SessionAudienceUser, nil)
+	user, err := s.verifySignInCredentials(ctx, req.Username, req.Password, nil)
 	if err != nil {
 		return nil, err
 	}
+	if s.mfa != nil {
+		enabled, mfaErr := s.mfa.IsMFAEnabled(ctx, user.ID)
+		if mfaErr != nil {
+			return nil, mfaErr
+		}
+		if enabled {
+			challengeToken, expiresIn, challengeErr := s.mfa.CreateChallenge(ctx, user.ID, mfaChallengeFlowSession)
+			if challengeErr != nil {
+				return nil, challengeErr
+			}
+			return &UserLoginResponse{
+				MFARequired:        true,
+				ChallengeToken:     challengeToken,
+				ChallengeExpiresIn: expiresIn,
+				Method:             mfaMethodTOTP,
+			}, nil
+		}
+	}
+	if s.sessions == nil {
+		return nil, domain.ErrServiceUnavailable
+	}
+	issued, err := s.sessions.Issue(ctx, user, domain.SessionAudienceUser)
+	if err != nil {
+		return nil, err
+	}
+	s.recordSuccessfulLogin(ctx, user)
 
 	return &UserLoginResponse{
 		AccessToken: issued.AccessToken,
@@ -225,6 +254,24 @@ func (s *service) NativeLogin(ctx context.Context, req *UserLoginRequest) (*Nati
 	user, err := s.verifySignInCredentials(ctx, req.Username, req.Password, nil)
 	if err != nil {
 		return nil, err
+	}
+	if s.mfa != nil {
+		enabled, mfaErr := s.mfa.IsMFAEnabled(ctx, user.ID)
+		if mfaErr != nil {
+			return nil, mfaErr
+		}
+		if enabled {
+			challengeToken, expiresIn, challengeErr := s.mfa.CreateChallenge(ctx, user.ID, mfaChallengeFlowNative)
+			if challengeErr != nil {
+				return nil, challengeErr
+			}
+			return &NativeSessionResponse{
+				MFARequired:        true,
+				ChallengeToken:     challengeToken,
+				ChallengeExpiresIn: expiresIn,
+				Method:             mfaMethodTOTP,
+			}, nil
+		}
 	}
 	if s.nativeSessions == nil {
 		return nil, domain.ErrServiceUnavailable

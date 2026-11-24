@@ -75,6 +75,15 @@ TABLE authentication_sessions
   COLUMN refresh_token_hash character varying(64)
   COLUMN refresh_expires_at timestamp with time zone
 
+TABLE mfa_challenges
+  COLUMN id character varying(32) NOT NULL
+  COLUMN user_id bigint NOT NULL
+  COLUMN token_hash character varying(64) NOT NULL
+  COLUMN flow character varying(16) NOT NULL DEFAULT 'session'::character varying
+  COLUMN expires_at timestamp with time zone NOT NULL
+  COLUMN used_at timestamp with time zone
+  COLUMN created_at timestamp with time zone
+
 TABLE migrations
   COLUMN id integer NOT NULL DEFAULT nextval('migrations_id_seq'::regclass)
   COLUMN migration character varying(255) NOT NULL
@@ -198,6 +207,17 @@ TABLE settings
   COLUMN created_at timestamp with time zone
   COLUMN updated_at timestamp with time zone
 
+TABLE sso_oidc_states
+  COLUMN id character varying(32) NOT NULL
+  COLUMN provider_slug character varying(64) NOT NULL
+  COLUMN state_hash character varying(64) NOT NULL
+  COLUMN nonce character varying(128) NOT NULL
+  COLUMN code_verifier character varying(128) NOT NULL
+  COLUMN redirect_uri character varying(512) NOT NULL DEFAULT ''::character varying
+  COLUMN expires_at timestamp with time zone NOT NULL
+  COLUMN used_at timestamp with time zone
+  COLUMN created_at timestamp with time zone
+
 TABLE usage_counters
   COLUMN id bigint NOT NULL DEFAULT nextval('usage_counters_id_seq'::regclass)
   COLUMN scope character varying(24) NOT NULL
@@ -247,6 +267,33 @@ TABLE usage_quotas
   COLUMN version bigint NOT NULL
   COLUMN created_at timestamp with time zone
   COLUMN updated_at timestamp with time zone
+
+TABLE user_identities
+  COLUMN id bigint NOT NULL DEFAULT nextval('user_identities_id_seq'::regclass)
+  COLUMN user_id bigint NOT NULL
+  COLUMN provider_slug character varying(64) NOT NULL
+  COLUMN subject character varying(255) NOT NULL
+  COLUMN email character varying(100) NOT NULL DEFAULT ''::character varying
+  COLUMN created_at timestamp with time zone
+  COLUMN updated_at timestamp with time zone
+
+TABLE user_mfa_methods
+  COLUMN id bigint NOT NULL DEFAULT nextval('user_mfa_methods_id_seq'::regclass)
+  COLUMN user_id bigint NOT NULL
+  COLUMN method character varying(32) NOT NULL
+  COLUMN secret_ciphertext text NOT NULL
+  COLUMN enabled boolean NOT NULL DEFAULT false
+  COLUMN enrolled_at timestamp with time zone
+  COLUMN last_used_step bigint NOT NULL DEFAULT 0
+  COLUMN created_at timestamp with time zone
+  COLUMN updated_at timestamp with time zone
+
+TABLE user_mfa_recovery_codes
+  COLUMN id bigint NOT NULL DEFAULT nextval('user_mfa_recovery_codes_id_seq'::regclass)
+  COLUMN user_id bigint NOT NULL
+  COLUMN code_hash character varying(64) NOT NULL
+  COLUMN used_at timestamp with time zone
+  COLUMN created_at timestamp with time zone
 
 TABLE users
   COLUMN id bigint NOT NULL DEFAULT nextval('users_id_seq'::regclass)
@@ -363,6 +410,7 @@ CONSTRAINT assets.fk_assets_user FOREIGN KEY (user_id) REFERENCES users(id) ON U
 CONSTRAINT audit_logs.audit_logs_pkey PRIMARY KEY (id)
 CONSTRAINT authentication_sessions.authentication_sessions_pkey PRIMARY KEY (id)
 CONSTRAINT authentication_sessions.chk_authentication_sessions_audience CHECK (((audience)::text = ANY ((ARRAY['user'::character varying, 'operator'::character varying])::text[])))
+CONSTRAINT mfa_challenges.mfa_challenges_pkey PRIMARY KEY (id)
 CONSTRAINT migrations.migrations_pkey PRIMARY KEY (id)
 CONSTRAINT notification_deliveries.fk_notifications_deliveries FOREIGN KEY (notification_id) REFERENCES notifications(id) ON UPDATE CASCADE ON DELETE CASCADE
 CONSTRAINT notification_deliveries.notification_deliveries_channel_check CHECK (((channel)::text = ANY ((ARRAY['in_app'::character varying, 'email'::character varying])::text[])))
@@ -406,6 +454,7 @@ CONSTRAINT settings.settings_scope_check CHECK (((scope)::text = ANY ((ARRAY['ap
 CONSTRAINT settings.settings_subject_check CHECK (((((scope)::text = 'app'::text) AND (subject_id = 0) AND (user_id IS NULL) AND (organization_id IS NULL)) OR (((scope)::text = 'user'::text) AND (subject_id = user_id) AND (user_id IS NOT NULL) AND (organization_id IS NULL)) OR (((scope)::text = 'organization'::text) AND (subject_id = organization_id) AND (organization_id IS NOT NULL) AND (user_id IS NULL))))
 CONSTRAINT settings.settings_value_state_check CHECK (((length(value_json) <= 4096) AND (((is_overridden = true) AND (value_json <> ''::text)) OR ((is_overridden = false) AND (value_json = ''::text)))))
 CONSTRAINT settings.settings_version_check CHECK ((version > 0))
+CONSTRAINT sso_oidc_states.sso_oidc_states_pkey PRIMARY KEY (id)
 CONSTRAINT usage_counters.fk_usage_counters_organization FOREIGN KEY (organization_id) REFERENCES organizations(id) ON UPDATE CASCADE ON DELETE CASCADE
 CONSTRAINT usage_counters.fk_usage_counters_user FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
 CONSTRAINT usage_counters.usage_counters_period_check CHECK ((period_end > period_start))
@@ -436,6 +485,9 @@ CONSTRAINT usage_quotas.usage_quotas_scope_check CHECK (((scope)::text = ANY ((A
 CONSTRAINT usage_quotas.usage_quotas_state_check CHECK ((((is_overridden = true) AND (limit_value IS NOT NULL)) OR ((is_overridden = false) AND (limit_value IS NULL))))
 CONSTRAINT usage_quotas.usage_quotas_subject_check CHECK (((((scope)::text = 'user'::text) AND (subject_id = user_id) AND (user_id IS NOT NULL) AND (organization_id IS NULL)) OR (((scope)::text = 'organization'::text) AND (subject_id = organization_id) AND (organization_id IS NOT NULL) AND (user_id IS NULL))))
 CONSTRAINT usage_quotas.usage_quotas_version_check CHECK ((version > 0))
+CONSTRAINT user_identities.user_identities_pkey PRIMARY KEY (id)
+CONSTRAINT user_mfa_methods.user_mfa_methods_pkey PRIMARY KEY (id)
+CONSTRAINT user_mfa_recovery_codes.user_mfa_recovery_codes_pkey PRIMARY KEY (id)
 CONSTRAINT users.uni_users_email UNIQUE (email)
 CONSTRAINT users.users_pkey PRIMARY KEY (id)
 CONSTRAINT webhook_deliveries.fk_webhook_deliveries_endpoint FOREIGN KEY (endpoint_id) REFERENCES webhook_endpoints(id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -497,6 +549,10 @@ INDEX CREATE UNIQUE INDEX idx_authentication_sessions_refresh_token_hash ON auth
 INDEX CREATE INDEX idx_authentication_sessions_revoked_at ON authentication_sessions USING btree (revoked_at)
 INDEX CREATE UNIQUE INDEX idx_authentication_sessions_token_hash ON authentication_sessions USING btree (token_hash)
 INDEX CREATE INDEX idx_authentication_sessions_user_id ON authentication_sessions USING btree (user_id)
+INDEX CREATE INDEX idx_mfa_challenges_expires_at ON mfa_challenges USING btree (expires_at)
+INDEX CREATE UNIQUE INDEX idx_mfa_challenges_token_hash ON mfa_challenges USING btree (token_hash)
+INDEX CREATE INDEX idx_mfa_challenges_user_id ON mfa_challenges USING btree (user_id)
+INDEX CREATE UNIQUE INDEX mfa_challenges_pkey ON mfa_challenges USING btree (id)
 INDEX CREATE UNIQUE INDEX migrations_pkey ON migrations USING btree (id)
 INDEX CREATE INDEX idx_notification_deliveries_leased ON notification_deliveries USING btree (channel, status, lease_expires_at)
 INDEX CREATE UNIQUE INDEX idx_notification_deliveries_notification_channel ON notification_deliveries USING btree (notification_id, channel)
@@ -548,6 +604,10 @@ INDEX CREATE INDEX idx_settings_organization ON settings USING btree (organizati
 INDEX CREATE UNIQUE INDEX idx_settings_scope_subject_key ON settings USING btree (scope, subject_id, key)
 INDEX CREATE INDEX idx_settings_user ON settings USING btree (user_id, subject_id)
 INDEX CREATE UNIQUE INDEX settings_pkey ON settings USING btree (id)
+INDEX CREATE INDEX idx_sso_oidc_states_expires_at ON sso_oidc_states USING btree (expires_at)
+INDEX CREATE INDEX idx_sso_oidc_states_provider_slug ON sso_oidc_states USING btree (provider_slug)
+INDEX CREATE UNIQUE INDEX idx_sso_oidc_states_state_hash ON sso_oidc_states USING btree (state_hash)
+INDEX CREATE UNIQUE INDEX sso_oidc_states_pkey ON sso_oidc_states USING btree (id)
 INDEX CREATE INDEX idx_usage_counters_current ON usage_counters USING btree (scope, subject_id, metric, period_end)
 INDEX CREATE UNIQUE INDEX idx_usage_counters_identity ON usage_counters USING btree (scope, subject_id, metric, period_start)
 INDEX CREATE INDEX idx_usage_counters_organization ON usage_counters USING btree (organization_id)
@@ -562,6 +622,15 @@ INDEX CREATE UNIQUE INDEX idx_usage_quotas_identity ON usage_quotas USING btree 
 INDEX CREATE INDEX idx_usage_quotas_organization ON usage_quotas USING btree (organization_id)
 INDEX CREATE INDEX idx_usage_quotas_user ON usage_quotas USING btree (user_id)
 INDEX CREATE UNIQUE INDEX usage_quotas_pkey ON usage_quotas USING btree (id)
+INDEX CREATE UNIQUE INDEX idx_user_identities_provider_subject ON user_identities USING btree (provider_slug, subject)
+INDEX CREATE INDEX idx_user_identities_user_id ON user_identities USING btree (user_id)
+INDEX CREATE UNIQUE INDEX user_identities_pkey ON user_identities USING btree (id)
+INDEX CREATE INDEX idx_user_mfa_methods_user_enabled ON user_mfa_methods USING btree (user_id, enabled)
+INDEX CREATE UNIQUE INDEX idx_user_mfa_methods_user_method ON user_mfa_methods USING btree (user_id, method)
+INDEX CREATE UNIQUE INDEX user_mfa_methods_pkey ON user_mfa_methods USING btree (id)
+INDEX CREATE UNIQUE INDEX idx_user_mfa_recovery_codes_user_hash ON user_mfa_recovery_codes USING btree (user_id, code_hash)
+INDEX CREATE INDEX idx_user_mfa_recovery_codes_user_used ON user_mfa_recovery_codes USING btree (user_id, used_at)
+INDEX CREATE UNIQUE INDEX user_mfa_recovery_codes_pkey ON user_mfa_recovery_codes USING btree (id)
 INDEX CREATE INDEX idx_users_deleted_at ON users USING btree (deleted_at)
 INDEX CREATE UNIQUE INDEX idx_users_username ON users USING btree (username)
 INDEX CREATE UNIQUE INDEX uni_users_email ON users USING btree (email)

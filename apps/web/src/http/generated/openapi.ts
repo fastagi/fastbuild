@@ -268,6 +268,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/mfa/challenge/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a pending MFA login challenge using a TOTP or one-time recovery code
+         * @description Validates a single-use time-bounded MFA challenge, consumes a recovery code atomically if used, and issues a revocable session or native token pair.
+         */
+        post: operations["verifyMfaChallenge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/mfa/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the authenticated user's MFA enrollment status */
+        get: operations["getMfaStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/mfa/totp/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable TOTP MFA for the authenticated user
+         * @description Verifies a valid TOTP or recovery code, disables MFA, and clears stored secret and recovery codes.
+         */
+        post: operations["disableMfaTotp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/mfa/totp/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start RFC 6238 TOTP MFA enrollment for the authenticated user
+         * @description Generates a 160-bit base32 secret, stores it encrypted at rest as a pending enrollment, and returns provisioning metadata.
+         */
+        post: operations["enrollMfaTotp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/mfa/totp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify a TOTP code to activate MFA and generate one-time recovery codes */
+        post: operations["verifyMfaTotp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/native/login": {
         parameters: {
             query?: never;
@@ -319,6 +413,63 @@ export interface paths {
          * @description Single-use rotation. Presenting an already-rotated refresh token revokes the entire session family.
          */
         post: operations["nativeRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/sso/oidc/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete an OIDC SSO callback and issue a revocable session
+         * @description Atomically consumes the single-use OIDC state, exchanges the authorization code with PKCE verification, verifies the ID token, links or JIT-provisions the account, and issues a session or MFA challenge.
+         */
+        post: operations["callbackSsoOidc"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/sso/oidc/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start an OIDC SSO login flow with PKCE S256 and single-use state */
+        post: operations["startSsoOidc"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/sso/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List configured enabled OIDC SSO providers
+         * @description Returns an empty array when no OIDC providers are configured and never exposes client secrets.
+         */
+        get: operations["listSsoProviders"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1653,6 +1804,80 @@ export interface components {
             };
             message: string;
         };
+        AuthenticationMFAChallenge: {
+            /**
+             * Format: int64
+             * @description Whole seconds until the MFA challenge expires.
+             */
+            challenge_expires_in: number;
+            /** @description Opaque single-use MFA challenge credential. */
+            challenge_token: string;
+            /** @enum {string} */
+            method: "totp";
+            /** @constant */
+            mfa_required: true;
+        };
+        AuthenticationMFAChallengeVerifyRequest: {
+            challenge_token: string;
+            code: string;
+        };
+        AuthenticationMFAChallengeVerifyResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationSession"] | components["schemas"]["AuthenticationNativeSession"];
+            message: string;
+        };
+        AuthenticationMFACodeRequest: {
+            /** @description 6-digit TOTP code or one-time recovery code. */
+            code: string;
+        };
+        AuthenticationMFADisable: {
+            /** @constant */
+            enabled: false;
+        };
+        AuthenticationMFADisableResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationMFADisable"];
+            message: string;
+        };
+        AuthenticationMFAStatus: {
+            enabled: boolean;
+            /** Format: date-time */
+            enrolled_at?: string;
+            /** @description Active MFA method (e.g. "totp") or empty when disabled. */
+            method: string;
+            remaining_recovery_codes: number;
+        };
+        AuthenticationMFAStatusResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationMFAStatus"];
+            message: string;
+        };
+        AuthenticationMFATOTPEnroll: {
+            account_name: string;
+            issuer: string;
+            otpauth_uri: string;
+            secret: string;
+        };
+        AuthenticationMFATOTPEnrollResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationMFATOTPEnroll"];
+            message: string;
+        };
+        AuthenticationMFATOTPVerify: {
+            /** @constant */
+            enabled: true;
+            recovery_codes: string[];
+        };
+        AuthenticationMFATOTPVerifyResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationMFATOTPVerify"];
+            message: string;
+        };
         AuthenticationNativeLogoutRequest: {
             /** @description Opaque refresh credential identifying the native session family to revoke. */
             refresh_token: string;
@@ -1714,6 +1939,42 @@ export interface components {
             token_type: "Bearer";
             user: components["schemas"]["AuthenticationUser"];
         };
+        AuthenticationSSOOIDCCallbackRequest: {
+            code: string;
+            provider: string;
+            state: string;
+        };
+        AuthenticationSSOOIDCCallbackResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationSession"] | components["schemas"]["AuthenticationMFAChallenge"];
+            message: string;
+        };
+        AuthenticationSSOOIDCStart: {
+            /** Format: uri */
+            authorize_url: string;
+            state: string;
+        };
+        AuthenticationSSOOIDCStartRequest: {
+            provider: string;
+            redirect_uri?: string;
+        };
+        AuthenticationSSOOIDCStartResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationSSOOIDCStart"];
+            message: string;
+        };
+        AuthenticationSSOProviderListResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationSSOProviderSummary"][];
+            message: string;
+        };
+        AuthenticationSSOProviderSummary: {
+            name: string;
+            slug: string;
+        };
         AuthenticationUser: {
             avatar?: string;
             bio?: string;
@@ -1766,7 +2027,7 @@ export interface components {
          * @description Stable dotted code used for client behavior.
          * @enum {string}
          */
-        ErrorCode: "COMMON.INTERNAL" | "COMMON.NOT_FOUND" | "COMMON.CONFLICT" | "COMMON.INVALID_INPUT" | "COMMON.VALIDATION_FAILED" | "COMMON.RATE_LIMITED" | "COMMON.REQUEST_TOO_LARGE" | "COMMON.TIMEOUT" | "COMMON.SERVICE_UNAVAILABLE" | "AUTH.UNAUTHORIZED" | "AUTH.FORBIDDEN" | "AUTH.INVALID_CREDENTIALS" | "AUTH.ACCOUNT_DISABLED" | "AUTH.PASSWORD_RESET_TOKEN_INVALID" | "AUTH.PASSWORD_RESET_TOKEN_EXPIRED" | "USER.NOT_FOUND" | "USER.EMAIL_ALREADY_EXISTS" | "USER.USERNAME_ALREADY_EXISTS" | "API_KEY.NOT_FOUND" | "API_KEY.INVALID" | "API_KEY.EXPIRED" | "API_KEY.REVOKED" | "ORGANIZATION.NOT_FOUND" | "ORGANIZATION.CONTEXT_REQUIRED" | "ORGANIZATION.CONTEXT_INVALID" | "ORGANIZATION.SLUG_ALREADY_EXISTS" | "ORGANIZATION.OWNERSHIP_TRANSFER_REQUIRED" | "ORGANIZATION.OWNERSHIP_TRANSFER_TARGET_INVALID" | "ORGANIZATION.MEMBERSHIP_EXIT_REQUIRED" | "ORGANIZATION.MEMBER_NOT_FOUND" | "ORGANIZATION.INVITATION.NOT_FOUND" | "ORGANIZATION.INVITATION.INVALID" | "ORGANIZATION.INVITATION.EXPIRED" | "ORGANIZATION.INVITATION.EMAIL_MISMATCH" | "ORGANIZATION.INVITATION.ALREADY_PENDING" | "ORGANIZATION.MEMBER_ALREADY_EXISTS" | "PERMISSION.DENIED" | "PERMISSION.UNKNOWN" | "PERMISSION.ROLE_NOT_FOUND" | "PERMISSION.ROLE_SLUG_ALREADY_EXISTS" | "NOTIFICATION.NOT_FOUND" | "NOTIFICATION.IDEMPOTENCY_CONFLICT" | "NOTIFICATION.INVALID_CHANNEL" | "ASSET.NOT_FOUND" | "ASSET.NOT_READY" | "ASSET.IDEMPOTENCY_CONFLICT" | "ASSET.CLEANUP_REQUIRED" | "ASSET.UPLOAD_EXPIRED" | "ASSET.SIZE_EXCEEDED" | "ASSET.INVALID_MEDIA_TYPE" | "SETTING.NOT_FOUND" | "SETTING.INVALID_VALUE" | "SETTING.VERSION_CONFLICT" | "SETTING.PRECONDITION_REQUIRED" | "USAGE.METRIC_NOT_FOUND" | "USAGE.INVALID_EVENT" | "USAGE.EVENT_OUTSIDE_WINDOW" | "USAGE.IDEMPOTENCY_CONFLICT" | "USAGE.QUOTA_EXCEEDED" | "USAGE.QUOTA_VERSION_CONFLICT" | "USAGE.PRECONDITION_REQUIRED" | "WEBHOOK.ENDPOINT_NOT_FOUND" | "WEBHOOK.DELIVERY_NOT_FOUND" | "WEBHOOK.INVALID_EVENT_TYPE" | "WEBHOOK.INVALID_TARGET" | "WEBHOOK.IDEMPOTENCY_CONFLICT" | "WEBHOOK.ENDPOINT_VERSION_CONFLICT" | "WEBHOOK.PRECONDITION_REQUIRED" | "WEBHOOK.REPLAY_NOT_ALLOWED" | "OPERATOR.FORBIDDEN" | "OPERATOR.ORIGIN_REJECTED" | "OPERATOR.CSRF_REJECTED" | "OPERATOR.TARGET_PROTECTED";
+        ErrorCode: "COMMON.INTERNAL" | "COMMON.NOT_FOUND" | "COMMON.CONFLICT" | "COMMON.INVALID_INPUT" | "COMMON.VALIDATION_FAILED" | "COMMON.RATE_LIMITED" | "COMMON.REQUEST_TOO_LARGE" | "COMMON.TIMEOUT" | "COMMON.SERVICE_UNAVAILABLE" | "AUTH.UNAUTHORIZED" | "AUTH.FORBIDDEN" | "AUTH.INVALID_CREDENTIALS" | "AUTH.ACCOUNT_DISABLED" | "AUTH.PASSWORD_RESET_TOKEN_INVALID" | "AUTH.PASSWORD_RESET_TOKEN_EXPIRED" | "AUTH.MFA_INVALID_CODE" | "AUTH.MFA_CHALLENGE_INVALID" | "AUTH.MFA_ALREADY_ENABLED" | "AUTH.MFA_NOT_ENABLED" | "AUTH.SSO_PROVIDER_NOT_FOUND" | "AUTH.SSO_STATE_INVALID" | "AUTH.SSO_EXCHANGE_FAILED" | "USER.NOT_FOUND" | "USER.EMAIL_ALREADY_EXISTS" | "USER.USERNAME_ALREADY_EXISTS" | "API_KEY.NOT_FOUND" | "API_KEY.INVALID" | "API_KEY.EXPIRED" | "API_KEY.REVOKED" | "ORGANIZATION.NOT_FOUND" | "ORGANIZATION.CONTEXT_REQUIRED" | "ORGANIZATION.CONTEXT_INVALID" | "ORGANIZATION.SLUG_ALREADY_EXISTS" | "ORGANIZATION.OWNERSHIP_TRANSFER_REQUIRED" | "ORGANIZATION.OWNERSHIP_TRANSFER_TARGET_INVALID" | "ORGANIZATION.MEMBERSHIP_EXIT_REQUIRED" | "ORGANIZATION.MEMBER_NOT_FOUND" | "ORGANIZATION.INVITATION.NOT_FOUND" | "ORGANIZATION.INVITATION.INVALID" | "ORGANIZATION.INVITATION.EXPIRED" | "ORGANIZATION.INVITATION.EMAIL_MISMATCH" | "ORGANIZATION.INVITATION.ALREADY_PENDING" | "ORGANIZATION.MEMBER_ALREADY_EXISTS" | "PERMISSION.DENIED" | "PERMISSION.UNKNOWN" | "PERMISSION.ROLE_NOT_FOUND" | "PERMISSION.ROLE_SLUG_ALREADY_EXISTS" | "NOTIFICATION.NOT_FOUND" | "NOTIFICATION.IDEMPOTENCY_CONFLICT" | "NOTIFICATION.INVALID_CHANNEL" | "ASSET.NOT_FOUND" | "ASSET.NOT_READY" | "ASSET.IDEMPOTENCY_CONFLICT" | "ASSET.CLEANUP_REQUIRED" | "ASSET.UPLOAD_EXPIRED" | "ASSET.SIZE_EXCEEDED" | "ASSET.INVALID_MEDIA_TYPE" | "SETTING.NOT_FOUND" | "SETTING.INVALID_VALUE" | "SETTING.VERSION_CONFLICT" | "SETTING.PRECONDITION_REQUIRED" | "USAGE.METRIC_NOT_FOUND" | "USAGE.INVALID_EVENT" | "USAGE.EVENT_OUTSIDE_WINDOW" | "USAGE.IDEMPOTENCY_CONFLICT" | "USAGE.QUOTA_EXCEEDED" | "USAGE.QUOTA_VERSION_CONFLICT" | "USAGE.PRECONDITION_REQUIRED" | "WEBHOOK.ENDPOINT_NOT_FOUND" | "WEBHOOK.DELIVERY_NOT_FOUND" | "WEBHOOK.INVALID_EVENT_TYPE" | "WEBHOOK.INVALID_TARGET" | "WEBHOOK.IDEMPOTENCY_CONFLICT" | "WEBHOOK.ENDPOINT_VERSION_CONFLICT" | "WEBHOOK.PRECONDITION_REQUIRED" | "WEBHOOK.REPLAY_NOT_ALLOWED" | "OPERATOR.FORBIDDEN" | "OPERATOR.ORIGIN_REJECTED" | "OPERATOR.CSRF_REJECTED" | "OPERATOR.TARGET_PROTECTED";
         ErrorResponse: {
             code: number;
             error?: string;
@@ -3579,6 +3840,144 @@ export interface operations {
             503: components["responses"]["ServiceUnavailable"];
         };
     };
+    verifyMfaChallenge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationMFAChallengeVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description A newly issued revocable session or native token pair. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationMFAChallengeVerifyResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getMfaStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current MFA enrollment status and remaining recovery code count. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationMFAStatusResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    disableMfaTotp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationMFACodeRequest"];
+            };
+        };
+        responses: {
+            /** @description MFA has been disabled. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationMFADisableResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationFailed"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    enrollMfaTotp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pending TOTP enrollment secret and otpauth provisioning URI. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationMFATOTPEnrollResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            409: components["responses"]["Conflict"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    verifyMfaTotp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationMFACodeRequest"];
+            };
+        };
+        responses: {
+            /** @description MFA activated with one-time plaintext recovery codes returned once. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationMFATOTPVerifyResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["ValidationFailed"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
     nativeLogin: {
         parameters: {
             query?: never;
@@ -3667,6 +4066,89 @@ export interface operations {
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
             503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    callbackSsoOidc: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationSSOOIDCCallbackRequest"];
+            };
+        };
+        responses: {
+            /** @description A revocable session or an MFA challenge when MFA is enabled on the resolved account. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationSSOOIDCCallbackResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            404: components["responses"]["NotFound"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    startSsoOidc: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationSSOOIDCStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Authorization URL and single-use state token. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationSSOOIDCStartResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            404: components["responses"]["NotFound"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    listSsoProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Enabled OIDC provider catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationSSOProviderListResponse"];
+                };
+            };
+            429: components["responses"]["RateLimited"];
         };
     };
     getApiHealth: {
