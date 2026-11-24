@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "FastBuild",
+    "slug": "fastbuild-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "fastbuild",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fastbuild.mobile"
+    },
+    "android": {
+      "package": "com.fastbuild.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#050505"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiBaseUrl": "http://localhost:8080"
+    }
+  }
+}

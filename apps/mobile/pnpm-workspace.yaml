@@ -1,0 +1,9 @@
+packages:
+  - .
+  - ../../packages/tokens
+  - ../../packages/core
+  - ../../packages/api-client
+
+nodeLinker: hoisted
+packageManagerStrictVersion: true
+minimumReleaseAge: 1440
