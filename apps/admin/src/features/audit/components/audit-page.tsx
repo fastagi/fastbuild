@@ -162,21 +162,27 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
       id: 'request',
       cardWide: true,
       header: t('audit.columns.request'),
+      headerClassName: 'hidden lg:table-cell',
+      className: 'hidden max-w-[16rem] lg:table-cell',
       cell: (entry) => (
-        <>
-          <code className="text-xs">
+        <div className="min-w-0">
+          <code className="block truncate text-xs" title={`${entry.method} ${entry.path}`}>
             {entry.method} {entry.path}
           </code>
           {entry.request_id ? (
-            <div className="text-xs text-muted-foreground">{entry.request_id}</div>
+            <div className="truncate text-xs text-muted-foreground" title={entry.request_id}>
+              {entry.request_id}
+            </div>
           ) : null}
-        </>
+        </div>
       ),
     },
     {
       id: 'status',
       role: 'status',
       header: t('audit.columns.status'),
+      headerClassName: 'whitespace-nowrap',
+      className: 'whitespace-nowrap',
       cell: (entry) => (
         <StatusBadge tone={httpStatusTone(entry.status_code)}>{entry.status_code}</StatusBadge>
       ),

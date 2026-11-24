@@ -87,6 +87,13 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  select[data-slot='select-trigger'] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: none;
+  }
+
   ::selection {
     @apply bg-primary text-primary-foreground;
   }

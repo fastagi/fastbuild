@@ -152,7 +152,14 @@ describe('auth form error feedback', () => {
   it('exposes registration metadata and disables edits while pending', () => {
     mutations.register.isPending = true;
 
-    renderWithMessages(<RegisterForm />);
+    renderWithMessages(
+      <RegisterForm
+        legalLinks={{
+          termsUrl: 'https://example.test/terms',
+          privacyUrl: 'https://example.test/privacy',
+        }}
+      />
+    );
 
     const name = screen.getByLabelText('Full Name');
     expect(name).toHaveAttribute('name', 'name');
@@ -243,7 +250,6 @@ describe('auth form error feedback', () => {
 
       fillValidFields();
       fireEvent.change(screen.getByLabelText('Password'), { target: { value } });
-      fireEvent.click(screen.getByRole('checkbox'));
       fireEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
 
       const password = screen.getByLabelText('Password');
@@ -254,11 +260,10 @@ describe('auth form error feedback', () => {
       expect(mutations.register.mutate).not.toHaveBeenCalled();
     });
 
-    it('accepts the boundary password lengths', () => {
+    it('accepts the boundary password lengths without requiring unpublished legal terms', () => {
       renderWithMessages(<RegisterForm />);
 
       fillValidFields();
-      fireEvent.click(screen.getByRole('checkbox'));
       for (const value of ['x'.repeat(8), 'x'.repeat(50)]) {
         fireEvent.change(screen.getByLabelText('Password'), { target: { value } });
         fireEvent.click(screen.getByRole('button', { name: 'Sign Up' }));
@@ -270,8 +275,15 @@ describe('auth form error feedback', () => {
       }
     });
 
-    it('keeps submit enabled and explains unaccepted terms inline', () => {
-      renderWithMessages(<RegisterForm />);
+    it('keeps submit enabled and explains unaccepted terms inline when legal links exist', () => {
+      renderWithMessages(
+        <RegisterForm
+          legalLinks={{
+            termsUrl: 'https://example.test/terms',
+            privacyUrl: 'https://example.test/privacy',
+          }}
+        />
+      );
 
       fillValidFields();
       const submit = screen.getByRole('button', { name: 'Sign Up' });
@@ -307,7 +319,7 @@ describe('auth form error feedback', () => {
       expect(screen.getByLabelText('Full Name')).toHaveFocus();
     });
 
-    it('says the legal documents are unpublished when none are configured', () => {
+    it('says the legal documents are unpublished and omits the checkbox when none are configured', () => {
       renderWithMessages(<RegisterForm />);
 
       expect(screen.queryByRole('link', { name: 'Terms of Service' })).not.toBeInTheDocument();
@@ -315,9 +327,7 @@ describe('auth form error feedback', () => {
       expect(
         screen.getByText('The Terms of Service and Privacy Policy have not been published yet.')
       ).toBeInTheDocument();
-      expect(screen.getByRole('checkbox')).toHaveAccessibleName(
-        'I agree to the Terms of Service and Privacy Policy'
-      );
+      expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     });
 
     it('links the configured legal documents in a new tab so the form survives', () => {

@@ -146,7 +146,7 @@ function Select({
         onChange={(event) => onValueChange?.(event.target.value)}
         data-slot="select-trigger"
         data-placeholder={empty && placeholder ? '' : undefined}
-        className="flex h-9 w-full cursor-pointer appearance-none truncate rounded-md border border-input bg-transparent py-2 pl-3 pr-8 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground dark:scheme-dark"
+        className="flex h-9 w-full cursor-pointer appearance-none [-webkit-appearance:none] [-moz-appearance:none] [background-image:none] truncate rounded-md border border-input bg-transparent py-2 pl-3 pr-8 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-placeholder:text-muted-foreground dark:scheme-dark"
       >
         {placeholder ? (
           <option value="" disabled hidden>

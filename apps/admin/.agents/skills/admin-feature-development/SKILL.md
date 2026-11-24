@@ -40,8 +40,15 @@ Follow the unidirectional flow:
   (delete, revoke, disable, role escalation). Keep loading/disabled states stable
   during submission to prevent duplicate mutations.
 - **Copy & Styling**: Use `en-US` as canonical i18next schema, map backend
-  `error_code` to localized copy, and reuse shadcn/ui New York primitives with
-  Rhine blue brand tokens.
+  `error_code` to localized copy, and reuse shadcn/ui primitives with obsidian
+  and alabaster zero-chroma tokens.
+- **Responsive Table & Control Hygiene**: Keep status badges `whitespace-nowrap`,
+  constrain long request/ID columns (`max-w-* truncate`) so tablet viewports never
+  clip trailing badges, and suppress native `<select>` arrows (`appearance-none`)
+  when rendering a custom chevron.
+- **Session Expiry**: Rely on the centralized mid-session 401 handler in
+  `src/app/query-client.ts` + `src/app/router.ts` rather than duplicating
+  per-page redirect effects.
 
 ## Verification
 

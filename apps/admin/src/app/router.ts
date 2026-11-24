@@ -1,5 +1,5 @@
 import { createRouter } from '@tanstack/react-router';
-import { queryClient } from '@/app/query-client';
+import { queryClient, registerUnauthorizedHandler } from '@/app/query-client';
 import { RouteErrorPage } from '@/components/layout/route-error-page';
 import { RoutePending } from '@/components/layout/route-pending';
 import { routeTree } from '@/routeTree.gen';
@@ -18,6 +18,19 @@ export const router = createRouter({
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
+});
+
+registerUnauthorizedHandler(() => {
+  const currentPath = router.state.location.pathname;
+  if (currentPath === '/login') {
+    return;
+  }
+  queryClient.setQueryData(['operator-session'], null);
+  void router.navigate({
+    to: '/login',
+    search: { redirect: router.state.location.href },
+    replace: true,
+  });
 });
 
 declare module '@tanstack/react-router' {

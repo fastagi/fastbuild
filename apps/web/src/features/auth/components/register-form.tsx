@@ -94,7 +94,7 @@ export function RegisterForm({ legalLinks }: RegisterFormProps) {
       errors.password = t.auth('passwordLengthInvalid');
     }
 
-    if (!acceptedTerms) {
+    if (legalLinks && !acceptedTerms) {
       errors.terms = t.auth('termsRequired');
     }
 
@@ -201,66 +201,59 @@ export function RegisterForm({ legalLinks }: RegisterFormProps) {
             )}
           </div>
 
-          <div className="flex items-start space-x-2 pt-2">
-            {/* The pseudo-element grows the hit area up to the label; the box itself stays 16px. */}
-            <Checkbox
-              id="terms"
-              name="terms"
-              checked={acceptedTerms}
-              disabled={isPending}
-              aria-invalid={termsError ? true : undefined}
-              aria-describedby={termsError ? 'terms-error' : undefined}
-              className="relative after:absolute after:-inset-y-[15px] after:-left-[15px] after:-right-[9px] after:content-[''] aria-invalid:border-destructive"
-              onCheckedChange={checked => {
-                setAcceptedTerms(Boolean(checked));
-                clearFieldError('terms');
-              }}
-              required
-            />
-            <div className="grid gap-1.5">
-              <label
-                htmlFor="terms"
-                className="text-xs font-medium leading-4 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {t.auth('agreeToTerms')}{' '}
-                {legalLinks ? (
-                  <>
-                    <a
-                      href={legalLinks.termsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={legalLinkClassName}
-                    >
-                      {t.auth('termsOfService')}
-                    </a>{' '}
-                    {t.auth('and')}{' '}
-                    <a
-                      href={legalLinks.privacyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={legalLinkClassName}
-                    >
-                      {t.auth('privacyPolicy')}
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    {t.auth('termsOfService')} {t.auth('and')} {t.auth('privacyPolicy')}
-                  </>
+          {legalLinks ? (
+            <div className="flex items-start space-x-2 pt-2">
+              {/* The pseudo-element grows the hit area up to the label; the box itself stays 16px. */}
+              <Checkbox
+                id="terms"
+                name="terms"
+                checked={acceptedTerms}
+                disabled={isPending}
+                aria-invalid={termsError ? true : undefined}
+                aria-describedby={termsError ? 'terms-error' : undefined}
+                className="relative after:absolute after:-inset-y-[15px] after:-left-[15px] after:-right-[9px] after:content-[''] aria-invalid:border-destructive"
+                onCheckedChange={checked => {
+                  setAcceptedTerms(Boolean(checked));
+                  clearFieldError('terms');
+                }}
+                required
+              />
+              <div className="grid gap-1.5">
+                <label
+                  htmlFor="terms"
+                  className="text-xs font-medium leading-4 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {t.auth('agreeToTerms')}{' '}
+                  <a
+                    href={legalLinks.termsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={legalLinkClassName}
+                  >
+                    {t.auth('termsOfService')}
+                  </a>{' '}
+                  {t.auth('and')}{' '}
+                  <a
+                    href={legalLinks.privacyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={legalLinkClassName}
+                  >
+                    {t.auth('privacyPolicy')}
+                  </a>
+                </label>
+                {termsError && (
+                  <FormControlError id="terms-error" className="mt-0">
+                    {termsError}
+                  </FormControlError>
                 )}
-              </label>
-              {!legalLinks && (
-                <p className="text-xs text-muted-foreground">
-                  {t.auth('legalDocumentsUnpublished')}
-                </p>
-              )}
-              {termsError && (
-                <FormControlError id="terms-error" className="mt-0">
-                  {termsError}
-                </FormControlError>
-              )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="pt-1 text-xs text-muted-foreground">
+              {t.auth('legalDocumentsUnpublished')}
+            </p>
+          )}
 
           <Button
             type="submit"
