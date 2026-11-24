@@ -1,0 +1,19 @@
+schema_version: 1
+instructions: AGENTS.md
+skill_roots:
+  - .agents/skills
+  - .agents/skills/core
+  - .agents/skills/scaffold
+  - api/.agents/skills
+  - apps/web/.agents/skills
+  - apps/admin/.agents/skills
+targets:
+  claude:
+    enabled: true
+    output: .claude/CLAUDE.md
+  cursor:
+    enabled: true
+    output: .cursor/rules/fastbuild.mdc
+  codex:
+    enabled: true
+    output: .codex/instructions.md

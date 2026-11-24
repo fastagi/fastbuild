@@ -29,5 +29,7 @@ func TestDefaultManifestsRegisterExpectedCommands(t *testing.T) {
 	assert.True(t, app.HasCommand("starter:check"))
 	assert.True(t, app.HasCommand("starter:enable"))
 	assert.True(t, app.HasCommand("starter:disable"))
+	assert.True(t, app.HasCommand("agent:sync"))
+	assert.True(t, app.HasCommand("context"))
 	assert.False(t, app.HasCommand("deploy:run"))
 }

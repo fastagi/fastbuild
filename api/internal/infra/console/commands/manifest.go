@@ -142,5 +142,11 @@ func DefaultManifests(version string) []Manifest {
 		Registration{Command: NewMCPCommand()},
 	)
 
-	return []Manifest{makeManifest, databaseManifest, starterManifest, pluginManifest, coreManifest}
+	agentManifest := NewManifest(
+		"agent",
+		Registration{Command: NewAgentSyncCommand()},
+		Registration{Command: NewContextCommand()},
+	)
+
+	return []Manifest{makeManifest, databaseManifest, starterManifest, pluginManifest, agentManifest, coreManifest}
 }

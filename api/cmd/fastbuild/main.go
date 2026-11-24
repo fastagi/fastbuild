@@ -68,7 +68,8 @@ func isPluginCommand(app *console.Application, cmd string) bool {
 		strings.HasPrefix(cmd, "migrate:") ||
 		strings.HasPrefix(cmd, "db:") ||
 		strings.HasPrefix(cmd, "route:") ||
-		strings.HasPrefix(cmd, "plugin:") {
+		strings.HasPrefix(cmd, "plugin:") ||
+		strings.HasPrefix(cmd, "agent:") {
 		return false
 	}
 
