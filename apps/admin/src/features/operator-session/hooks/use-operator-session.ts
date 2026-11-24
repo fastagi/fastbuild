@@ -2,9 +2,16 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { ApiErrorCode } from '@/http/codes';
 import { ApiError, csrf } from '@/http/client';
 import { operatorSessionService } from '@/features/operator-session/services/operator-session-service';
-import type { OperatorSession, SignInInput } from '@/features/operator-session/types';
+import {
+  isMfaChallenge,
+  type MfaChallengeVerifyInput,
+  type OperatorSession,
+  type SignInInput,
+  type SignInResult,
+} from '@/features/operator-session/types';
 
 export const operatorSessionQueryKey = ['operator', 'session'] as const;
+export const mfaStatusQueryKey = ['auth', 'mfa', 'status'] as const;
 
 export function operatorSessionQueryOptions() {
   return queryOptions({
@@ -37,6 +44,21 @@ export function useSignIn() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: SignInInput) => operatorSessionService.signIn(input),
+    onSuccess: (result: SignInResult) => {
+      if (isMfaChallenge(result)) {
+        return;
+      }
+      csrf.set(result.csrf_token);
+      queryClient.setQueryData(operatorSessionQueryKey, result);
+    },
+  });
+}
+
+export function useVerifyMfaChallenge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MfaChallengeVerifyInput) =>
+      operatorSessionService.verifyMfaChallenge(input),
     onSuccess: (session: OperatorSession) => {
       csrf.set(session.csrf_token);
       queryClient.setQueryData(operatorSessionQueryKey, session);
@@ -51,6 +73,40 @@ export function useSignOut() {
     onSettled: () => {
       csrf.set(undefined);
       queryClient.clear();
+    },
+  });
+}
+
+export function useMfaStatus() {
+  return useQuery({
+    queryKey: mfaStatusQueryKey,
+    queryFn: ({ signal }) => operatorSessionService.getMfaStatus(signal),
+    retry: false,
+  });
+}
+
+export function useEnrollMfaTotp() {
+  return useMutation({
+    mutationFn: () => operatorSessionService.enrollMfaTotp(),
+  });
+}
+
+export function useVerifyMfaTotp() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => operatorSessionService.verifyMfaTotp(code),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mfaStatusQueryKey });
+    },
+  });
+}
+
+export function useDisableMfaTotp() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => operatorSessionService.disableMfaTotp(code),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mfaStatusQueryKey });
     },
   });
 }

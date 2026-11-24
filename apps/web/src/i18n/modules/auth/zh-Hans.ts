@@ -101,6 +101,19 @@ const messages = {
   signUpWithApple: '使用 Apple 注册',
   signUpWithGithub: '使用 GitHub 注册',
 
+  // Enterprise SSO & MFA challenge
+  orContinueWith: '或使用以下方式登录',
+  signInWithProvider: '使用 {provider} 登录',
+  ssoStartFailed: '无法启动单点登录，请稍后重试。',
+  mfaTitle: '双重验证',
+  mfaDescription: '请输入身份验证器中的 6 位动态验证码，或输入一次性恢复码。',
+  mfaCodeLabel: '验证码或恢复码',
+  mfaCodePlaceholder: '000000 或 XXXX-XXXX',
+  mfaCodeRequired: '请输入验证码',
+  mfaVerifySubmit: '验证并登录',
+  mfaInvalidCode: '验证码或恢复码无效。',
+  mfaChallengeExpired: '验证会话已过期，请重新登录。',
+
   // Footer
   copyright: '© {year} FastBuild。保留所有权利。',
 } as const satisfies LocaleMessageShape<AuthMessages>;

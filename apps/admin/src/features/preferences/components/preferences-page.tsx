@@ -16,6 +16,7 @@ import {
   type ThemePreference,
   usePreferencesStore,
 } from '@/features/preferences/store/preferences-store';
+import { MfaSectionCard } from '@/features/preferences/components/mfa-section-card';
 
 const themes = [
   { value: 'light', icon: Sun },
@@ -88,6 +89,8 @@ export function PreferencesPage() {
           <p className="mt-3 text-xs text-subtle">{t('preferences.storageNote')}</p>
         </SectionCard>
       </div>
+
+      <MfaSectionCard />
     </div>
   );
 }

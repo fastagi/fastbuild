@@ -10,7 +10,7 @@ export {
   isUnauthenticatedAuthError,
 } from '@/features/auth/utils/auth-failure';
 
-export type AuthAction = 'login' | 'register' | 'logout';
+export type AuthAction = 'login' | 'register' | 'logout' | 'mfa' | 'sso';
 
 type AuthErrorKey = Extract<
   AllTranslationKeys,
@@ -19,7 +19,10 @@ type AuthErrorKey = Extract<
   | 'auth.invalidCredentials'
   | 'auth.loginFailed'
   | 'auth.logoutFailed'
+  | 'auth.mfaChallengeExpired'
+  | 'auth.mfaInvalidCode'
   | 'auth.registerFailed'
+  | 'auth.ssoStartFailed'
   | 'errors.authUnavailable'
   | 'errors.forbidden'
   | 'errors.networkError'
@@ -30,12 +33,30 @@ type AuthErrorKey = Extract<
 const fallbackKeyByAction = {
   login: 'auth.loginFailed',
   logout: 'auth.logoutFailed',
+  mfa: 'auth.mfaInvalidCode',
   register: 'auth.registerFailed',
+  sso: 'auth.ssoStartFailed',
 } as const satisfies Record<AuthAction, AuthErrorKey>;
 
 export function resolveAuthErrorKey(error: unknown, action: AuthAction): AuthErrorKey {
   const errorCode = getAuthErrorCode(error);
   const status = getAuthErrorStatus(error);
+
+  if (errorCode === ApiErrorCode.AUTH_MFA_INVALID_CODE) {
+    return 'auth.mfaInvalidCode';
+  }
+
+  if (errorCode === ApiErrorCode.AUTH_MFA_CHALLENGE_INVALID) {
+    return 'auth.mfaChallengeExpired';
+  }
+
+  if (
+    errorCode === ApiErrorCode.AUTH_SSO_PROVIDER_NOT_FOUND ||
+    errorCode === ApiErrorCode.AUTH_SSO_STATE_INVALID ||
+    errorCode === ApiErrorCode.AUTH_SSO_EXCHANGE_FAILED
+  ) {
+    return 'auth.ssoStartFailed';
+  }
 
   if (
     action === 'login' &&

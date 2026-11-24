@@ -10,6 +10,10 @@ export function signInErrorKey(error: unknown): string {
     case ApiErrorCode.AUTH_INVALID_CREDENTIALS:
     case ApiErrorCode.COMMON_VALIDATION_FAILED:
       return 'auth.errors.invalidCredentials';
+    case ApiErrorCode.AUTH_MFA_INVALID_CODE:
+      return 'auth.errors.mfaInvalidCode';
+    case ApiErrorCode.AUTH_MFA_CHALLENGE_INVALID:
+      return 'auth.errors.mfaChallengeExpired';
     case ApiErrorCode.OPERATOR_FORBIDDEN:
       return 'auth.errors.notOperator';
     case ApiErrorCode.COMMON_RATE_LIMITED:

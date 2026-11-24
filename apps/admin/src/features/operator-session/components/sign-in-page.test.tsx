@@ -129,4 +129,54 @@ describe('SignInPage', () => {
     fireEvent.blur(password);
     expect(screen.queryByText(/caps lock is on/i)).not.toBeInTheDocument();
   });
+
+  it('transitions to the MFA challenge step and completes verification', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            code: 0,
+            message: 'success',
+            data: {
+              mfa_required: true,
+              challenge_token: 'admin-challenge-123',
+              challenge_expires_in: 300,
+              method: 'totp',
+            },
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            code: 0,
+            message: 'success',
+            data: {
+              operator: { id: 1, username: 'ops', email: 'ops@example.test', nickname: 'Ops' },
+              csrf_token: 'csrf-token-mfa-9876543210',
+            },
+          }),
+          { headers: { 'content-type': 'application/json' }, status: 200 },
+        ),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage();
+
+    submit();
+
+    const codeInput = await screen.findByLabelText(/verification or recovery code/i);
+    expect(navigate).not.toHaveBeenCalled();
+
+    fireEvent.change(codeInput, { target: { value: '654321' } });
+    fireEvent.click(screen.getByRole('button', { name: /verify & sign in/i }));
+
+    await waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({ to: '/console/users', replace: true }),
+    );
+    expect(csrf.get()).toBe('csrf-token-mfa-9876543210');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.calls[1]?.[0])).toContain('/v1/auth/mfa/challenge/verify');
+  });
 });

@@ -1,4 +1,4 @@
-import { AuthGuard } from '@/features/auth';
+import { AuthGuard } from '@/features/auth/components/auth-guard';
 import { Toaster } from '@/components/ui/sonner';
 import { resolveAuthBootstrap } from '@/features/auth/server/bootstrap';
 import { AuthenticatedProviders } from '@/providers/authenticated-providers';

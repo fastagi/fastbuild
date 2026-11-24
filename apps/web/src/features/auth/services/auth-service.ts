@@ -2,10 +2,31 @@ import request from '@/http';
 import type {
   AuthResponse,
   LoginRequest,
+  LoginResult,
   LogoutResponse,
+  MfaChallengeVerifyRequest,
+  MfaCodeRequest,
+  MfaStatusResponse,
+  MfaTotpDisableResponse,
+  MfaTotpEnrollResponse,
+  MfaTotpVerifyResponse,
   RegisterRequest,
+  SsoOidcCallbackRequest,
+  SsoOidcStartRequest,
+  SsoOidcStartResponse,
+  SsoProviderSummary,
 } from '@/features/auth/types';
-import { isAuthResponse, isLogoutResponse } from '@/features/auth/utils/auth-response';
+import {
+  isAuthResponse,
+  isLoginResult,
+  isLogoutResponse,
+  isMfaStatusResponse,
+  isMfaTotpDisableResponse,
+  isMfaTotpEnrollResponse,
+  isMfaTotpVerifyResponse,
+  isSsoOidcStartResponse,
+  isSsoProviderList,
+} from '@/features/auth/utils/auth-response';
 import { ClientErrorCode } from '@/http/codes';
 import { ApiError } from '@/http/request';
 
@@ -25,16 +46,16 @@ async function validateResponse<T>(
 
 export const authService = {
   login: (data: LoginRequest) =>
-    validateResponse<AuthResponse>(
+    validateResponse<LoginResult>(
       request.post<unknown, LoginRequest>('/auth/login', data),
-      isAuthResponse,
+      isLoginResult,
       'login'
     ),
 
   register: (data: RegisterRequest) =>
-    validateResponse<AuthResponse>(
+    validateResponse<LoginResult>(
       request.post<unknown, RegisterRequest>('/auth/register', data),
-      isAuthResponse,
+      isLoginResult,
       'registration'
     ),
 
@@ -50,6 +71,62 @@ export const authService = {
       request.post<unknown, undefined>('/auth/logout'),
       isLogoutResponse,
       'logout'
+    ),
+
+  getMfaStatus: () =>
+    validateResponse<MfaStatusResponse>(
+      request.get<unknown>('/auth/mfa/status'),
+      isMfaStatusResponse,
+      'mfa-status'
+    ),
+
+  enrollMfaTotp: () =>
+    validateResponse<MfaTotpEnrollResponse>(
+      request.post<unknown, undefined>('/auth/mfa/totp/enroll'),
+      isMfaTotpEnrollResponse,
+      'mfa-totp-enroll'
+    ),
+
+  verifyMfaTotp: (data: MfaCodeRequest) =>
+    validateResponse<MfaTotpVerifyResponse>(
+      request.post<unknown, MfaCodeRequest>('/auth/mfa/totp/verify', data),
+      isMfaTotpVerifyResponse,
+      'mfa-totp-verify'
+    ),
+
+  disableMfaTotp: (data: MfaCodeRequest) =>
+    validateResponse<MfaTotpDisableResponse>(
+      request.post<unknown, MfaCodeRequest>('/auth/mfa/totp/disable', data),
+      isMfaTotpDisableResponse,
+      'mfa-totp-disable'
+    ),
+
+  verifyMfaChallenge: (data: MfaChallengeVerifyRequest) =>
+    validateResponse<AuthResponse>(
+      request.post<unknown, MfaChallengeVerifyRequest>('/auth/mfa/challenge/verify', data),
+      isAuthResponse,
+      'mfa-challenge-verify'
+    ),
+
+  listSsoProviders: () =>
+    validateResponse<SsoProviderSummary[]>(
+      request.get<unknown>('/auth/sso/providers'),
+      isSsoProviderList,
+      'sso-providers'
+    ),
+
+  startSsoOidc: (data: SsoOidcStartRequest) =>
+    validateResponse<SsoOidcStartResponse>(
+      request.post<unknown, SsoOidcStartRequest>('/auth/sso/oidc/start', data),
+      isSsoOidcStartResponse,
+      'sso-oidc-start'
+    ),
+
+  callbackSsoOidc: (data: SsoOidcCallbackRequest) =>
+    validateResponse<LoginResult>(
+      request.post<unknown, SsoOidcCallbackRequest>('/auth/sso/oidc/callback', data),
+      isLoginResult,
+      'sso-oidc-callback'
     ),
 };
 

@@ -1,5 +1,6 @@
 packages:
   - .
+  - ../../packages/tokens
 
 # Keep dependency resolution and execution policy in the workspace authority.
 packageManagerStrictVersion: true

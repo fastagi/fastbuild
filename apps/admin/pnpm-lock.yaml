@@ -35,6 +35,9 @@ importers:
 
   .:
     dependencies:
+      '@fastbuild/tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.3.0)
@@ -165,6 +168,8 @@ importers:
       vitest:
         specifier: ^4.1.12
         version: 4.1.12(@types/node@22.20.1)(@vitest/coverage-v8@4.1.12)(happy-dom@21.0.4)(vite@8.3.4(@types/node@22.20.1)(jiti@2.7.0))
+
+  ../../packages/tokens: {}
 
 packages:
 

@@ -4,8 +4,27 @@ import type {
   AuthResponse,
   AuthUser,
   LoginRequest,
+  MfaChallengeResponse,
+  MfaChallengeVerifyRequest,
+  MfaStatusResponse,
+  MfaTotpDisableResponse,
+  MfaTotpEnrollResponse,
+  MfaTotpVerifyResponse,
   RegisterRequest,
+  SsoOidcCallbackRequest,
+  SsoOidcStartRequest,
+  SsoOidcStartResponse,
+  SsoProviderSummary,
 } from '@/features/auth/types';
+import {
+  isMfaChallengeResponse,
+  isMfaStatusResponse,
+  isMfaTotpDisableResponse,
+  isMfaTotpEnrollResponse,
+  isMfaTotpVerifyResponse,
+  isSsoOidcStartResponse,
+  isSsoProviderList,
+} from '@/features/auth/utils/auth-response';
 import {
   authenticationSessionMaxAgeSeconds,
   isOpaqueAuthenticationCredential,
@@ -46,7 +65,9 @@ export interface AdapterSession extends AuthResponse {
   maxAgeSeconds: number;
 }
 
-type AdapterOperation = 'login' | 'logout' | 'register' | 'session';
+export type AdapterLoginResult = AdapterSession | MfaChallengeResponse;
+
+type AdapterOperation = 'login' | 'logout' | 'register' | 'session' | 'mfa' | 'sso';
 
 interface GoApiUser {
   id: number;
@@ -91,7 +112,7 @@ export class GoApiAuthAdapter {
     input: LoginRequest,
     incomingHeaders: Headers,
     signal?: AbortSignal
-  ): Promise<AdapterResult<AdapterSession>> {
+  ): Promise<AdapterResult<AdapterLoginResult>> {
     const result = await this.request(
       'login',
       'login',
@@ -110,6 +131,10 @@ export class GoApiAuthAdapter {
       return result;
     }
 
+    if (isMfaChallengeResponse(result.data.data)) {
+      return { ok: true, data: result.data.data };
+    }
+
     return this.sessionFromLoginData(result.data.data, result.data.requestId);
   }
 
@@ -117,7 +142,7 @@ export class GoApiAuthAdapter {
     input: RegisterRequest,
     incomingHeaders: Headers,
     signal?: AbortSignal
-  ): Promise<AdapterResult<AdapterSession>> {
+  ): Promise<AdapterResult<AdapterLoginResult>> {
     const registration = await this.request(
       'register',
       'register',
@@ -208,6 +233,224 @@ export class GoApiAuthAdapter {
     }
 
     return { ok: true, data: { success: true } };
+  }
+
+  async mfaStatus(
+    accessToken: string,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<MfaStatusResponse>> {
+    const result = await this.request(
+      'mfa',
+      'auth/mfa/status',
+      {
+        method: 'GET',
+        accessToken,
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isMfaStatusResponse(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async enrollMfaTotp(
+    accessToken: string,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<MfaTotpEnrollResponse>> {
+    const result = await this.request(
+      'mfa',
+      'auth/mfa/totp/enroll',
+      {
+        method: 'POST',
+        accessToken,
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isMfaTotpEnrollResponse(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async verifyMfaTotp(
+    accessToken: string,
+    code: string,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<MfaTotpVerifyResponse>> {
+    const result = await this.request(
+      'mfa',
+      'auth/mfa/totp/verify',
+      {
+        method: 'POST',
+        body: { code },
+        accessToken,
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isMfaTotpVerifyResponse(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async disableMfaTotp(
+    accessToken: string,
+    code: string,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<MfaTotpDisableResponse>> {
+    const result = await this.request(
+      'mfa',
+      'auth/mfa/totp/disable',
+      {
+        method: 'POST',
+        body: { code },
+        accessToken,
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isMfaTotpDisableResponse(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async verifyMfaChallenge(
+    input: MfaChallengeVerifyRequest,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<AdapterSession>> {
+    const result = await this.request(
+      'mfa',
+      'auth/mfa/challenge/verify',
+      {
+        method: 'POST',
+        body: {
+          challenge_token: input.challenge_token,
+          code: input.code,
+        },
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+
+    return this.sessionFromLoginData(result.data.data, result.data.requestId);
+  }
+
+  async listSsoProviders(
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<SsoProviderSummary[]>> {
+    const result = await this.request(
+      'sso',
+      'auth/sso/providers',
+      {
+        method: 'GET',
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isSsoProviderList(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async startSsoOidc(
+    input: SsoOidcStartRequest,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<SsoOidcStartResponse>> {
+    const body: Record<string, string> = { provider: input.provider };
+    if (input.redirect_uri) {
+      body.redirect_uri = input.redirect_uri;
+    }
+    const result = await this.request(
+      'sso',
+      'auth/sso/oidc/start',
+      {
+        method: 'POST',
+        body,
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (!isSsoOidcStartResponse(result.data.data)) {
+      return adapterUnavailable(result.data.requestId);
+    }
+
+    return { ok: true, data: result.data.data };
+  }
+
+  async callbackSsoOidc(
+    input: SsoOidcCallbackRequest,
+    incomingHeaders: Headers,
+    signal?: AbortSignal
+  ): Promise<AdapterResult<AdapterLoginResult>> {
+    const result = await this.request(
+      'sso',
+      'auth/sso/oidc/callback',
+      {
+        method: 'POST',
+        body: {
+          provider: input.provider,
+          code: input.code,
+          state: input.state,
+        },
+      },
+      incomingHeaders,
+      signal
+    );
+
+    if (!result.ok) {
+      return result;
+    }
+    if (isMfaChallengeResponse(result.data.data)) {
+      return { ok: true, data: result.data.data };
+    }
+
+    return this.sessionFromLoginData(result.data.data, result.data.requestId);
   }
 
   private sessionFromLoginData(

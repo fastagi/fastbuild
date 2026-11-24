@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { KeyRound, SlidersHorizontal } from 'lucide-react';
+import { KeyRound, ShieldCheck, SlidersHorizontal } from 'lucide-react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,6 +10,11 @@ import { getT } from '@/i18n/server';
 const UserSettingPanel = lazy(async () => {
   const feature = await import('@/features/setting/components/user-setting-panel');
   return { default: feature.UserSettingPanel };
+});
+
+const MfaSecurityPanel = lazy(async () => {
+  const feature = await import('@/features/auth/components/mfa-security-panel');
+  return { default: feature.MfaSecurityPanel };
 });
 
 /**
@@ -31,6 +36,10 @@ export default async function SettingsPage() {
               {t('tabs.preferences')}
             </TabsTrigger>
           ) : null}
+          <TabsTrigger value="security">
+            <ShieldCheck aria-hidden="true" />
+            {t('tabs.security')}
+          </TabsTrigger>
           <TabsTrigger value="api">
             <KeyRound aria-hidden="true" />
             {t('tabs.api')}
@@ -44,6 +53,12 @@ export default async function SettingsPage() {
             </Suspense>
           </TabsContent>
         ) : null}
+
+        <TabsContent value="security" className="pt-5">
+          <Suspense fallback={<UserSettingPanelFallback />}>
+            <MfaSecurityPanel />
+          </Suspense>
+        </TabsContent>
 
         <TabsContent value="api" className="pt-5">
           <ApiKeyPanel />

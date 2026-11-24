@@ -38,6 +38,68 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
+export interface MfaChallengeResponse {
+  mfa_required: true;
+  challenge_token: string;
+  challenge_expires_in: number;
+  method: string;
+}
+
+export type LoginResult = AuthResponse | MfaChallengeResponse;
+
 export interface LogoutResponse {
   success: true;
+}
+
+export interface MfaStatusResponse {
+  enabled: boolean;
+  method: string;
+  remaining_recovery_codes: number;
+  enrolled_at?: string;
+}
+
+export interface MfaTotpEnrollResponse {
+  secret: string;
+  otpauth_uri: string;
+  issuer: string;
+  account_name: string;
+}
+
+export interface MfaCodeRequest {
+  code: string;
+}
+
+export interface MfaTotpVerifyResponse {
+  enabled: true;
+  recovery_codes: string[];
+}
+
+export interface MfaTotpDisableResponse {
+  enabled: false;
+}
+
+export interface MfaChallengeVerifyRequest {
+  challenge_token: string;
+  code: string;
+}
+
+export interface SsoProviderSummary {
+  slug: string;
+  name: string;
+}
+
+export interface SsoOidcStartRequest {
+  provider: string;
+  redirect_uri?: string;
+}
+
+export interface SsoOidcStartResponse {
+  authorize_url: string;
+  state: string;
+}
+
+export interface SsoOidcCallbackRequest {
+  provider: string;
+  code: string;
+  state: string;
 }

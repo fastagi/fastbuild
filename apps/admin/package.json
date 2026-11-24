@@ -37,6 +37,7 @@
     "pnpm": "10.34.5"
   },
   "dependencies": {
+    "@fastbuild/tokens": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
     "@tanstack/react-router": "^1.170.41",
     "@ui-sdk/core": "0.1.0-beta.14",

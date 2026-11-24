@@ -1,5 +1,6 @@
 packages:
   - .
+  - ../../packages/tokens
 
 packageManagerStrictVersion: true
 minimumReleaseAge: 1440

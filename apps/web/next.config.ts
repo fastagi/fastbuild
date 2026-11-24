@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
@@ -7,6 +8,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  transpilePackages: ['@fastbuild/tokens'],
 
   // Performance optimizations
   compress: true,
@@ -28,7 +30,9 @@ const nextConfig: NextConfig = {
 
   // apps/web/AGENTS.md is the reviewed agent guide for this shell; `next dev` must not append to it.
   agentRules: false,
-  turbopack: {},
+  turbopack: {
+    root: path.resolve(import.meta.dirname, '../..'),
+  },
 
   // Browser response policy only. Cache ownership remains route-specific.
   // The API's local object store issues same-origin `/v1/asset-transfers/<token>` grants; a real

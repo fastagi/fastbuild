@@ -26,6 +26,23 @@ const mutations = vi.hoisted(() => ({
 vi.mock('@/features/auth/hooks/use-auth', () => ({
   useLogin: () => mutations.login,
   useRegister: () => mutations.register,
+  useVerifyMfaChallenge: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
+  useSsoProviders: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  }),
+  useStartSsoOidc: () => ({
+    error: null,
+    isPending: false,
+    mutate: vi.fn(),
+    reset: vi.fn(),
+  }),
 }));
 
 function renderWithMessages(children: React.ReactNode) {

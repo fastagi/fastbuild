@@ -99,6 +99,19 @@ const messages = {
   signUpWithApple: 'Sign up with Apple',
   signUpWithGithub: 'Sign up with GitHub',
 
+  // Enterprise SSO & MFA challenge
+  orContinueWith: 'Or continue with',
+  signInWithProvider: 'Sign in with {provider}',
+  ssoStartFailed: 'Unable to start single sign-on. Please try again.',
+  mfaTitle: 'Two-factor verification',
+  mfaDescription: 'Enter the 6-digit code from your authenticator app or a one-time recovery code.',
+  mfaCodeLabel: 'Verification or recovery code',
+  mfaCodePlaceholder: '000000 or XXXX-XXXX',
+  mfaCodeRequired: 'Verification code is required',
+  mfaVerifySubmit: 'Verify & Sign In',
+  mfaInvalidCode: 'The verification or recovery code is invalid.',
+  mfaChallengeExpired: 'Your verification session expired. Please sign in again.',
+
   // Footer
   copyright: '© {year} FastBuild. All rights reserved.',
 } as const;

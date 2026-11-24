@@ -9,8 +9,12 @@ import { serverEnv } from '@/config/server-env';
 import type {
   AuthBootstrap,
   LoginRequest,
+  MfaChallengeVerifyRequest,
   RegisterRequest,
+  SsoOidcCallbackRequest,
+  SsoOidcStartRequest,
 } from '@/features/auth/types';
+import { isMfaChallengeResponse } from '@/features/auth/utils/auth-response';
 import {
   clearApiSessionCookie,
   getApiSessionToken,
@@ -67,6 +71,10 @@ export async function loginWithGoApi(
     return adapterErrorResponse(result.error);
   }
 
+  if (isMfaChallengeResponse(result.data)) {
+    return privateAuthResponse(apiSuccessResponse(result.data));
+  }
+
   await clearSessionCookie();
   await setApiSessionCookie(
     result.data.accessToken,
@@ -88,6 +96,10 @@ export async function registerWithGoApi(
 
   if (!result.ok) {
     return adapterErrorResponse(result.error);
+  }
+
+  if (isMfaChallengeResponse(result.data)) {
+    return privateAuthResponse(apiSuccessResponse(result.data));
   }
 
   await clearSessionCookie();
@@ -183,4 +195,177 @@ export async function resolveGoApiAuthBootstrap(): Promise<AuthBootstrap> {
   }
 
   return { status: 'unavailable' };
+}
+
+async function requireApiSessionToken(): Promise<
+  { ok: true; accessToken: string } | { ok: false; response: NextResponse }
+> {
+  const accessToken = await getApiSessionToken();
+  if (!accessToken) {
+    return {
+      ok: false,
+      response: adapterErrorResponse({
+        status: 401,
+        errorCode: ApiErrorCode.AUTH_UNAUTHORIZED,
+        message: 'Authentication required',
+      }),
+    };
+  }
+  return { ok: true, accessToken };
+}
+
+export async function getMfaStatusWithGoApi(
+  request: Request
+): Promise<NextResponse> {
+  const token = await requireApiSessionToken();
+  if (!token.ok) {
+    return token.response;
+  }
+
+  const result = await configuredAdapter().mfaStatus(
+    token.accessToken,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function enrollMfaTotpWithGoApi(
+  request: Request
+): Promise<NextResponse> {
+  const token = await requireApiSessionToken();
+  if (!token.ok) {
+    return token.response;
+  }
+
+  const result = await configuredAdapter().enrollMfaTotp(
+    token.accessToken,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function verifyMfaTotpWithGoApi(
+  request: Request,
+  code: string
+): Promise<NextResponse> {
+  const token = await requireApiSessionToken();
+  if (!token.ok) {
+    return token.response;
+  }
+
+  const result = await configuredAdapter().verifyMfaTotp(
+    token.accessToken,
+    code,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function disableMfaTotpWithGoApi(
+  request: Request,
+  code: string
+): Promise<NextResponse> {
+  const token = await requireApiSessionToken();
+  if (!token.ok) {
+    return token.response;
+  }
+
+  const result = await configuredAdapter().disableMfaTotp(
+    token.accessToken,
+    code,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function verifyMfaChallengeWithGoApi(
+  request: Request,
+  input: MfaChallengeVerifyRequest
+): Promise<NextResponse> {
+  const result = await configuredAdapter().verifyMfaChallenge(
+    input,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+
+  await clearSessionCookie();
+  await setApiSessionCookie(
+    result.data.accessToken,
+    result.data.maxAgeSeconds
+  );
+
+  return privateAuthResponse(apiSuccessResponse({ user: result.data.user }));
+}
+
+export async function listSsoProvidersWithGoApi(
+  request: Request
+): Promise<NextResponse> {
+  const result = await configuredAdapter().listSsoProviders(
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function startSsoOidcWithGoApi(
+  request: Request,
+  input: SsoOidcStartRequest
+): Promise<NextResponse> {
+  const result = await configuredAdapter().startSsoOidc(
+    input,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+  return privateAuthResponse(apiSuccessResponse(result.data));
+}
+
+export async function callbackSsoOidcWithGoApi(
+  request: Request,
+  input: SsoOidcCallbackRequest
+): Promise<NextResponse> {
+  const result = await configuredAdapter().callbackSsoOidc(
+    input,
+    request.headers,
+    request.signal
+  );
+  if (!result.ok) {
+    return adapterErrorResponse(result.error);
+  }
+
+  if (isMfaChallengeResponse(result.data)) {
+    return privateAuthResponse(apiSuccessResponse(result.data));
+  }
+
+  await clearSessionCookie();
+  await setApiSessionCookie(
+    result.data.accessToken,
+    result.data.maxAgeSeconds
+  );
+
+  return privateAuthResponse(apiSuccessResponse({ user: result.data.user }));
 }
