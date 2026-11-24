@@ -28,6 +28,8 @@ const (
 	sessionRevocationExpired         = "expired"
 	sessionRevocationIdleTimeout     = "idle_timeout"
 	sessionRevocationOperator        = "operator"
+	sessionRevocationRotated         = "rotated"
+	sessionRevocationRefreshReuse    = "refresh_reuse"
 )
 
 // IssuedAuthenticationSession is the one-time plaintext session response.
@@ -35,6 +37,15 @@ type IssuedAuthenticationSession struct {
 	AccessToken string
 	TokenType   string
 	ExpiresIn   int64
+}
+
+// IssuedNativeSession is the one-time plaintext token pair for native clients.
+type IssuedNativeSession struct {
+	AccessToken      string
+	TokenType        string
+	ExpiresIn        int64
+	RefreshToken     string
+	RefreshExpiresIn int64
 }
 
 // SessionService owns opaque user session issuance, resolution, revocation, and retention.
@@ -115,6 +126,140 @@ func (s *SessionService) Issue(
 		TokenType:   "Bearer",
 		ExpiresIn:   max(int64(1), int64(expiresAt.Sub(now)/time.Second)),
 	}, nil
+}
+
+// IssueNative creates one short-lived access session paired with a single-use rotating refresh token.
+func (s *SessionService) IssueNative(
+	ctx context.Context,
+	user *domain.User,
+) (*IssuedNativeSession, error) {
+	if user == nil || user.ID == 0 {
+		return nil, domain.ErrAuthenticationRequired
+	}
+	if !user.IsActive() {
+		return nil, domain.ErrAccountDisabled
+	}
+	if s == nil || s.repo == nil || s.randomBytes == nil {
+		return nil, domain.ErrServiceUnavailable
+	}
+
+	sessionIDBytes, err := s.randomBytes(authenticationSessionIDBytes)
+	if err != nil {
+		return nil, fmt.Errorf("generate authentication session ID: %w", err)
+	}
+	familyIDBytes, err := s.randomBytes(authenticationSessionIDBytes)
+	if err != nil {
+		return nil, fmt.Errorf("generate authentication family ID: %w", err)
+	}
+	accessBytes, err := s.randomBytes(authenticationCredentialBytes)
+	if err != nil {
+		return nil, fmt.Errorf("generate authentication access credential: %w", err)
+	}
+	refreshBytes, err := s.randomBytes(authenticationCredentialBytes)
+	if err != nil {
+		return nil, fmt.Errorf("generate authentication refresh credential: %w", err)
+	}
+
+	now := s.currentTime()
+	refreshExpiresAt := now.Add(s.policy.SessionTTL)
+	accessExpiresAt := minTime(now.Add(s.policy.NativeAccessTTL), refreshExpiresAt)
+	accessToken := base64.RawURLEncoding.EncodeToString(accessBytes)
+	refreshToken := base64.RawURLEncoding.EncodeToString(refreshBytes)
+	refreshHash := crypto.SHA256Hex(refreshToken)
+
+	record := &AuthenticationSessionPO{
+		ID:               base64.RawURLEncoding.EncodeToString(sessionIDBytes),
+		UserID:           user.ID,
+		Audience:         string(domain.SessionAudienceUser),
+		FamilyID:         base64.RawURLEncoding.EncodeToString(familyIDBytes),
+		TokenHash:        crypto.SHA256Hex(accessToken),
+		RefreshTokenHash: &refreshHash,
+		ExpiresAt:        accessExpiresAt,
+		IdleExpiresAt:    accessExpiresAt,
+		RefreshExpiresAt: &refreshExpiresAt,
+		LastSeenAt:       now,
+	}
+	if err := s.repo.createAuthenticationSession(ctx, record); err != nil {
+		return nil, err
+	}
+
+	return &IssuedNativeSession{
+		AccessToken:      accessToken,
+		TokenType:        "Bearer",
+		ExpiresIn:        max(int64(1), int64(accessExpiresAt.Sub(now)/time.Second)),
+		RefreshToken:     refreshToken,
+		RefreshExpiresIn: max(int64(1), int64(refreshExpiresAt.Sub(now)/time.Second)),
+	}, nil
+}
+
+// RotateNative validates a single-use refresh token, revokes it atomically, and issues a successor pair.
+// Presenting an already-rotated refresh token revokes the entire session family.
+func (s *SessionService) RotateNative(
+	ctx context.Context,
+	refreshToken string,
+) (*IssuedNativeSession, *domain.User, error) {
+	if s == nil || s.repo == nil || s.randomBytes == nil {
+		return nil, nil, domain.ErrServiceUnavailable
+	}
+	refreshToken = strings.TrimSpace(refreshToken)
+	if !validAuthenticationCredential(refreshToken) {
+		return nil, nil, domain.ErrAuthenticationRequired
+	}
+
+	sessionIDBytes, err := s.randomBytes(authenticationSessionIDBytes)
+	if err != nil {
+		return nil, nil, fmt.Errorf("generate authentication session ID: %w", err)
+	}
+	accessBytes, err := s.randomBytes(authenticationCredentialBytes)
+	if err != nil {
+		return nil, nil, fmt.Errorf("generate authentication access credential: %w", err)
+	}
+	nextRefreshBytes, err := s.randomBytes(authenticationCredentialBytes)
+	if err != nil {
+		return nil, nil, fmt.Errorf("generate authentication refresh credential: %w", err)
+	}
+
+	now := s.currentTime()
+	nextAccessToken := base64.RawURLEncoding.EncodeToString(accessBytes)
+	nextRefreshToken := base64.RawURLEncoding.EncodeToString(nextRefreshBytes)
+
+	user, accessExpiresAt, refreshExpiresAt, err := s.repo.rotateNativeSession(
+		ctx,
+		crypto.SHA256Hex(refreshToken),
+		base64.RawURLEncoding.EncodeToString(sessionIDBytes),
+		crypto.SHA256Hex(nextAccessToken),
+		crypto.SHA256Hex(nextRefreshToken),
+		now,
+		s.policy.NativeAccessTTL,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &IssuedNativeSession{
+		AccessToken:      nextAccessToken,
+		TokenType:        "Bearer",
+		ExpiresIn:        max(int64(1), int64(accessExpiresAt.Sub(now)/time.Second)),
+		RefreshToken:     nextRefreshToken,
+		RefreshExpiresIn: max(int64(1), int64(refreshExpiresAt.Sub(now)/time.Second)),
+	}, user, nil
+}
+
+// RevokeNativeRefresh revokes a native refresh token and its entire session family idempotently.
+func (s *SessionService) RevokeNativeRefresh(ctx context.Context, refreshToken, reason string) error {
+	if s == nil || s.repo == nil {
+		return domain.ErrServiceUnavailable
+	}
+	refreshToken = strings.TrimSpace(refreshToken)
+	if !validAuthenticationCredential(refreshToken) {
+		return nil
+	}
+	return s.repo.revokeAuthenticationSessionFamilyByRefreshTokenHash(
+		ctx,
+		crypto.SHA256Hex(refreshToken),
+		s.currentTime(),
+		normalizeSessionRevocationReason(reason),
+	)
 }
 
 // Authenticate resolves one opaque bearer credential against current session and user state.
@@ -225,7 +370,9 @@ func normalizeSessionRevocationReason(value string) string {
 		sessionRevocationAccountDisabled,
 		sessionRevocationExpired,
 		sessionRevocationIdleTimeout,
-		sessionRevocationOperator:
+		sessionRevocationOperator,
+		sessionRevocationRotated,
+		sessionRevocationRefreshReuse:
 		return strings.TrimSpace(value)
 	default:
 		return "security_event"
@@ -246,6 +393,11 @@ func normalizedAuthenticationPolicy(policy config.AuthenticationConfig) config.A
 	}
 	if policy.SessionRetention < 0 || policy.SessionRetention > 365*24*time.Hour {
 		policy.SessionRetention = config.DefaultAuthenticationSessionRetention
+	}
+	if policy.NativeAccessTTL < time.Minute ||
+		policy.NativeAccessTTL > 24*time.Hour ||
+		policy.NativeAccessTTL > policy.SessionTTL {
+		policy.NativeAccessTTL = min(config.DefaultAuthenticationNativeAccessTTL, policy.SessionTTL)
 	}
 	return policy
 }

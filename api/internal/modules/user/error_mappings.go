@@ -9,6 +9,7 @@ import (
 
 // RegisterErrorMappings maps this starter's domain errors to public status codes and error codes.
 func (h *Handler) RegisterErrorMappings(mapper *response.ErrorMapper) {
+	mapper.Register(domain.ErrAuthenticationRequired, http.StatusUnauthorized, response.ErrorCodeUnauthorized)
 	mapper.Register(domain.ErrUserNotFound, http.StatusNotFound, domain.CodeUserNotFound)
 	mapper.Register(domain.ErrInvalidCredentials, http.StatusUnauthorized, domain.CodeInvalidCredentials)
 	mapper.Register(domain.ErrPasswordResetTokenInvalid, http.StatusUnauthorized, domain.CodePasswordResetTokenInvalid)

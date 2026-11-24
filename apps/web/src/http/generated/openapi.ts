@@ -268,6 +268,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/native/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in from a native client and issue a short-lived access token with a rotating refresh token */
+        post: operations["nativeLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/native/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke a native session family by refresh token
+         * @description Idempotently revokes the refresh token and its session family without requiring an unexpired access token.
+         */
+        post: operations["nativeLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/native/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate a native refresh token and issue a fresh access and refresh token pair
+         * @description Single-use rotation. Presenting an already-rotated refresh token revokes the entire session family.
+         */
+        post: operations["nativeRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/health": {
         parameters: {
             query?: never;
@@ -1594,6 +1651,39 @@ export interface components {
             data: {
                 message: string;
             };
+            message: string;
+        };
+        AuthenticationNativeLogoutRequest: {
+            /** @description Opaque refresh credential identifying the native session family to revoke. */
+            refresh_token: string;
+        };
+        AuthenticationNativeRefreshRequest: {
+            /** @description Opaque single-use refresh credential previously issued by native login or refresh. */
+            refresh_token: string;
+        };
+        AuthenticationNativeSession: {
+            /** @description Short-lived opaque session credential; not a JWT. */
+            access_token: string;
+            /**
+             * Format: int64
+             * @description Whole seconds until the short-lived access token expires.
+             */
+            expires_in: number;
+            /**
+             * Format: int64
+             * @description Whole seconds remaining until the native session family's absolute refresh expiry.
+             */
+            refresh_expires_in: number;
+            /** @description Opaque single-use rotating refresh credential; never accepted as a Bearer access token. */
+            refresh_token: string;
+            /** @constant */
+            token_type: "Bearer";
+            user: components["schemas"]["AuthenticationUser"];
+        };
+        AuthenticationNativeSessionResponse: {
+            /** @constant */
+            code: 0;
+            data: components["schemas"]["AuthenticationNativeSession"];
             message: string;
         };
         AuthenticationPasswordResetConfirmRequest: {
@@ -3485,6 +3575,96 @@ export interface operations {
             400: components["responses"]["InvalidInput"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["AuthenticationAccountDisabled"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    nativeLogin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description A new native session token pair and the signed-in user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationNativeSessionResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["AuthenticationInvalidCredentials"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    nativeLogout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationNativeLogoutRequest"];
+            };
+        };
+        responses: {
+            /** @description The native session family is revoked. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationLogoutResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    nativeRefresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthenticationNativeRefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description A rotated native session token pair and the current user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticationNativeSessionResponse"];
+                };
+            };
+            400: components["responses"]["InvalidInput"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AuthenticationAccountDisabled"];
+            413: components["responses"]["RequestTooLarge"];
+            422: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
             503: components["responses"]["ServiceUnavailable"];
         };

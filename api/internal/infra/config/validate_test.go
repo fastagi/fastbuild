@@ -153,6 +153,8 @@ func TestValidate_RejectsUnsafeAuthenticationSessionPolicy(t *testing.T) {
 		{name: "idle exceeds absolute", mutate: func(cfg *AuthenticationConfig) { cfg.SessionIdleTimeout = cfg.SessionTTL + time.Second }},
 		{name: "touch exceeds idle", mutate: func(cfg *AuthenticationConfig) { cfg.SessionTouchInterval = cfg.SessionIdleTimeout + time.Second }},
 		{name: "negative retention", mutate: func(cfg *AuthenticationConfig) { cfg.SessionRetention = -time.Second }},
+		{name: "native access too short", mutate: func(cfg *AuthenticationConfig) { cfg.NativeAccessTTL = 30 * time.Second }},
+		{name: "native access exceeds session", mutate: func(cfg *AuthenticationConfig) { cfg.NativeAccessTTL = 25 * time.Hour }},
 	}
 
 	for _, test := range tests {

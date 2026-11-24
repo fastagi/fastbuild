@@ -12,7 +12,7 @@ selected; optional starters are enabled with `OPTIONAL_STARTERS`.
 |---|---|---|---:|---|
 | `audit` | default | - | 4 | Write-request audit logging, history reads, and bounded retention. |
 | `apikey` | default | - | 1 | Personal API keys with one-time secrets, revocation, and request authentication. |
-| `user` | default | - | 6 | Registration, sign-in, revocable sessions, profile, and password reset. |
+| `user` | default | - | 7 | Registration, sign-in, revocable sessions, profile, and password reset. |
 | `organization` | optional | - | 2 | Organization ownership, membership, invitations, active context, and ownership transfer. |
 | `permission` | optional | `organization` | 1 | Organization-scoped access roles, exact permission keys, member assignments, and fail-closed checks. |
 | `notification` | optional | `user`, `audit` | 2 | User-scoped in-app notifications and durable email delivery with preferences and leases. |

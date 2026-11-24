@@ -243,3 +243,48 @@ The optional `operator` starter is the shipped Go browser adapter for platform o
 an HttpOnly `SameSite=Strict` cookie session with exact-Origin and CSRF enforcement. See
 [`OPERATORS.md`](OPERATORS.md). Other Admin Console audiences still need their own reviewed
 gateway.
+
+## Native-Client Auth Contract
+
+Native desktop and mobile clients (Electron, Tauri, React Native, Expo, iOS, Android) do not run
+behind a same-origin browser cookie adapter and must not reuse long-lived single-token browser
+sessions. Instead, the Go `user` starter exposes a dedicated native-client token-pair surface under
+`/v1/auth/native/*` backed by the same revocable `authentication_sessions` persistence:
+
+| Operation | API endpoint | Request | Successful `data` |
+|---|---|---|---|
+| Native login | `POST /v1/auth/native/login` | `{ username, password }` | `{ access_token, token_type: "Bearer", expires_in, refresh_token, refresh_expires_in, user }` |
+| Refresh session | `POST /v1/auth/native/refresh` | `{ refresh_token }` | `{ access_token, token_type: "Bearer", expires_in, refresh_token, refresh_expires_in, user }` |
+| Native logout | `POST /v1/auth/native/logout` | `{ refresh_token }` | `{ success: true }` |
+
+### Native Token Lifecycle & Security Semantics
+
+- **Short-lived access token**: `access_token` is an opaque 256-bit CSPRNG credential stored only by
+  its SHA-256 hash. Its default lifetime is 15 minutes (`AUTH_NATIVE_ACCESS_TTL=15m`), bounded by
+  the session family's remaining absolute lifetime. Native clients send it via
+  `Authorization: Bearer <access_token>` to all protected `/v1/*` endpoints.
+- **Single-use rotating refresh token**: `refresh_token` is a separate opaque 256-bit CSPRNG
+  credential stored only by its SHA-256 hash (`refresh_token_hash`), never accepted as a Bearer
+  access token. Its absolute ceiling is `AUTH_SESSION_TTL` (default 30 days). Every call to
+  `POST /v1/auth/native/refresh` atomically revokes the presented refresh token (and its paired
+  access token) and issues a brand-new `(access_token, refresh_token)` pair in the same session
+  family.
+- **Replay / reuse detection**: presenting an already-rotated refresh token immediately revokes
+  every active session in that token family (`refresh_reuse`) and returns `401 AUTH.UNAUTHORIZED`,
+  forcing the client to re-authenticate.
+- **Revocation & account security events**: `POST /v1/auth/native/logout` revokes the entire token
+  family idempotently (even if the short-lived `access_token` has already expired). Calling
+  `POST /v1/logout` with a native Bearer `access_token` also revokes its family. Password change,
+  password reset, account disablement, and account deletion revoke every native session and refresh
+  token in the same transaction.
+- **Client storage boundary**: native clients must keep `refresh_token` in OS-level secure storage
+  (Keychain, Windows Credential Manager, Android Keystore, or `expo-secure-store`) and keep
+  `access_token` in memory or secure storage. Browser apps (`apps/web`, `apps/admin`) must continue
+  using the HttpOnly cookie Browser Auth Contract rather than `/v1/auth/native/*`.
+- **Abuse protection**: `/v1/auth/native/login` shares the per-IP and per-account sign-in failure
+  budgets with `/v1/login`. `/v1/auth/native/refresh` and `/v1/auth/native/logout` enforce per-IP
+  rate limits, and refresh also enforces per-token-hash subject limits.
+
+```dotenv
+AUTH_NATIVE_ACCESS_TTL=15m
+```

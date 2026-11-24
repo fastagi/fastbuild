@@ -71,6 +71,9 @@ TABLE authentication_sessions
   COLUMN revoked_at timestamp with time zone
   COLUMN revocation_reason character varying(32) NOT NULL DEFAULT ''::character varying
   COLUMN audience character varying(16) NOT NULL DEFAULT 'user'::character varying
+  COLUMN family_id character varying(32) NOT NULL DEFAULT ''::character varying
+  COLUMN refresh_token_hash character varying(64)
+  COLUMN refresh_expires_at timestamp with time zone
 
 TABLE migrations
   COLUMN id integer NOT NULL DEFAULT nextval('migrations_id_seq'::regclass)
@@ -487,7 +490,10 @@ INDEX CREATE INDEX idx_audit_logs_target_type ON audit_logs USING btree (target_
 INDEX CREATE INDEX idx_audit_logs_user_id_id ON audit_logs USING btree (user_id, id)
 INDEX CREATE UNIQUE INDEX authentication_sessions_pkey ON authentication_sessions USING btree (id)
 INDEX CREATE INDEX idx_authentication_sessions_expires_at ON authentication_sessions USING btree (expires_at)
+INDEX CREATE INDEX idx_authentication_sessions_family_id ON authentication_sessions USING btree (family_id)
 INDEX CREATE INDEX idx_authentication_sessions_idle_expires_at ON authentication_sessions USING btree (idle_expires_at)
+INDEX CREATE INDEX idx_authentication_sessions_refresh_expires_at ON authentication_sessions USING btree (refresh_expires_at)
+INDEX CREATE UNIQUE INDEX idx_authentication_sessions_refresh_token_hash ON authentication_sessions USING btree (refresh_token_hash)
 INDEX CREATE INDEX idx_authentication_sessions_revoked_at ON authentication_sessions USING btree (revoked_at)
 INDEX CREATE UNIQUE INDEX idx_authentication_sessions_token_hash ON authentication_sessions USING btree (token_hash)
 INDEX CREATE INDEX idx_authentication_sessions_user_id ON authentication_sessions USING btree (user_id)

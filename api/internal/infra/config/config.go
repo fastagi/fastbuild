@@ -63,6 +63,8 @@ const (
 	DefaultAuthenticationSessionTouchInterval = 5 * time.Minute
 	// DefaultAuthenticationSessionRetention keeps terminal rows briefly for operations and audit correlation.
 	DefaultAuthenticationSessionRetention = 30 * 24 * time.Hour
+	// DefaultAuthenticationNativeAccessTTL is the short lifetime of a native-client access token.
+	DefaultAuthenticationNativeAccessTTL = 15 * time.Minute
 	// DefaultObjectStorageRequestTimeout bounds one provider metadata or object operation.
 	DefaultObjectStorageRequestTimeout = 30 * time.Second
 	// DefaultAssetMaxBytes bounds the first single-object asset workflow.
@@ -370,6 +372,7 @@ type AuthenticationConfig struct {
 	SessionIdleTimeout   time.Duration
 	SessionTouchInterval time.Duration
 	SessionRetention     time.Duration
+	NativeAccessTTL      time.Duration
 }
 
 type LogConfig struct {
@@ -530,6 +533,7 @@ func Load() (*Config, error) {
 			SessionIdleTimeout:   env.GetDuration("AUTH_SESSION_IDLE_TIMEOUT", DefaultAuthenticationSessionIdleTimeout),
 			SessionTouchInterval: env.GetDuration("AUTH_SESSION_TOUCH_INTERVAL", DefaultAuthenticationSessionTouchInterval),
 			SessionRetention:     env.GetDuration("AUTH_SESSION_RETENTION", DefaultAuthenticationSessionRetention),
+			NativeAccessTTL:      env.GetDuration("AUTH_NATIVE_ACCESS_TTL", DefaultAuthenticationNativeAccessTTL),
 		},
 		Log: LogConfig{
 			Level:       env.Get("LOG_LEVEL", defaultLogLevel(isProd)),
@@ -998,11 +1002,13 @@ func validateQueueConfig(queue QueueConfig, databaseEnabled bool) error {
 
 func validateAuthenticationConfig(cfg AuthenticationConfig) error {
 	const (
-		minSessionTTL  = 15 * time.Minute
-		maxSessionTTL  = 180 * 24 * time.Hour
-		minIdleTimeout = 5 * time.Minute
-		maxTouch       = time.Hour
-		maxRetention   = 365 * 24 * time.Hour
+		minSessionTTL      = 15 * time.Minute
+		maxSessionTTL      = 180 * 24 * time.Hour
+		minIdleTimeout     = 5 * time.Minute
+		maxTouch           = time.Hour
+		maxRetention       = 365 * 24 * time.Hour
+		minNativeAccessTTL = time.Minute
+		maxNativeAccessTTL = 24 * time.Hour
 	)
 
 	if cfg.SessionTTL < minSessionTTL || cfg.SessionTTL > maxSessionTTL {
@@ -1016,6 +1022,9 @@ func validateAuthenticationConfig(cfg AuthenticationConfig) error {
 	}
 	if cfg.SessionRetention < 0 || cfg.SessionRetention > maxRetention {
 		return fmt.Errorf("AUTH_SESSION_RETENTION must be between 0 and %s", maxRetention)
+	}
+	if cfg.NativeAccessTTL != 0 && (cfg.NativeAccessTTL < minNativeAccessTTL || cfg.NativeAccessTTL > maxNativeAccessTTL || cfg.NativeAccessTTL > cfg.SessionTTL) {
+		return fmt.Errorf("AUTH_NATIVE_ACCESS_TTL must be between %s and min(%s, AUTH_SESSION_TTL)", minNativeAccessTTL, maxNativeAccessTTL)
 	}
 	return nil
 }

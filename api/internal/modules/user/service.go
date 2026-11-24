@@ -23,6 +23,9 @@ import (
 type AuthService interface {
 	Register(ctx context.Context, req *UserRegisterRequest) (*domain.User, error)
 	Login(ctx context.Context, req *UserLoginRequest) (*UserLoginResponse, error)
+	NativeLogin(ctx context.Context, req *UserLoginRequest) (*NativeSessionResponse, error)
+	NativeRefresh(ctx context.Context, req *NativeRefreshRequest) (*NativeSessionResponse, error)
+	NativeLogout(ctx context.Context, req *NativeLogoutRequest) error
 	RequestPasswordReset(ctx context.Context, req *UserPasswordResetRequest) error
 	ConfirmPasswordReset(ctx context.Context, req *UserPasswordResetConfirmRequest) error
 }
@@ -66,6 +69,12 @@ type authenticationSessionIssuer interface {
 	Issue(ctx context.Context, user *domain.User, audience domain.SessionAudience) (*IssuedAuthenticationSession, error)
 }
 
+type nativeSessionAuthority interface {
+	IssueNative(ctx context.Context, user *domain.User) (*IssuedNativeSession, error)
+	RotateNative(ctx context.Context, refreshToken string) (*IssuedNativeSession, *domain.User, error)
+	RevokeNativeRefresh(ctx context.Context, refreshToken, reason string) error
+}
+
 type userRepository interface {
 	domain.UserRepository
 	FindByLoginIdentifier(ctx context.Context, identifier string) (*domain.User, error)
@@ -81,6 +90,7 @@ type service struct {
 	repo           userRepository
 	passwordResets passwordResetStore
 	sessions       authenticationSessionIssuer
+	nativeSessions nativeSessionAuthority
 	eventBus       *events.EventBus
 	mailer         UserMailer
 	deletionPolicy *AccountDeletionPolicy
@@ -123,6 +133,9 @@ func NewService(
 	}
 	if store, ok := repo.(userAdministrationStore); ok {
 		svc.admin = store
+	}
+	if native, ok := sessions.(nativeSessionAuthority); ok {
+		svc.nativeSessions = native
 	}
 	return svc
 }
@@ -207,6 +220,58 @@ func (s *service) Login(ctx context.Context, req *UserLoginRequest) (*UserLoginR
 	}, nil
 }
 
+// NativeLogin verifies credentials and issues a short-lived access token paired with a rotating refresh token.
+func (s *service) NativeLogin(ctx context.Context, req *UserLoginRequest) (*NativeSessionResponse, error) {
+	user, err := s.verifySignInCredentials(ctx, req.Username, req.Password, nil)
+	if err != nil {
+		return nil, err
+	}
+	if s.nativeSessions == nil {
+		return nil, domain.ErrServiceUnavailable
+	}
+	issued, err := s.nativeSessions.IssueNative(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	s.recordSuccessfulLogin(ctx, user)
+
+	return &NativeSessionResponse{
+		AccessToken:      issued.AccessToken,
+		TokenType:        issued.TokenType,
+		ExpiresIn:        issued.ExpiresIn,
+		RefreshToken:     issued.RefreshToken,
+		RefreshExpiresIn: issued.RefreshExpiresIn,
+		User:             user,
+	}, nil
+}
+
+// NativeRefresh rotates a single-use refresh token and returns a fresh token pair.
+func (s *service) NativeRefresh(ctx context.Context, req *NativeRefreshRequest) (*NativeSessionResponse, error) {
+	if s.nativeSessions == nil {
+		return nil, domain.ErrServiceUnavailable
+	}
+	issued, user, err := s.nativeSessions.RotateNative(ctx, req.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	return &NativeSessionResponse{
+		AccessToken:      issued.AccessToken,
+		TokenType:        issued.TokenType,
+		ExpiresIn:        issued.ExpiresIn,
+		RefreshToken:     issued.RefreshToken,
+		RefreshExpiresIn: issued.RefreshExpiresIn,
+		User:             user,
+	}, nil
+}
+
+// NativeLogout revokes the native session family identified by the presented refresh token.
+func (s *service) NativeLogout(ctx context.Context, req *NativeLogoutRequest) error {
+	if s.nativeSessions == nil {
+		return domain.ErrServiceUnavailable
+	}
+	return s.nativeSessions.RevokeNativeRefresh(ctx, req.RefreshToken, sessionRevocationLogout)
+}
+
 // SignIn verifies credentials, lets the caller authorize the verified user, then issues a session.
 func (s *service) SignIn(
 	ctx context.Context,
@@ -236,41 +301,9 @@ func (s *service) signIn(
 	audience domain.SessionAudience,
 	authorize func(context.Context, *domain.User) error,
 ) (*domain.User, *IssuedAuthenticationSession, error) {
-	user, err := s.repo.FindByLoginIdentifier(ctx, identifier)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil, fmt.Errorf("failed to lookup login identifier: %w", err)
-	}
+	user, err := s.verifySignInCredentials(ctx, identifier, password, authorize)
 	if err != nil {
-		user = nil
-	}
-	throttleKey := signInThrottleKey(user, identifier)
-	if s.signIns != nil {
-		if allowed, _, _ := s.signIns.Take(ctx, throttleKey); !allowed {
-			return nil, nil, domain.ErrSignInThrottled
-		}
-	}
-	if user == nil {
-		if compareErr := s.verifyPassword([]byte(dummyPasswordHash), []byte(password)); compareErr != nil &&
-			!errors.Is(compareErr, bcrypt.ErrMismatchedHashAndPassword) {
-			slog.ErrorContext(ctx, "user.login_dummy_hash_invalid", "err", compareErr)
-		}
-		return nil, nil, domain.ErrInvalidCredentials
-	}
-
-	passwordErr := s.verifyPassword([]byte(user.Password), []byte(password))
-	if passwordErr != nil || !user.IsActive() {
-		return nil, nil, domain.ErrInvalidCredentials
-	}
-
-	// The password was right: clear the account's failures before any authorization decision.
-	if s.signIns != nil {
-		s.signIns.Reset(ctx, throttleKey)
-	}
-
-	if authorize != nil {
-		if authErr := authorize(ctx, user); authErr != nil {
-			return nil, nil, authErr
-		}
+		return nil, nil, err
 	}
 
 	if s.sessions == nil {
@@ -281,6 +314,56 @@ func (s *service) signIn(
 		return nil, nil, err
 	}
 
+	s.recordSuccessfulLogin(ctx, user)
+	return user, issued, nil
+}
+
+func (s *service) verifySignInCredentials(
+	ctx context.Context,
+	identifier string,
+	password string,
+	authorize func(context.Context, *domain.User) error,
+) (*domain.User, error) {
+	user, err := s.repo.FindByLoginIdentifier(ctx, identifier)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("failed to lookup login identifier: %w", err)
+	}
+	if err != nil {
+		user = nil
+	}
+	throttleKey := signInThrottleKey(user, identifier)
+	if s.signIns != nil {
+		if allowed, _, _ := s.signIns.Take(ctx, throttleKey); !allowed {
+			return nil, domain.ErrSignInThrottled
+		}
+	}
+	if user == nil {
+		if compareErr := s.verifyPassword([]byte(dummyPasswordHash), []byte(password)); compareErr != nil &&
+			!errors.Is(compareErr, bcrypt.ErrMismatchedHashAndPassword) {
+			slog.ErrorContext(ctx, "user.login_dummy_hash_invalid", "err", compareErr)
+		}
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	passwordErr := s.verifyPassword([]byte(user.Password), []byte(password))
+	if passwordErr != nil || !user.IsActive() {
+		return nil, domain.ErrInvalidCredentials
+	}
+
+	// The password was right: clear the account's failures before any authorization decision.
+	if s.signIns != nil {
+		s.signIns.Reset(ctx, throttleKey)
+	}
+
+	if authorize != nil {
+		if authErr := authorize(ctx, user); authErr != nil {
+			return nil, authErr
+		}
+	}
+	return user, nil
+}
+
+func (s *service) recordSuccessfulLogin(ctx context.Context, user *domain.User) {
 	// Update last login. Auth has already succeeded; a write failure
 	// here shouldn't fail the login, but it shouldn't be invisible either.
 	now := time.Now()
@@ -291,7 +374,6 @@ func (s *service) signIn(
 			"err", err,
 		)
 	}
-	return user, issued, nil
 }
 
 // signInThrottleKey keys known accounts by ID, so every identifier for one account shares a

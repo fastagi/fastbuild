@@ -121,6 +121,58 @@ func (h *Handler) Login(c *gin.Context) {
 	response.Success(c, resp)
 }
 
+// NativeLogin handles native-client login and returns a short-lived access token plus a rotating refresh token.
+func (h *Handler) NativeLogin(c *gin.Context) {
+	var req UserLoginRequest
+	if !handler.BindJSON(c, &req) {
+		return
+	}
+	resp, err := h.auth.NativeLogin(c.Request.Context(), &req)
+	if err != nil {
+		response.HandleError(c, "Login failed", err)
+		return
+	}
+
+	if resp.User != nil {
+		c.Set("userID", resp.User.ID)
+	}
+	response.Success(c, resp)
+}
+
+// NativeRefresh rotates a native refresh token and returns a fresh access and refresh token pair.
+func (h *Handler) NativeRefresh(c *gin.Context) {
+	var req NativeRefreshRequest
+	if !handler.BindJSON(c, &req) {
+		return
+	}
+	if !h.authGuard.allowSubject(c, authEndpointLogin, req.RefreshToken) {
+		return
+	}
+	resp, err := h.auth.NativeRefresh(c.Request.Context(), &req)
+	if err != nil {
+		response.HandleError(c, "Refresh failed", err)
+		return
+	}
+
+	if resp.User != nil {
+		c.Set("userID", resp.User.ID)
+	}
+	response.Success(c, resp)
+}
+
+// NativeLogout revokes the native session family identified by the presented refresh token.
+func (h *Handler) NativeLogout(c *gin.Context) {
+	var req NativeLogoutRequest
+	if !handler.BindJSON(c, &req) {
+		return
+	}
+	if err := h.auth.NativeLogout(c.Request.Context(), &req); err != nil {
+		response.HandleError(c, "Failed to end session", err)
+		return
+	}
+	response.Success(c, gin.H{"success": true})
+}
+
 // ============================================================================
 // Profile (Authenticated User)
 // ============================================================================

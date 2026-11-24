@@ -35,6 +35,33 @@ func (s *authGuardFakeService) Login(context.Context, *UserLoginRequest) (*UserL
 	}, nil
 }
 
+func (s *authGuardFakeService) NativeLogin(context.Context, *UserLoginRequest) (*NativeSessionResponse, error) {
+	s.loginCalls++
+	return &NativeSessionResponse{
+		AccessToken:      "test-access-token",
+		TokenType:        "Bearer",
+		ExpiresIn:        900,
+		RefreshToken:     "test-refresh-token",
+		RefreshExpiresIn: 2592000,
+		User:             &domain.User{ID: 1, Username: "test-user", Status: 1},
+	}, nil
+}
+
+func (s *authGuardFakeService) NativeRefresh(context.Context, *NativeRefreshRequest) (*NativeSessionResponse, error) {
+	return &NativeSessionResponse{
+		AccessToken:      "test-access-token-2",
+		TokenType:        "Bearer",
+		ExpiresIn:        900,
+		RefreshToken:     "test-refresh-token-2",
+		RefreshExpiresIn: 2591900,
+		User:             &domain.User{ID: 1, Username: "test-user", Status: 1},
+	}, nil
+}
+
+func (s *authGuardFakeService) NativeLogout(context.Context, *NativeLogoutRequest) error {
+	return nil
+}
+
 func (s *authGuardFakeService) RequestPasswordReset(context.Context, *UserPasswordResetRequest) error {
 	s.passwordResetCalls++
 	return nil

@@ -7,21 +7,23 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/fastagi/fastbuild/api/internal/domain"
 )
 
 type authenticationSessionRow struct {
-	SessionID     string     `gorm:"column:session_id"`
-	UserID        uint       `gorm:"column:user_id"`
-	Audience      string     `gorm:"column:audience"`
-	Username      string     `gorm:"column:username"`
-	UserStatus    int        `gorm:"column:user_status"`
-	UserDeletedAt *time.Time `gorm:"column:user_deleted_at"`
-	ExpiresAt     time.Time  `gorm:"column:expires_at"`
-	IdleExpiresAt time.Time  `gorm:"column:idle_expires_at"`
-	LastSeenAt    time.Time  `gorm:"column:last_seen_at"`
-	RevokedAt     *time.Time `gorm:"column:revoked_at"`
+	SessionID        string     `gorm:"column:session_id"`
+	UserID           uint       `gorm:"column:user_id"`
+	Audience         string     `gorm:"column:audience"`
+	Username         string     `gorm:"column:username"`
+	UserStatus       int        `gorm:"column:user_status"`
+	UserDeletedAt    *time.Time `gorm:"column:user_deleted_at"`
+	ExpiresAt        time.Time  `gorm:"column:expires_at"`
+	IdleExpiresAt    time.Time  `gorm:"column:idle_expires_at"`
+	RefreshExpiresAt *time.Time `gorm:"column:refresh_expires_at"`
+	LastSeenAt       time.Time  `gorm:"column:last_seen_at"`
+	RevokedAt        *time.Time `gorm:"column:revoked_at"`
 }
 
 func (r *repository) createAuthenticationSession(ctx context.Context, session *AuthenticationSessionPO) error {
@@ -58,6 +60,7 @@ func (r *repository) authenticateSession(
 			"sessions.audience",
 			"sessions.expires_at",
 			"sessions.idle_expires_at",
+			"sessions.refresh_expires_at",
 			"sessions.last_seen_at",
 			"sessions.revoked_at",
 			"users.username",
@@ -89,15 +92,20 @@ func (r *repository) authenticateSession(
 		}
 		return nil, domain.ErrAccountDisabled
 	}
+	hasActiveRefresh := row.RefreshExpiresAt != nil && now.Before(*row.RefreshExpiresAt)
 	if !now.Before(row.ExpiresAt) {
-		if revokeErr := r.revokeAuthenticationSessionByID(ctx, row.SessionID, now, sessionRevocationExpired); revokeErr != nil {
-			return nil, revokeErr
+		if !hasActiveRefresh {
+			if revokeErr := r.revokeAuthenticationSessionByID(ctx, row.SessionID, now, sessionRevocationExpired); revokeErr != nil {
+				return nil, revokeErr
+			}
 		}
 		return nil, domain.ErrAuthenticationRequired
 	}
 	if !now.Before(row.IdleExpiresAt) {
-		if revokeErr := r.revokeAuthenticationSessionByID(ctx, row.SessionID, now, sessionRevocationIdleTimeout); revokeErr != nil {
-			return nil, revokeErr
+		if !hasActiveRefresh {
+			if revokeErr := r.revokeAuthenticationSessionByID(ctx, row.SessionID, now, sessionRevocationIdleTimeout); revokeErr != nil {
+				return nil, revokeErr
+			}
 		}
 		return nil, domain.ErrAuthenticationRequired
 	}
@@ -153,6 +161,191 @@ func (r *repository) revokeAuthenticationSessionByID(
 	if err != nil {
 		return err
 	}
+	var session AuthenticationSessionPO
+	err = db.Select("id", "family_id").Where("id = ?", sessionID).Take(&session).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	if err != nil {
+		return authenticationPersistenceError("lookup", err)
+	}
+	if session.FamilyID != "" {
+		return revokeSessionFamilyDB(db, session.FamilyID, now, reason)
+	}
+	result := db.Model(&AuthenticationSessionPO{}).
+		Where("id = ? AND revoked_at IS NULL", sessionID).
+		Updates(sessionRevocationUpdates(now, reason))
+	if result.Error != nil {
+		return authenticationPersistenceError("revoke", result.Error)
+	}
+	return nil
+}
+
+func (r *repository) revokeAuthenticationSessionFamilyByRefreshTokenHash(
+	ctx context.Context,
+	refreshTokenHash string,
+	now time.Time,
+	reason string,
+) error {
+	db, err := r.withContext(ctx)
+	if err != nil {
+		return err
+	}
+	var session AuthenticationSessionPO
+	err = db.Select("id", "family_id").Where("refresh_token_hash = ?", refreshTokenHash).Take(&session).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	if err != nil {
+		return authenticationPersistenceError("lookup refresh credential", err)
+	}
+	if session.FamilyID != "" {
+		return revokeSessionFamilyDB(db, session.FamilyID, now, reason)
+	}
+	result := db.Model(&AuthenticationSessionPO{}).
+		Where("id = ? AND revoked_at IS NULL", session.ID).
+		Updates(sessionRevocationUpdates(now, reason))
+	if result.Error != nil {
+		return authenticationPersistenceError("revoke refresh credential", result.Error)
+	}
+	return nil
+}
+
+func (r *repository) rotateNativeSession(
+	ctx context.Context,
+	refreshTokenHash string,
+	nextSessionID string,
+	nextTokenHash string,
+	nextRefreshTokenHash string,
+	now time.Time,
+	accessTTL time.Duration,
+) (*domain.User, time.Time, time.Time, error) {
+	db, err := r.withContext(ctx)
+	if err != nil {
+		return nil, time.Time{}, time.Time{}, err
+	}
+
+	var (
+		resolvedUser     *domain.User
+		accessExpiresAt  time.Time
+		refreshExpiresAt time.Time
+		domainErr        error
+	)
+
+	txErr := db.Transaction(func(tx *gorm.DB) error {
+		var current AuthenticationSessionPO
+		err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("refresh_token_hash = ?", refreshTokenHash).
+			Take(&current).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			domainErr = domain.ErrAuthenticationRequired
+			return nil
+		}
+		if err != nil {
+			return authenticationPersistenceError("resolve refresh", err)
+		}
+
+		if current.RevokedAt != nil {
+			// Replay detection: presenting an already-rotated refresh token revokes the entire family.
+			if current.RevocationReason == sessionRevocationRotated && current.FamilyID != "" {
+				if revokeErr := revokeSessionFamilyDB(tx, current.FamilyID, now, sessionRevocationRefreshReuse); revokeErr != nil {
+					return revokeErr
+				}
+			}
+			domainErr = domain.ErrAuthenticationRequired
+			return nil
+		}
+
+		var userPO UserPO
+		err = tx.Unscoped().First(&userPO, current.UserID).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) || userPO.DeletedAt.Valid || userPO.Username == "" {
+			if revokeErr := revokeSessionOrFamilyDB(tx, current.ID, current.FamilyID, now, sessionRevocationAccountDeleted); revokeErr != nil {
+				return revokeErr
+			}
+			domainErr = domain.ErrAuthenticationRequired
+			return nil
+		}
+		if err != nil {
+			return authenticationPersistenceError("resolve refresh user", err)
+		}
+
+		if userPO.Status != 1 {
+			if revokeErr := revokeUserSessionsDB(tx, current.UserID, now, sessionRevocationAccountDisabled); revokeErr != nil {
+				return revokeErr
+			}
+			domainErr = domain.ErrAccountDisabled
+			return nil
+		}
+
+		if current.RefreshExpiresAt == nil || !now.Before(*current.RefreshExpiresAt) {
+			if revokeErr := revokeSessionOrFamilyDB(tx, current.ID, current.FamilyID, now, sessionRevocationExpired); revokeErr != nil {
+				return revokeErr
+			}
+			domainErr = domain.ErrAuthenticationRequired
+			return nil
+		}
+
+		result := tx.Model(&AuthenticationSessionPO{}).
+			Where("id = ? AND revoked_at IS NULL", current.ID).
+			Updates(sessionRevocationUpdates(now, sessionRevocationRotated))
+		if result.Error != nil {
+			return authenticationPersistenceError("rotate revoke", result.Error)
+		}
+		if result.RowsAffected != 1 {
+			domainErr = domain.ErrAuthenticationRequired
+			return nil
+		}
+
+		refreshExpiry := *current.RefreshExpiresAt
+		nextAccessExpiry := minTime(now.Add(accessTTL), refreshExpiry)
+		nextHash := nextRefreshTokenHash
+		successor := &AuthenticationSessionPO{
+			ID:               nextSessionID,
+			UserID:           current.UserID,
+			Audience:         current.Audience,
+			FamilyID:         current.FamilyID,
+			TokenHash:        nextTokenHash,
+			RefreshTokenHash: &nextHash,
+			ExpiresAt:        nextAccessExpiry,
+			IdleExpiresAt:    nextAccessExpiry,
+			RefreshExpiresAt: &refreshExpiry,
+			LastSeenAt:       now,
+		}
+		if err := tx.Create(successor).Error; err != nil {
+			return authenticationPersistenceError("rotate create", err)
+		}
+
+		resolvedUser = userPO.toDomain()
+		accessExpiresAt = nextAccessExpiry
+		refreshExpiresAt = refreshExpiry
+		return nil
+	})
+	if txErr != nil {
+		return nil, time.Time{}, time.Time{}, txErr
+	}
+	if domainErr != nil {
+		return nil, time.Time{}, time.Time{}, domainErr
+	}
+	return resolvedUser, accessExpiresAt, refreshExpiresAt, nil
+}
+
+func revokeSessionFamilyDB(db *gorm.DB, familyID string, now time.Time, reason string) error {
+	if familyID == "" {
+		return nil
+	}
+	result := db.Model(&AuthenticationSessionPO{}).
+		Where("family_id = ? AND revoked_at IS NULL", familyID).
+		Updates(sessionRevocationUpdates(now, reason))
+	if result.Error != nil {
+		return authenticationPersistenceError("revoke session family", result.Error)
+	}
+	return nil
+}
+
+func revokeSessionOrFamilyDB(db *gorm.DB, sessionID, familyID string, now time.Time, reason string) error {
+	if familyID != "" {
+		return revokeSessionFamilyDB(db, familyID, now, reason)
+	}
 	result := db.Model(&AuthenticationSessionPO{}).
 		Where("id = ? AND revoked_at IS NULL", sessionID).
 		Updates(sessionRevocationUpdates(now, reason))
@@ -184,7 +377,8 @@ func (r *repository) pruneAuthenticationSessions(ctx context.Context, cutoff tim
 	var ids []string
 	err = db.Model(&AuthenticationSessionPO{}).
 		Where(
-			"(revoked_at IS NOT NULL AND revoked_at <= ?) OR expires_at <= ? OR idle_expires_at <= ?",
+			"(revoked_at IS NOT NULL AND revoked_at <= ?) OR (refresh_expires_at IS NULL AND (expires_at <= ? OR idle_expires_at <= ?)) OR (refresh_expires_at IS NOT NULL AND refresh_expires_at <= ?)",
+			cutoff,
 			cutoff,
 			cutoff,
 			cutoff,

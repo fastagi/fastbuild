@@ -15,6 +15,9 @@ func (h *Handler) RegisterRoutes(r *router.Router) {
 	// Public routes
 	h.protectPublicRoute(r.POST("/register", h.Register).Name("auth.register"), authEndpointRegister)
 	h.protectPublicRoute(r.POST("/login", h.Login).Name("auth.login"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/native/login", h.NativeLogin).Name("auth.native.login"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/native/refresh", h.NativeRefresh).Name("auth.native.refresh"), authEndpointLogin)
+	h.protectPublicRoute(r.POST("/auth/native/logout", h.NativeLogout).Name("auth.native.logout"), authEndpointLogin)
 	h.protectPublicRoute(r.POST("/password/reset", h.RequestPasswordReset).Name("auth.password.reset.request"), authEndpointPasswordReset)
 	h.protectPublicRoute(r.POST("/password/reset/confirm", h.ConfirmPasswordReset).Name("auth.password.reset.confirm"), authEndpointPasswordResetConfirm)
 

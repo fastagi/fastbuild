@@ -115,6 +115,104 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiVersionHealth'
+  /v1/auth/native/login:
+    post:
+      operationId: nativeLogin
+      summary: Sign in from a native client and issue a short-lived access token with a rotating refresh token
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationLoginRequest'
+      responses:
+        '200':
+          description: A new native session token pair and the signed-in user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationNativeSessionResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/AuthenticationInvalidCredentials'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/native/refresh:
+    post:
+      operationId: nativeRefresh
+      summary: Rotate a native refresh token and issue a fresh access and refresh token pair
+      description: Single-use rotation. Presenting an already-rotated refresh token revokes the entire session family.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationNativeRefreshRequest'
+      responses:
+        '200':
+          description: A rotated native session token pair and the current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationNativeSessionResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/AuthenticationAccountDisabled'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /v1/auth/native/logout:
+    post:
+      operationId: nativeLogout
+      summary: Revoke a native session family by refresh token
+      description: Idempotently revokes the refresh token and its session family without requiring an unexpired access token.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticationNativeLogoutRequest'
+      responses:
+        '200':
+          description: The native session family is revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticationLogoutResponse'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '413':
+          $ref: '#/components/responses/RequestTooLarge'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
   /v1/login:
     post:
       operationId: login
@@ -4407,6 +4505,75 @@ components:
           type: string
         data:
           $ref: '#/components/schemas/AuthenticationSession'
+    AuthenticationNativeRefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Opaque single-use refresh credential previously issued by native login or refresh.
+    AuthenticationNativeLogoutRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Opaque refresh credential identifying the native session family to revoke.
+    AuthenticationNativeSession:
+      type: object
+      additionalProperties: false
+      required:
+        - access_token
+        - token_type
+        - expires_in
+        - refresh_token
+        - refresh_expires_in
+        - user
+      properties:
+        access_token:
+          type: string
+          minLength: 1
+          description: Short-lived opaque session credential; not a JWT.
+        token_type:
+          const: Bearer
+        expires_in:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Whole seconds until the short-lived access token expires.
+        refresh_token:
+          type: string
+          minLength: 1
+          description: Opaque single-use rotating refresh credential; never accepted as a Bearer access token.
+        refresh_expires_in:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Whole seconds remaining until the native session family's absolute refresh expiry.
+        user:
+          $ref: '#/components/schemas/AuthenticationUser'
+    AuthenticationNativeSessionResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - code
+        - message
+        - data
+      properties:
+        code:
+          const: 0
+        message:
+          type: string
+        data:
+          $ref: '#/components/schemas/AuthenticationNativeSession'
     AuthenticationLogoutResponse:
       type: object
       additionalProperties: false

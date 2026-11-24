@@ -49,6 +49,16 @@ type UserPasswordResetConfirmRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=6,max=50"`
 }
 
+// NativeRefreshRequest represents a native-client refresh token rotation request.
+type NativeRefreshRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required,max=128"`
+}
+
+// NativeLogoutRequest represents a native-client logout request.
+type NativeLogoutRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required,max=128"`
+}
+
 // ============================================================================
 // Response DTOs (Output)
 // ============================================================================
@@ -59,6 +69,16 @@ type UserLoginResponse struct {
 	TokenType   string       `json:"token_type"`
 	ExpiresIn   int64        `json:"expires_in"`
 	User        *domain.User `json:"user"`
+}
+
+// NativeSessionResponse represents the native-client login and refresh response.
+type NativeSessionResponse struct {
+	AccessToken      string       `json:"access_token"`
+	TokenType        string       `json:"token_type"`
+	ExpiresIn        int64        `json:"expires_in"`
+	RefreshToken     string       `json:"refresh_token"`
+	RefreshExpiresIn int64        `json:"refresh_expires_in"`
+	User             *domain.User `json:"user"`
 }
 
 // ============================================================================
