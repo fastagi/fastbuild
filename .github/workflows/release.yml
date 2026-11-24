@@ -1,6 +1,6 @@
 name: Release
 
-# Runs when a maintainer pushes a vX.Y.Z tag (see docs/VERSIONING.md). It refuses tags that are not
+# Runs when a maintainer pushes a vX.Y.Z tag (see docs/scaffold/VERSIONING.md). It refuses tags that are not
 # on main or have no CHANGELOG.md section, builds and scans both production images, exports the
 # dependency and image SBOMs, attests their build provenance, and publishes the GitHub release.
 

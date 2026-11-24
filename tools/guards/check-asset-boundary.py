@@ -382,16 +382,17 @@ def main() -> int:
         "api/docs/adr/0006-asset-object-boundary.md",
         ("asset", "stored object", "Production activation requires R2", "## Consequences"),
     )
-    require_all(
-        failures,
-        "docs/STARTER_BUSINESS_ROADMAP.md",
-        (
-            "`asset` optional starter",
-            "`setting` optional starter",
-            "Yes, when enabled",
-            "`usage` optional starter",
-        ),
-    )
+    if (ROOT / "docs/scaffold/STARTER_BUSINESS_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/STARTER_BUSINESS_ROADMAP.md",
+            (
+                "`asset` optional starter",
+                "`setting` optional starter",
+                "Yes, when enabled",
+                "`usage` optional starter",
+            ),
+        )
     require_all(
         failures,
         "api/scripts/verify-compose.sh",

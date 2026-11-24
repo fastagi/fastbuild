@@ -28,7 +28,9 @@ starters=$(cd "$scratch/api" && go run ./cmd/fastbuild starter:list --format=jso
     process.stdout.write(c.starters.filter(s => s.mode === "optional").map(s => s.name).join(","))')
 (cd "$scratch" && make -s init-project NAME="Example Project" SLUG=example-project \
   MODULE=github.com/example-org/example-project/api STARTERS="$starters")
-test ! -e "$scratch/registry" || { echo "registry/ must be removed" >&2; exit 1; }
+for stripped in registry tools/scaffold .agents/skills/scaffold docs/scaffold; do
+  test ! -e "$scratch/$stripped" || { echo "$stripped/ must be removed" >&2; exit 1; }
+done
 
 step "Governance and contracts in the new project"
 (cd "$scratch" && make -s governance && make -s contract-check)

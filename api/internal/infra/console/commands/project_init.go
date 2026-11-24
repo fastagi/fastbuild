@@ -102,9 +102,9 @@ func (c *ProjectInitCommand) Run(args []string) error {
 		c.output.Line("Installed template %s; finish each plugin's INTEGRATION.md steps, then plugin:doctor.", marker.Template)
 	}
 	c.output.Line("Next:")
-	c.output.Line("  1. cd api && go mod tidy && go build ./... && cd ../.. && make check")
+	c.output.Line("  1. cd api && go mod tidy && go build ./... && cd .. && make check")
 	c.output.Line("  2. make dev, then sign in with the seeded accounts")
-	c.output.Line("  3. Remove examples and unused starters: .agents/skills/downstream-app-extraction/SKILL.md")
+	c.output.Line("  3. Add product skills under .agents/skills/domain/ and run: cd api && go run ./cmd/fastbuild agent:sync")
 	c.output.Line("  4. Add capabilities from the plugin registry: cd api && go run ./cmd/fastbuild plugin:search <words>")
 	return nil
 }
@@ -159,10 +159,12 @@ func InitProject(root string, options ProjectOptions, version string, now time.T
 		}
 	}
 
-	// A new project installs plugins from the release it started from instead of carrying the
-	// scaffold's registry; see plugin:add.
-	if removeErr := os.RemoveAll(filepath.Join(root, registryDir)); removeErr != nil {
-		return nil, changed, removeErr
+	// A new project installs plugins from the release it started from and strips scaffold-only
+	// maintainer directories (registry, tools/scaffold, .agents/skills/scaffold, docs/scaffold).
+	for _, dir := range []string{registryDir, "tools/scaffold", ".agents/skills/scaffold", "docs/scaffold"} {
+		if removeErr := os.RemoveAll(filepath.Join(root, filepath.FromSlash(dir))); removeErr != nil {
+			return nil, changed, removeErr
+		}
 	}
 
 	marker := &ProjectMarker{

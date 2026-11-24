@@ -353,8 +353,8 @@ func renderTargetAdapter(targetName, instructions string, activeRoots []string, 
 
 	b.WriteString(agentSyncHeader)
 	b.WriteString("\n\n")
-	b.WriteString(fmt.Sprintf("# FastBuild Agent Adapter (%s)\n\n", formatTargetTitle(targetName)))
-	b.WriteString(fmt.Sprintf("Canonical instructions live in `%s`.\n", instructions))
+	fmt.Fprintf(&b, "# FastBuild Agent Adapter (%s)\n\n", formatTargetTitle(targetName))
+	fmt.Fprintf(&b, "Canonical instructions live in `%s`.\n", instructions)
 	b.WriteString("Read it before making changes, and read the nearest unit `AGENTS.md` (`api/AGENTS.md`, `apps/web/AGENTS.md`, `apps/admin/AGENTS.md`) when editing that unit.\n\n")
 
 	b.WriteString("## Quick Context\n\n")
@@ -365,7 +365,7 @@ func renderTargetAdapter(targetName, instructions string, activeRoots []string, 
 		b.WriteString("- (none discovered)\n")
 	} else {
 		for _, root := range activeRoots {
-			b.WriteString(fmt.Sprintf("- `%s`\n", root))
+			fmt.Fprintf(&b, "- `%s`\n", root)
 		}
 	}
 	b.WriteString("\n")
@@ -376,9 +376,9 @@ func renderTargetAdapter(targetName, instructions string, activeRoots []string, 
 	} else {
 		for _, skill := range skills {
 			if skill.Description != "" {
-				b.WriteString(fmt.Sprintf("- `%s` (`%s`): %s\n", skill.Name, skill.Path, skill.Description))
+				fmt.Fprintf(&b, "- `%s` (`%s`): %s\n", skill.Name, skill.Path, skill.Description)
 			} else {
-				b.WriteString(fmt.Sprintf("- `%s` (`%s`)\n", skill.Name, skill.Path))
+				fmt.Fprintf(&b, "- `%s` (`%s`)\n", skill.Name, skill.Path)
 			}
 		}
 	}

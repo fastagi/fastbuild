@@ -88,7 +88,7 @@ A focused pull request should explain:
 
 Keep generated files, formatting changes, and unrelated refactors out of the diff. Use conventional commit subjects such as `feat(api):`, `fix(web):`, `docs:`, `test:`, or `chore:`.
 
-Branch and release behavior is defined in [docs/BRANCHING_AND_RELEASES.md](docs/BRANCHING_AND_RELEASES.md).
+Branch and release behavior is defined in [docs/scaffold/BRANCHING_AND_RELEASES.md](docs/scaffold/BRANCHING_AND_RELEASES.md).
 
 ## License
 

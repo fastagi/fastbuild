@@ -18,22 +18,25 @@ func projectFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	files := map[string]string{
-		"api/go.mod":                      "module " + scaffoldModulePath + "\n\ngo 1.25\n",
-		"api/main.go":                     "package main\n\nimport _ \"" + scaffoldModulePath + "/internal/x\"\n",
-		"api/.env.example":                "APP_NAME=FastBuild\nOPTIONAL_STARTERS=\n",
-		"apps/admin/.env.example":         "VITE_APP_NAME=FastBuild\nVITE_OPTIONAL_FEATURES=\n",
-		"apps/web/.env.example":           "NEXT_PUBLIC_OPTIONAL_FEATURES=\n",
-		"apps/web/package.json":           "{\n  \"name\": \"" + scaffoldSlug + "-web\"\n}\n",
-		"apps/admin/package.json":         "{\n  \"name\": \"" + scaffoldSlug + "-admin\"\n}\n",
-		"packages/contracts/package.json": "{\n  \"name\": \"@" + scaffoldSlug + "/contracts\"\n}\n",
-		"packages/contracts/openapi.yaml": "openapi: 3.1.0\n",
-		"compose.dev.yaml":                "name: " + scaffoldSlug + "-dev\n",
-		"apps/web/Dockerfile":             "ARG OCI_SOURCE=" + scaffoldRepository + "\n",
-		"tools/dev/dev.sh":                "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
-		"docs/untracked-is-ignored.md":    scaffoldModulePath,
-		"api/assets/binary.bin":           "\x00" + scaffoldModulePath,
-		"README.md":                       "FastBuild scaffold docs stay as written.\n",
-		"registry/index.json":             "{\"version\": 1, \"plugins\": []}\n",
+		"api/go.mod":                                       "module " + scaffoldModulePath + "\n\ngo 1.25\n",
+		"api/main.go":                                      "package main\n\nimport _ \"" + scaffoldModulePath + "/internal/x\"\n",
+		"api/.env.example":                                 "APP_NAME=FastBuild\nOPTIONAL_STARTERS=\n",
+		"apps/admin/.env.example":                          "VITE_APP_NAME=FastBuild\nVITE_OPTIONAL_FEATURES=\n",
+		"apps/web/.env.example":                            "NEXT_PUBLIC_OPTIONAL_FEATURES=\n",
+		"apps/web/package.json":                            "{\n  \"name\": \"" + scaffoldSlug + "-web\"\n}\n",
+		"apps/admin/package.json":                          "{\n  \"name\": \"" + scaffoldSlug + "-admin\"\n}\n",
+		"packages/contracts/package.json":                  "{\n  \"name\": \"@" + scaffoldSlug + "/contracts\"\n}\n",
+		"packages/contracts/openapi.yaml":                  "openapi: 3.1.0\n",
+		"compose.dev.yaml":                                 "name: " + scaffoldSlug + "-dev\n",
+		"apps/web/Dockerfile":                              "ARG OCI_SOURCE=" + scaffoldRepository + "\n",
+		"tools/dev/dev.sh":                                 "S=\"${FASTBUILD_DEV_STARTERS:-a,b}\"\nW=\"${FASTBUILD_DEV_WEB_FEATURES:-a}\"\nA=\"${FASTBUILD_DEV_ADMIN_FEATURES:-b}\"\n",
+		"docs/untracked-is-ignored.md":                     scaffoldModulePath,
+		"api/assets/binary.bin":                            "\x00" + scaffoldModulePath,
+		"README.md":                                        "FastBuild scaffold docs stay as written.\n",
+		"registry/index.json":                              "{\"version\": 1, \"plugins\": []}\n",
+		"tools/scaffold/check-vocabulary.sh":               "#!/usr/bin/env bash\n",
+		".agents/skills/scaffold/domain-modeling/SKILL.md": "---\nname: domain-modeling\n---\n",
+		"docs/scaffold/ROADMAP.md":                         "# Roadmap\n",
 	}
 	for path, content := range files {
 		full := filepath.Join(root, path)
@@ -98,8 +101,10 @@ func TestInitProjectRewritesIdentityAndSelectsStarters(t *testing.T) {
 
 	_, _, err = InitProject(root, ProjectOptions{Name: "Again", Slug: "again", Module: "github.com/example-again/x/api"}, "v0.21.1", now)
 	require.ErrorContains(t, err, "already initialized")
-	_, err = os.Stat(filepath.Join(root, registryDir))
-	assert.True(t, os.IsNotExist(err), "new projects fetch plugins from their release instead of carrying the registry")
+	for _, stripped := range []string{registryDir, "tools/scaffold", ".agents/skills/scaffold", "docs/scaffold"} {
+		_, err = os.Stat(filepath.Join(root, filepath.FromSlash(stripped)))
+		assert.True(t, os.IsNotExist(err), "%s must be stripped from initialized projects", stripped)
+	}
 }
 
 func TestInitProjectKeepsStarterDefaultsWhenNoneAreGiven(t *testing.T) {

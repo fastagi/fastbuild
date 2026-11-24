@@ -18,7 +18,7 @@ API skills provide task-specific workflows beyond the mandatory rules in
 | `sql-migration-review` | Migration compatibility, locks, and rollback |
 
 Routine code standards stay in `api/AGENTS.md`; concrete diff review uses root
-`fastbuild-code-review`. This avoids loading overlapping standards and review
+`code-review`. This avoids loading overlapping standards and review
 workflows during ordinary API implementation.
 
 ## Rules
@@ -43,7 +43,7 @@ make agent-check
 
 # From api/
 go test ./internal/modules/<module>/...
-bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
+bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
 ```
 
 The root index at [`../../../.agents/skills/README.md`](../../../.agents/skills/README.md)

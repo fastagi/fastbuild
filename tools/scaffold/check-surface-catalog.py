@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SURFACE_DOC = ROOT / "docs" / "SCAFFOLD_SURFACES.md"
-DOWNSTREAM_SKILL = ROOT / ".agents" / "skills" / "downstream-app-extraction" / "SKILL.md"
+SURFACE_DOC = ROOT / "docs" / "scaffold" / "SCAFFOLD_SURFACES.md"
+DOWNSTREAM_SKILL = ROOT / ".agents" / "skills" / "scaffold" / "downstream-app-extraction" / "SKILL.md"
 CONTEXT = ROOT / "CONTEXT.md"
 
 REQUIRED_SURFACES = {
@@ -112,9 +112,9 @@ def main() -> int:
     failures: list[str] = []
 
     if not SURFACE_DOC.exists():
-        failures.append("docs/SCAFFOLD_SURFACES.md is missing")
+        failures.append("docs/scaffold/SCAFFOLD_SURFACES.md is missing")
     if not DOWNSTREAM_SKILL.exists():
-        failures.append(".agents/skills/downstream-app-extraction/SKILL.md is missing")
+        failures.append(".agents/skills/scaffold/downstream-app-extraction/SKILL.md is missing")
     if failures:
         return fail(failures)
 
@@ -123,13 +123,13 @@ def main() -> int:
     context_text = read(CONTEXT)
     surface_text = read(SURFACE_DOC)
 
-    failures.extend(missing_surfaces("docs/SCAFFOLD_SURFACES.md", catalog_rows))
-    failures.extend(unexpected_surfaces("docs/SCAFFOLD_SURFACES.md", catalog_rows))
+    failures.extend(missing_surfaces("docs/scaffold/SCAFFOLD_SURFACES.md", catalog_rows))
+    failures.extend(unexpected_surfaces("docs/scaffold/SCAFFOLD_SURFACES.md", catalog_rows))
     failures.extend(check_catalog_rows(catalog_rows))
 
-    if "docs/SCAFFOLD_SURFACES.md" not in downstream_text:
+    if "docs/scaffold/SCAFFOLD_SURFACES.md" not in downstream_text:
         failures.append(
-            "downstream-app-extraction skill must reference docs/SCAFFOLD_SURFACES.md"
+            "downstream-app-extraction skill must reference docs/scaffold/SCAFFOLD_SURFACES.md"
         )
     if re.search(r"Assign exactly one catalog\s+classification", downstream_text) is None:
         failures.append(

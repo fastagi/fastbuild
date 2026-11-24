@@ -105,6 +105,6 @@ logging-only refactor.
 
 ## Related Skills
 
-- Root `fastbuild-code-review`: explicit diff review.
+- Root `code-review`: explicit diff review.
 - Root `systematic-debugging`: temporary diagnostic evidence for an unclear
   failure.

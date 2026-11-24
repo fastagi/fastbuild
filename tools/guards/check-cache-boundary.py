@@ -176,15 +176,16 @@ def main() -> int:
         "CONTEXT.md",
         ("**Cache capability**", "cache vs state/coordination"),
     )
-    require_all(
-        failures,
-        "docs/SCAFFOLD_SURFACES.md",
-        (
-            "except packages explicitly classified as capabilities below",
-            "api/internal/infra/cache",
-            "check-cache-boundary.py",
-        ),
-    )
+    if (ROOT / "docs/scaffold/SCAFFOLD_SURFACES.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/SCAFFOLD_SURFACES.md",
+            (
+                "except packages explicitly classified as capabilities below",
+                "api/internal/infra/cache",
+                "check-cache-boundary.py",
+            ),
+        )
     require_all(
         failures,
         "Makefile",

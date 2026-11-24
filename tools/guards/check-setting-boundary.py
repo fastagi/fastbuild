@@ -414,21 +414,23 @@ def main() -> int:
         "api/docs/adr/0007-typed-setting-boundary.md",
         ("code-owned catalog", "arbitrary JSON", "## Consequences"),
     )
-    require_all(
-        failures,
-        "docs/STARTER_BUSINESS_ROADMAP.md",
-        ("`setting` optional starter", "Yes, when enabled with `organization`", "`usage` optional starter"),
-    )
-    require_all(
-        failures,
-        ".agents/skills/downstream-app-extraction/SKILL.md",
-        ("[references/setting.md](references/setting.md)",),
-    )
-    require_all(
-        failures,
-        ".agents/skills/downstream-app-extraction/references/setting.md",
-        ("optional `setting`", "monotonic reset tombstones", "generic JSON editor"),
-    )
+    if (ROOT / "docs/scaffold/STARTER_BUSINESS_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/STARTER_BUSINESS_ROADMAP.md",
+            ("`setting` optional starter", "Yes, when enabled with `organization`", "`usage` optional starter"),
+        )
+    if (ROOT / ".agents/skills/scaffold/downstream-app-extraction/SKILL.md").is_file():
+        require_all(
+            failures,
+            ".agents/skills/scaffold/downstream-app-extraction/SKILL.md",
+            ("[references/setting.md](references/setting.md)",),
+        )
+        require_all(
+            failures,
+            ".agents/skills/scaffold/downstream-app-extraction/references/setting.md",
+            ("optional `setting`", "monotonic reset tombstones", "generic JSON editor"),
+        )
 
     if failures:
         print("Setting boundary check failed:", file=sys.stderr)

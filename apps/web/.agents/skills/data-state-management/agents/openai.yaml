@@ -1,4 +1,6 @@
 interface:
-  display_name: "Web Data State Management"
-  short_description: "Implement Query and client state"
-  default_prompt: "Use $data-state-management to implement this feature's service, query, cache, and client-state flow."
+  display_name: "Data, State & Error Handling"
+  short_description: "Manage TanStack Query, Zustand, and API error contracts"
+  default_prompt: "Use $data-state-management to implement Web server state, client state, or API error handling."
+policy:
+  allow_implicit_invocation: true

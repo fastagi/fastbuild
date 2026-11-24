@@ -234,15 +234,16 @@ def main() -> int:
         ".agents/skills/README.md",
         ("check-web-security-boundary.py",),
     )
-    require_all(
-        failures,
-        "docs/FRAMEWORK_QUALITY_ROADMAP.md",
-        (
-            "Completed P1 — Web Browser Security Response Boundary",
-            "Next.js 16 `proxy.ts`",
-            "nine exact production response headers",
-        ),
-    )
+    if (ROOT / "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md",
+            (
+                "Completed P1 — Web Browser Security Response Boundary",
+                "Next.js 16 `proxy.ts`",
+                "nine exact production response headers",
+            ),
+        )
     require_all(
         failures,
         "Makefile",

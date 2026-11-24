@@ -1,0 +1,6 @@
+interface:
+  display_name: "Security & Tenant Review"
+  short_description: "Audit tenant isolation, RBAC, audit, and telemetry"
+  default_prompt: "Use $security-and-tenant-review to audit multi-tenant isolation, RBAC, audit trails, and sensitive telemetry in this change."
+policy:
+  allow_implicit_invocation: false

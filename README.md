@@ -118,7 +118,7 @@ make init-project NAME="Acme Platform" SLUG=acme MODULE=github.com/acme/platform
 repository URL, and the default starter selection for the API, Web, Admin, and `make dev`. It
 records the scaffold version in `.fastbuild-project.json` and refuses to run twice. Then remove the
 examples and starters you do not need with the
-[downstream extraction guide](.agents/skills/downstream-app-extraction/SKILL.md).
+[downstream extraction guide](.agents/skills/scaffold/downstream-app-extraction/SKILL.md).
 
 ### Add Capabilities From The Plugin Registry
 
@@ -134,7 +134,7 @@ go run ./cmd/fastbuild plugin:add knowledge-base
 `plugin:add` verifies every file against the registry checksums, adapts imports to your module,
 wires the starter, merges the contract, and records the install in `fastbuild.plugins.lock`; the
 plugin's `INTEGRATION.md` lists the remaining steps. `plugin:doctor`, `plugin:update`, and
-`plugin:remove` manage installed plugins. See [docs/VISION.md](docs/VISION.md); plugin authors start
+`plugin:remove` manage installed plugins. See [docs/scaffold/VISION.md](docs/scaffold/VISION.md); plugin authors start
 with `registry/README.md` in the FastBuild repository.
 
 ### Start Everything
@@ -212,7 +212,7 @@ Disabling a dependency is rejected while another selected starter needs it. Use 
 `starter:disable organization --cascade` when removing the dependency and all selected dependents
 is intended.
 
-The [starter readiness matrix](docs/STARTER_BUSINESS_ROADMAP.md) describes every starter's workflow,
+The [starter readiness matrix](docs/scaffold/STARTER_BUSINESS_ROADMAP.md) describes every starter's workflow,
 dependencies, security properties, and intentional limits.
 
 ## Architecture
@@ -351,13 +351,13 @@ fastbuild/
 | Add an API starter or module | [api/docs/ADDING_MODULE.md](api/docs/ADDING_MODULE.md) |
 | Add a Next.js feature | [apps/web/docs/ADDING_FEATURE.md](apps/web/docs/ADDING_FEATURE.md) |
 | Add an Admin Console feature | [apps/admin/docs/ADDING_FEATURE.md](apps/admin/docs/ADDING_FEATURE.md) |
-| Long-term roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |
-| Starter capability matrix | [docs/STARTER_BUSINESS_ROADMAP.md](docs/STARTER_BUSINESS_ROADMAP.md) |
-| CI and releases | [docs/CI.md](docs/CI.md) and [docs/BRANCHING_AND_RELEASES.md](docs/BRANCHING_AND_RELEASES.md) |
+| Long-term roadmap | [docs/scaffold/ROADMAP.md](docs/scaffold/ROADMAP.md) |
+| Starter capability matrix | [docs/scaffold/STARTER_BUSINESS_ROADMAP.md](docs/scaffold/STARTER_BUSINESS_ROADMAP.md) |
+| CI and releases | [docs/CI.md](docs/CI.md) and [docs/scaffold/BRANCHING_AND_RELEASES.md](docs/scaffold/BRANCHING_AND_RELEASES.md) |
 | Release notes | [CHANGELOG.md](CHANGELOG.md) |
 | Upgrading a downstream fork | [UPGRADING.md](UPGRADING.md) |
 | Dependency and container security | [docs/DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md) and [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md) |
-| AI-assisted development | [docs/AGENT_SKILL_PERFORMANCE_GUIDE.md](docs/AGENT_SKILL_PERFORMANCE_GUIDE.md) |
+| AI-assisted development | [docs/scaffold/AGENT_SKILL_PERFORMANCE_GUIDE.md](docs/scaffold/AGENT_SKILL_PERFORMANCE_GUIDE.md) |
 
 ## Contributing
 

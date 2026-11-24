@@ -1,4 +1,4 @@
-.PHONY: release-check init-project dev dev-down dev-reset check agent-check agent-check-changed skill-routing-check governance contract-check contract-generate api-check web-check admin-check dependency-scan sbom container-scan container-sbom clean clean-all
+.PHONY: release-check init-project dev dev-down dev-reset check agent-check agent-check-changed agent-sync agent-context skill-routing-check governance contract-check contract-generate api-check web-check admin-check dependency-scan sbom container-scan container-sbom clean clean-all
 
 # Turn a fresh copy of the scaffold into a named project (run once, before the first commit):
 #   make init-project NAME="Acme Platform" SLUG=acme MODULE=github.com/acme/platform/api \
@@ -12,7 +12,7 @@ init-project:
 		$(if $(TEMPLATE),--template="$(TEMPLATE)")
 	cd api && go mod tidy
 
-# Verify main is ready to tag; see docs/VERSIONING.md.
+# Verify main is ready to tag; see docs/scaffold/VERSIONING.md.
 release-check:
 	@test -n "$(VERSION)" || { echo 'usage: make release-check VERSION=v0.22.0' >&2; exit 2; }
 	@[ ! -d tools/scaffold ] || bash tools/scaffold/release-check.sh "$(VERSION)"
@@ -51,6 +51,12 @@ agent-check:
 agent-check-changed:
 	@bash .agents/skills/scripts/check-agent-changed.sh
 
+agent-sync:
+	cd api && go run ./cmd/fastbuild agent:sync
+
+agent-context:
+	cd api && go run ./cmd/fastbuild context --changed --format=agent
+
 skill-routing-check:
 	@PYTHONDONTWRITEBYTECODE=1 python3 .agents/skills/scripts/check-skill-routing.py
 
@@ -86,14 +92,14 @@ governance: agent-check
 	[ ! -d tools/scaffold ] || bash tools/scaffold/check-branch-governance.sh
 
 api-check:
-	cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
+	cd api && bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1
 	cd api && make route-catalog-check
 
 web-check:
-	cd apps/web && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+	cd apps/web && bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
 
 admin-check:
-	cd apps/admin && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+	cd apps/admin && bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
 
 dependency-scan:
 	bash tools/ci/dependency-security.sh scan

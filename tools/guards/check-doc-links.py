@@ -139,6 +139,22 @@ def resolve_target(source: Path, target: str) -> Path:
     return source.parent / target
 
 
+def is_stripped_scaffold_target(resolved: Path) -> bool:
+    if not (ROOT / ".fastbuild-project.json").is_file():
+        return False
+    try:
+        rel = resolved.resolve(strict=False).relative_to(ROOT).as_posix()
+    except ValueError:
+        return False
+    stripped_prefixes = (
+        "registry/",
+        "tools/scaffold/",
+        ".agents/skills/scaffold/",
+        "docs/scaffold/",
+    )
+    return rel in {"registry", "tools/scaffold", ".agents/skills/scaffold", "docs/scaffold"} or rel.startswith(stripped_prefixes)
+
+
 def main() -> int:
     failures: list[str] = []
     sources = markdown_files(sys.argv[1:])
@@ -154,6 +170,8 @@ def main() -> int:
 
             resolved = resolve_target(source, target)
             if not resolved.exists():
+                if is_stripped_scaffold_target(resolved):
+                    continue
                 relative_source = source.relative_to(ROOT)
                 relative_target = resolved.relative_to(ROOT) if resolved.is_relative_to(ROOT) else resolved
                 failures.append(f"{relative_source}:{line_number}: missing local link target: {raw_target} -> {relative_target}")

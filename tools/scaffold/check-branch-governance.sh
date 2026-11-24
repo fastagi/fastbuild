@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 cd "$ROOT"
 
-DOC="docs/BRANCHING_AND_RELEASES.md"
+DOC="docs/scaffold/BRANCHING_AND_RELEASES.md"
 FAILED=0
 
 fail() {

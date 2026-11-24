@@ -188,6 +188,26 @@ validate_one() {
         printf '%s: ok (%s lines, %s-byte description)\n' \
             "$CURRENT_FILE" "$line_count" "$description_bytes"
     fi
+
+    # Executability lint: verify referenced repo-relative script paths exist and a check/verification section is present.
+    local repo_root=${REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+    if ! grep -Eq '^##[[:space:]]+(Verification|Completion|Check|Evidence|Output|Workflow|Verify|Validation|Commands|Test)' "$CURRENT_FILE"; then
+        warn "SKILL.md should include a Verification, Completion, or Check section"
+    fi
+    local script_ref=""
+    while IFS= read -r script_ref; do
+        [ -n "$script_ref" ] || continue
+        case "$script_ref" in
+            *\<*|*\>*|*\**|*\{*|*\}*|*\.\.\.*) continue ;;
+        esac
+        if [ ! -f "$repo_root/$script_ref" ]; then
+            err "referenced script path does not exist: $script_ref"
+        fi
+    done < <(
+        grep -oE '`(tools/[a-zA-Z0-9._/-]+\.(sh|py|mjs)|\.agents/skills/[a-zA-Z0-9._/-]+/scripts/[a-zA-Z0-9._/-]+\.(sh|py|mjs)|apps/[a-zA-Z0-9._/-]+/scripts/[a-zA-Z0-9._/-]+\.(sh|py|mjs))`' "$CURRENT_FILE" 2>/dev/null |
+            tr -d '`' |
+            sort -u
+    )
 }
 
 if [ "${1:-}" = "--all" ]; then
@@ -199,6 +219,7 @@ if [ "${1:-}" = "--all" ]; then
             "$REPO_ROOT/.agents/skills" \
             "$REPO_ROOT/api/.agents/skills" \
             "$REPO_ROOT/apps/web/.agents/skills" \
+            "$REPO_ROOT/apps/admin/.agents/skills" \
             -name SKILL.md -not -path '*/.template/*' 2>/dev/null |
             sort
     )

@@ -84,7 +84,7 @@ DTO -> Domain -> PO
 
 Infrastructure capabilities live under `api/internal/infra/` and `api/internal/capabilities/`.
 For the starter readiness matrix and next reusable business starters, see
-[`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md).
+[`STARTER_BUSINESS_ROADMAP.md`](scaffold/STARTER_BUSINESS_ROADMAP.md).
 
 ### Cross-Starter Transactions
 
@@ -225,7 +225,7 @@ administration screens, and without it only system readiness and browser prefere
 [`../apps/admin/docs/SECURITY.md`](../apps/admin/docs/SECURITY.md).
 
 For the full list of scaffold surfaces and downstream keep/delete/replace rules, see
-[`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md).
+[`SCAFFOLD_SURFACES.md`](scaffold/SCAFFOLD_SURFACES.md).
 
 ## Change Flow
 

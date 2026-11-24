@@ -16,19 +16,12 @@ guide for an ordinary component edit.
 
 | Skill | Select when |
 |---|---|
-| `frontend-design` | Establishing or substantially changing visual direction |
-| `web-design-guidelines` | Explicit UI/UX review against interface guidance |
-| `ui-styling-guide` | Applying FastBuild tokens, Tailwind, shadcn, or component variants |
-| `data-state-management` | Changing TanStack Query, Zustand, forms, or optimistic state |
-| `api-error-handling` | Changing API parsing, error branching, or user error copy |
-| `environment-config` | Adding or changing runtime/build environment values |
-| `i18n-handler` | Adding locale keys or changing translation boundaries |
-| `utility-tooling` | Adding shared hooks or utilities after searching existing code |
-| `testing-standards` | Writing unit, component, or integration tests |
-| `webapp-testing` | Browser-driven verification or UI debugging |
-| `accessibility-audit` | Explicit WCAG or accessibility audit of a completed surface |
-| `web-perf` | Measuring route bundles, Web Vitals, or a performance regression |
-| `vercel-react-best-practices` | Performance-sensitive React/Next.js implementation |
+| `frontend-design` | Visual direction, OKLCH tokens, Tailwind, shadcn primitives, or UI/UX review |
+| `data-state-management` | TanStack Query, Zustand, service-hook-type flow, or API error handling |
+| `web-testing` | Vitest/Testing Library unit/component tests or browser-driven verification |
+| `web-perf` | Measuring route bundles, Web Vitals, or applying React/Next.js perf patterns |
+| `accessibility-audit` | Explicit WCAG 2.2 AA or accessibility audit of a completed surface |
+| `i18n-handler` | Adding locale keys, namespaces, or changing translation boundaries |
 
 Choose at most one primary skill when its trigger clearly matches; routine
 local work may need none. Baseline accessibility, type safety, and responsive
@@ -135,10 +128,16 @@ status, error, session, or pagination behavior changes.
 
 ## Environment And Security
 
-- Public client values are explicitly prefixed and validated; secrets stay
-  server-only.
-- Read environment through the owning validated config module.
-- Distinguish build-time public values from runtime server values.
+- Browser-safe values resolve through `@/config/env` (`src/config/env.ts`,
+  validated by `publicEnvSchema`); server-only values and secrets resolve through
+  `@/config/server-env` (`src/config/server-env.ts`, validated by
+  `serverEnvSchema` in `src/config/env-validation.ts`). Never re-export
+  `server-env` from `src/config/index.ts` or read `process.env` directly outside
+  those entry modules (`src/test/env-contract.test.ts` enforces this boundary).
+- Distinguish build-time `NEXT_PUBLIC_*` values from runtime server values.
+- Search `src/utils/index.ts`, `src/hooks/`, and native Web APIs (`Intl`, `URL`,
+  `crypto`, `structuredClone`) before adding shared helpers; keep single-feature
+  helpers inside `src/features/<feature>/`.
 - Keep browser headers, CSP, HSTS ownership, cookies, and production proxy
   behavior aligned with [docs/SECURITY.md](docs/SECURITY.md).
 - Do not log credentials, one-time secrets, private payloads, or raw provider
@@ -176,7 +175,7 @@ corepack pnpm test -- --run
 corepack pnpm build
 
 # Full Web tier
-bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
 ```
 
 Use browser verification for changed user workflows and visual behavior. Use

@@ -110,7 +110,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "apps/web/.agents/skills/testing-standards/SKILL.md",
+        "apps/web/.agents/skills/web-testing/SKILL.md",
         ("`src/test/button-composition.test.tsx`", "semantic host"),
     )
     require_all(

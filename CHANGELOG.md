@@ -2,7 +2,7 @@
 
 Notable changes to FastBuild. Downstream migration steps for each change are in
 [`UPGRADING.md`](UPGRADING.md); the long-running quality record is in
-[`docs/FRAMEWORK_QUALITY_ROADMAP.md`](docs/FRAMEWORK_QUALITY_ROADMAP.md).
+[`docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md`](docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md).
 
 ## Unreleased
 
@@ -131,8 +131,8 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   plugins.
 - Every official plugin is installed into a copy of the API, built, and tested in tier 1, and its
   contract fragment is merged and linted by `make contract-check`.
-- [`docs/VISION.md`](docs/VISION.md), [`docs/ROADMAP.md`](docs/ROADMAP.md), and the
-  [plugin registry plan](docs/plans/plugin-registry.md).
+- [`docs/scaffold/VISION.md`](docs/scaffold/VISION.md), [`docs/scaffold/ROADMAP.md`](docs/scaffold/ROADMAP.md), and the
+  [plugin registry plan](docs/scaffold/plans/plugin-registry.md).
 - **Slots and the plugin lifecycle.** Core files mark named extension points
   (`fastbuild:slot <name>`, listed by `plugin:slots`); plugins and `make:module` edit core files only
   there. The lock file records every file checksum, slot line, and contract addition, so
@@ -165,7 +165,7 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
   and removed, on registry changes and nightly. Web registry items are type-checked, linted, and
   tested by `pnpm lint`; theme presets pass the Web and Admin contrast guards.
 - `FASTBUILD_IGNORE_ENV_FILES=true` skips every env file layer for tools.
-- The 1.0 compatibility promise in [`docs/VERSIONING.md`](docs/VERSIONING.md).
+- The 1.0 compatibility promise in [`docs/scaffold/VERSIONING.md`](docs/scaffold/VERSIONING.md).
 
 ### Changed
 
@@ -258,7 +258,7 @@ Notable changes to FastBuild. Downstream migration steps for each change are in
 - Tag-driven releases: pushing `vX.Y.Z` runs `release.yml`, which requires the tag on `main` with
   a changelog section, builds and scans both images, attests the dependency and image SBOMs, and
   publishes the GitHub release. `make release-check VERSION=vX.Y.Z` verifies `main` before tagging.
-- [`docs/VERSIONING.md`](docs/VERSIONING.md) defines version numbers and the deprecation process.
+- [`docs/scaffold/VERSIONING.md`](docs/scaffold/VERSIONING.md) defines version numbers and the deprecation process.
 - [`deploy/kubernetes`](deploy/kubernetes/README.md): a hardened kustomize reference baseline for
   the API, workflow worker, Web, the pre-deploy migration job, and per-starter workers and
   retention CronJobs, validated against Kubernetes 1.30.

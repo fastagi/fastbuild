@@ -1,0 +1,6 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Review diffs on Standards and Spec axes"
+  default_prompt: "Use $code-review to review this diff on separate Standards and Spec axes."
+policy:
+  allow_implicit_invocation: false

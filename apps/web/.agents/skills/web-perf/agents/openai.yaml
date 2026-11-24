@@ -1,6 +1,6 @@
 interface:
-  display_name: "Web Performance"
-  short_description: "Measure a Web performance regression"
-  default_prompt: "Use $web-perf to measure and isolate this reported FastBuild Web performance regression."
+  display_name: "Web Performance & React Patterns"
+  short_description: "Measure Web Vitals, bundles, and React/Next.js fixes"
+  default_prompt: "Use $web-perf to measure a Web performance regression and apply targeted React/Next.js optimizations."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

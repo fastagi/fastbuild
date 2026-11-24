@@ -1,0 +1,6 @@
+interface:
+  display_name: "Web Testing"
+  short_description: "Write Vitest/RTL tests and run browser verification"
+  default_prompt: "Use $web-testing to write Vitest/Testing Library tests or verify this Web flow in a browser."
+policy:
+  allow_implicit_invocation: true

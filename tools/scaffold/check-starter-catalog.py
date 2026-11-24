@@ -756,7 +756,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "docs/STARTER_BUSINESS_ROADMAP.md",
+        "docs/scaffold/STARTER_BUSINESS_ROADMAP.md",
         (
             "`organization` optional starter",
             "`notification` optional starter",
@@ -780,12 +780,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        ".agents/skills/downstream-app-extraction/SKILL.md",
+        ".agents/skills/scaffold/downstream-app-extraction/SKILL.md",
         ("[references/organization.md](references/organization.md)",),
     )
     require_all(
         failures,
-        ".agents/skills/downstream-app-extraction/references/organization.md",
+        ".agents/skills/scaffold/downstream-app-extraction/references/organization.md",
         (
             "Organization-Id",
             "active organization selection",

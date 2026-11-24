@@ -1,4 +1,6 @@
 interface:
-  display_name: "Frontend Design"
-  short_description: "Establish a visual direction"
-  default_prompt: "Use $frontend-design to establish a substantial visual direction for this FastBuild page or component."
+  display_name: "Frontend Design & Styling"
+  short_description: "Design, style, and review Web UI with tokens and shadcn"
+  default_prompt: "Use $frontend-design to design, style, or review this Web page or component."
+policy:
+  allow_implicit_invocation: true

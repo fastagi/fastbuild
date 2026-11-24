@@ -729,7 +729,7 @@ Implementation MUST NOT begin until all blocking items below are resolved.
 For a durable plan, run the mechanical lint before the semantic review:
 
 ```bash
-python3 .agents/skills/business-implementation-planning/scripts/validate_plan.py --strict <plan-path>
+python3 .agents/skills/core/business-implementation-planning/scripts/validate_plan.py --strict <plan-path>
 ```
 
 The script detects structural omissions, unresolved placeholders, unbalanced

@@ -44,14 +44,18 @@ Expand context only when the current evidence leaves a real decision open.
 
 ### Skill Selection
 
-Root skills live in `.agents/skills/`; API and Next.js Web add local skills.
-The Admin Console uses root skills plus `apps/admin/AGENTS.md`.
+Root skills are layered under `.agents/skills/`: `core/` (runtime workflows),
+`scaffold/` (maintainer-only, stripped by `project:init`), plus `org/` and
+`domain/` templates for downstream projects. API, Web, and Admin add local
+skills under `<unit>/.agents/skills/`.
 Codex loads skill metadata at discovery time and reads a full `SKILL.md` only
 after selecting it.
 
 - Use `fastbuild-framework-review` only for an explicit framework-wide audit.
-- Use `fastbuild-code-review` for an explicit diff/PR review, not as an automatic
+- Use `code-review` for an explicit diff/PR review, not as an automatic
   post-edit ritual.
+- Use `security-and-tenant-review` for explicit multi-tenant isolation, RBAC,
+  audit, and sensitive telemetry audits.
 - Use `plugin-integration` when a requested capability may already exist in the
   plugin registry (`fastbuild plugin:search`); install it instead of rebuilding it.
 - Use `business-implementation-planning` before building a new material
@@ -73,14 +77,14 @@ The complete skill index and helper catalog are in
 | Global vocabulary and surface ownership | [CONTEXT.md](CONTEXT.md) |
 | Stable architecture and vertical flow | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Business implementation readiness | [docs/BUSINESS_IMPLEMENTATION_PLAN_STANDARD.md](docs/BUSINESS_IMPLEMENTATION_PLAN_STANDARD.md) |
-| Branch and release behavior | [docs/BRANCHING_AND_RELEASES.md](docs/BRANCHING_AND_RELEASES.md) |
+| Branch and release behavior | [docs/scaffold/BRANCHING_AND_RELEASES.md](docs/scaffold/BRANCHING_AND_RELEASES.md) |
 | CI and supply-chain policy | [docs/CI.md](docs/CI.md), [docs/DEPENDENCY_SECURITY.md](docs/DEPENDENCY_SECURITY.md), [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md) |
 | Shared HTTP envelope and compatibility | [packages/contracts/README.md](packages/contracts/README.md) |
 | Capability-specific HTTP behavior | The owning file under `packages/contracts/` |
 | API implementation rules | [api/AGENTS.md](api/AGENTS.md) |
 | Web implementation rules | [apps/web/AGENTS.md](apps/web/AGENTS.md) |
 | Admin Console implementation rules | [apps/admin/AGENTS.md](apps/admin/AGENTS.md) |
-| Long-running priorities | [docs/ROADMAP.md](docs/ROADMAP.md), [docs/FRAMEWORK_QUALITY_ROADMAP.md](docs/FRAMEWORK_QUALITY_ROADMAP.md), [docs/STARTER_BUSINESS_ROADMAP.md](docs/STARTER_BUSINESS_ROADMAP.md) |
+| Long-running priorities | [docs/scaffold/ROADMAP.md](docs/scaffold/ROADMAP.md), [docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md](docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md), [docs/scaffold/STARTER_BUSINESS_ROADMAP.md](docs/scaffold/STARTER_BUSINESS_ROADMAP.md) |
 
 `CONTEXT.md` wins when terminology conflicts. The owning contract wins for
 public HTTP behavior. The nearest `AGENTS.md` wins for local implementation.
@@ -128,15 +132,17 @@ rerun an unchanged successful gate in the same turn.
 ## Common Commands
 
 ```bash
-# Agent guidance
+# Agent guidance & context
 make agent-check-changed
 make agent-check
 make governance
+cd api && go run ./cmd/fastbuild agent:sync
+cd api && go run ./cmd/fastbuild context --changed --format=agent
 
 # API
 cd api && make wire
 cd api && go test ./internal/modules/<module>/...
-cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
+cd api && bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
 cd api && make route-catalog-check
 
 # Web

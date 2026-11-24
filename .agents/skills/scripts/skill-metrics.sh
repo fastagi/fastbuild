@@ -40,6 +40,7 @@ done < <(
         "$REPO_ROOT/.agents/skills" \
         "$REPO_ROOT/api/.agents/skills" \
         "$REPO_ROOT/apps/web/.agents/skills" \
+        "$REPO_ROOT/apps/admin/.agents/skills" \
         -name SKILL.md -not -path '*/.template/*' 2>/dev/null |
         sort
 )

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Admin Feature Development"
+  short_description: "Build Admin features with Router, Query, RBAC, and audit"
+  default_prompt: "Use $admin-feature-development to implement or update this Admin Console feature."
+policy:
+  allow_implicit_invocation: true

@@ -413,26 +413,28 @@ def main() -> int:
         "api/docs/adr/0008-usage-metering-and-quota-boundary.md",
         ("code-owned", "There is no public or browser write endpoint", "## Consequences"),
     )
-    require_all(
-        failures,
-        "docs/STARTER_BUSINESS_ROADMAP.md",
-        (
-            "`usage` optional starter",
-            "Yes, when enabled with `organization`",
-            "`webhook` optional starter",
-            "intentionally product-sensitive AI workspace",
-        ),
-    )
-    require_all(
-        failures,
-        ".agents/skills/downstream-app-extraction/SKILL.md",
-        ("[references/usage.md](references/usage.md)",),
-    )
-    require_all(
-        failures,
-        ".agents/skills/downstream-app-extraction/references/usage.md",
-        ("optional `usage`", "stable `source + event_id`"),
-    )
+    if (ROOT / "docs/scaffold/STARTER_BUSINESS_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/STARTER_BUSINESS_ROADMAP.md",
+            (
+                "`usage` optional starter",
+                "Yes, when enabled with `organization`",
+                "`webhook` optional starter",
+                "intentionally product-sensitive AI workspace",
+            ),
+        )
+    if (ROOT / ".agents/skills/scaffold/downstream-app-extraction/SKILL.md").is_file():
+        require_all(
+            failures,
+            ".agents/skills/scaffold/downstream-app-extraction/SKILL.md",
+            ("[references/usage.md](references/usage.md)",),
+        )
+        require_all(
+            failures,
+            ".agents/skills/scaffold/downstream-app-extraction/references/usage.md",
+            ("optional `usage`", "stable `source + event_id`"),
+        )
 
     if failures:
         print("usage boundary check failed:", file=sys.stderr)

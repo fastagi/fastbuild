@@ -10,9 +10,11 @@ shadcn/ui, i18next, Zod, and Vitest. It
 builds browser-only assets under `dist/`; no Node.js runtime or server function
 may be required in production.
 
-Inspect the owning route, feature, service, and tests first. Use root FastBuild
-skills only when their trigger matches; this surface deliberately does not
-duplicate the Next-specific skills under `apps/web/.agents/skills/`.
+Inspect the owning route, feature, service, and tests first. Use
+`admin-feature-development` under `apps/admin/.agents/skills/` for new or
+complex Admin features, and root FastBuild skills only when their trigger
+matches; this surface deliberately does not duplicate the Next-specific skills
+under `apps/web/.agents/skills/`.
 
 ## Structure
 

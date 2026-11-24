@@ -10,11 +10,11 @@ FILES=(
   README.md
   .agents/skills/README.md
   docs/ARCHITECTURE.md
-  docs/BRANCHING_AND_RELEASES.md
-  docs/FRAMEWORK_QUALITY_ROADMAP.md
-  docs/SCAFFOLD_SURFACES.md
-  docs/STARTER_BUSINESS_ROADMAP.md
-  docs/SKILL_GOVERNANCE_PLAN.md
+  docs/scaffold/BRANCHING_AND_RELEASES.md
+  docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md
+  docs/scaffold/SCAFFOLD_SURFACES.md
+  docs/scaffold/STARTER_BUSINESS_ROADMAP.md
+  docs/scaffold/SKILL_GOVERNANCE_PLAN.md
   packages/contracts/README.md
   api/AGENTS.md
   api/docs/ADDING_MODULE.md
@@ -42,7 +42,7 @@ FILES=(
 while IFS= read -r skill_file; do
   FILES+=("$skill_file")
 done < <(
-  find .agents api/.agents apps/web/.agents \
+  find .agents api/.agents apps/web/.agents apps/admin/.agents \
     -path '*/.template/*' -prune -o \
     -type f -name 'SKILL.md' -print | sort
 )

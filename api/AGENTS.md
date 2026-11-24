@@ -29,7 +29,7 @@ Root skills remain available. API-specific skills are:
 
 Choose at most one primary skill when its trigger clearly matches; routine
 local work may need none. Add another only when the change genuinely crosses
-its owning boundary. Root `fastbuild-code-review` is the review workflow; API rules
+its owning boundary. Root `code-review` is the review workflow; API rules
 below and the owning docs supply the backend-specific standard.
 
 ## Architecture
@@ -161,7 +161,7 @@ Start focused, then widen once:
 go test ./internal/modules/<module>/...
 
 # Static + focused tests (scope is optional)
-bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
+bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1 ./internal/modules/<module>/...
 
 # Generated dependency graph (regenerate, then prove it is committed)
 make wire

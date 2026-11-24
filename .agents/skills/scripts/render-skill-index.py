@@ -18,9 +18,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 README = ROOT / ".agents" / "skills" / "README.md"
 SCOPES = (
-    ("Root", ROOT / ".agents" / "skills"),
+    ("Core", ROOT / ".agents" / "skills" / "core"),
+    ("Scaffold", ROOT / ".agents" / "skills" / "scaffold"),
     ("API", ROOT / "api" / ".agents" / "skills"),
     ("Web", ROOT / "apps" / "web" / ".agents" / "skills"),
+    ("Admin", ROOT / "apps" / "admin" / ".agents" / "skills"),
 )
 SHORT_DESCRIPTION = re.compile(r'^\s*short_description:\s*"(?P<text>[^"]+)"\s*$', re.MULTILINE)
 REGION = re.compile(
@@ -32,6 +34,8 @@ REGION = re.compile(
 
 
 def skills(directory: Path) -> list[tuple[str, str]]:
+    if not directory.is_dir():
+        return []
     rows = []
     for skill in sorted(path for path in directory.iterdir() if (path / "SKILL.md").is_file()):
         metadata = skill / "agents" / "openai.yaml"
@@ -44,22 +48,30 @@ def skills(directory: Path) -> list[tuple[str, str]]:
 
 def render() -> dict[str, str]:
     catalog = {scope: skills(directory) for scope, directory in SCOPES}
-    root, api, web = (len(catalog[scope]) for scope, _ in SCOPES)
+    core = len(catalog["Core"])
+    scaffold = len(catalog["Scaffold"])
+    api = len(catalog["API"])
+    web = len(catalog["Web"])
+    admin = len(catalog["Admin"])
+    root_total = core + scaffold
+    root_label = f"{core} core + {scaffold} scaffold" if scaffold else f"{core} core"
     scope = "\n".join(
         [
             "| Working directory | Repository skills available |",
             "|---|---|",
-            f"| Repository root | {root} root skills |",
-            f"| `api/` | {root} root + {api} API skills |",
-            f"| `apps/web/` | {root} root + {web} Web skills |",
-            f"| `apps/admin/` | {root} root skills + local `AGENTS.md` |",
+            f"| Repository root | {root_total} root skills ({root_label}) |",
+            f"| `api/` | {root_total} root + {api} API skills |",
+            f"| `apps/web/` | {root_total} root + {web} Web skills |",
+            f"| `apps/admin/` | {root_total} root + {admin} Admin skill{'s' if admin != 1 else ''} |",
             "",
-            f"The repository ships {root + api + web} skills in total.",
+            f"The repository ships {root_total + api + web + admin} skills in total.",
             "",
         ]
     )
     tables = []
     for name, _ in SCOPES:
+        if not catalog[name]:
+            continue
         tables += [f"### {name} Skills", "", "| Skill | Job |", "|---|---|"]
         tables += [f"| `{skill}` | {job} |" for skill, job in catalog[name]]
         tables.append("")
@@ -71,6 +83,9 @@ def main() -> int:
     if mode not in ("--check", "--write"):
         print(__doc__, file=sys.stderr)
         return 2
+    if mode == "--check" and (ROOT / ".fastbuild-project.json").is_file() and not (ROOT / ".agents" / "skills" / "scaffold").is_dir():
+        print("Skill index check skipped in initialized project (scaffold skills stripped).")
+        return 0
     content = README.read_text(encoding="utf-8")
     generated = render()
     found = set()

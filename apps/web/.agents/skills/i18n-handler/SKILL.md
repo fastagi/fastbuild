@@ -93,6 +93,6 @@ or route payloads changed.
 
 ## Related Skills
 
-- `api-error-handling`: error-code mapping behavior changes.
+- `data-state-management`: error-code mapping behavior changes.
 - `accessibility-audit`: dedicated language/RTL/WCAG review.
 - `frontend-design`: explicit translation-length layout redesign.

@@ -413,12 +413,13 @@ def main() -> int:
         ),
     )
 
-    roadmap = read("docs/STARTER_BUSINESS_ROADMAP.md")
-    if not re.search(r"^\| `user` default starter .*\| Yes \|", roadmap, re.MULTILINE):
-        failures.append(
-            "docs/STARTER_BUSINESS_ROADMAP.md must mark the combined user starter ready only "
-            "while the production auth adapter guardrails remain implemented"
-        )
+    if (ROOT / "docs/scaffold/STARTER_BUSINESS_ROADMAP.md").is_file():
+        roadmap = read("docs/scaffold/STARTER_BUSINESS_ROADMAP.md")
+        if not re.search(r"^\| `user` default starter .*\| Yes \|", roadmap, re.MULTILINE):
+            failures.append(
+                "docs/scaffold/STARTER_BUSINESS_ROADMAP.md must mark the combined user starter ready only "
+                "while the production auth adapter guardrails remain implemented"
+            )
 
     if failures:
         print("Auth contract boundary check failed:", file=sys.stderr)

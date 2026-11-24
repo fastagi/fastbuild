@@ -45,7 +45,7 @@ jobs:
           fi
           changed=$(git diff --name-only "$BASE_SHA" HEAD)
           # Shared inputs: this workflow, the tier runner, and the plugin registry, which every half checks.
-          shared='^(\.github/workflows/ci\.yml|\.agents/skills/verification-before-completion/|registry/)'
+          shared='^(\.github/workflows/ci\.yml|\.agents/skills/core/verification-before-completion/|registry/)'
           flag() {
             if grep -Eq "$2|$shared" <<<"$changed"; then echo "$1=true"; else echo "$1=false"; fi >> "$GITHUB_OUTPUT"
           }
@@ -169,7 +169,7 @@ jobs:
         # debt anywhere blocks CI here.
         env:
           FASTBUILD_TEST_POSTGRES_DSN: postgres://fastbuild:fastbuild_test@127.0.0.1:${{ job.services.postgres.ports[5432] }}/fastbuild_test?sslmode=disable
-        run: bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1
+        run: bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1
 
       - name: Verify Wire output is current
         run: make wire-check
@@ -258,7 +258,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verification — Tier 2 (type-check + lint + test + build)
-        run: bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+        run: bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
 
   admin:
     name: Admin Console (Node ${{ matrix.node-version }})
@@ -293,7 +293,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verification — Tier 2 (type-check + lint + test + static build)
-        run: bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 2
+        run: bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
 
   initialized-project:
     name: Initialized project

@@ -87,4 +87,4 @@ registry/
    `make contract-check` merges, lints, and removes every contract fragment.
 5. `plugin:remove <name> --force` so the scaffold itself does not keep the plugin installed.
 
-The design is described in [docs/plans/plugin-registry.md](../docs/plans/plugin-registry.md).
+The design is described in [docs/scaffold/plans/plugin-registry.md](../docs/scaffold/plans/plugin-registry.md).

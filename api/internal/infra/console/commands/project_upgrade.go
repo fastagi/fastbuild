@@ -76,7 +76,12 @@ func (c *ProjectUpgradeCommand) Run(args []string) error {
 			Name: marker.Name, Slug: marker.Slug, Module: marker.Module, Repository: marker.Repository, Starters: marker.Starters,
 		}),
 		Skip: func(path string) bool {
-			return strings.HasPrefix(path, registryDir+"/") || path == projectMarkerFile || path == pluginregistry.LockFile
+			return strings.HasPrefix(path, registryDir+"/") ||
+				strings.HasPrefix(path, "tools/scaffold/") ||
+				strings.HasPrefix(path, ".agents/skills/scaffold/") ||
+				strings.HasPrefix(path, "docs/scaffold/") ||
+				path == projectMarkerFile ||
+				path == pluginregistry.LockFile
 		},
 		Extra:  map[string][]byte{projectMarkerFile: append(encodedMarker, '\n')},
 		DryRun: hasFlag(args, "dry-run"),

@@ -39,7 +39,18 @@ def read_frontmatter(skill_file: Path) -> tuple[str, str]:
 
 def load_skills(root: Path) -> dict[str, Skill]:
     skills: dict[str, Skill] = {}
-    for scope in (root / ".agents/skills", root / "api/.agents/skills", root / "apps/web/.agents/skills"):
+    scopes = (
+        root / ".agents/skills/core",
+        root / ".agents/skills/scaffold",
+        root / ".agents/skills/org",
+        root / ".agents/skills/domain",
+        root / "api/.agents/skills",
+        root / "apps/web/.agents/skills",
+        root / "apps/admin/.agents/skills",
+    )
+    for scope in scopes:
+        if not scope.is_dir():
+            continue
         for skill_file in sorted(scope.glob("*/SKILL.md")):
             if ".template" in skill_file.parts:
                 continue
@@ -80,6 +91,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     root = repository_root()
+    if (root / ".fastbuild-project.json").is_file() and not (root / ".agents/skills/scaffold").is_dir():
+        print("Skill routing check skipped in initialized project (scaffold skills stripped).")
+        return 0
     skills = load_skills(root)
     errors: list[str] = []
     fingerprint_file = args.fingerprint

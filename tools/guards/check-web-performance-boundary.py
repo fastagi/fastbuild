@@ -252,15 +252,16 @@ def main() -> int:
         ".agents/skills/README.md",
         ("check-web-performance-boundary.py",),
     )
-    require_all(
-        failures,
-        "docs/FRAMEWORK_QUALITY_ROADMAP.md",
-        (
-            "Completed P1 — Web Route Bundle Budget And Public Shell",
-            "696,759 raw / 207,561 gzip",
-            "production RUM adapter",
-        ),
-    )
+    if (ROOT / "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md",
+            (
+                "Completed P1 — Web Route Bundle Budget And Public Shell",
+                "696,759 raw / 207,561 gzip",
+                "production RUM adapter",
+            ),
+        )
     require_all(failures, "Makefile", ("tools/guards/check-web-performance-boundary.py",))
 
     if failures:

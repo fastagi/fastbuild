@@ -342,7 +342,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        ".agents/skills/systematic-debugging/SKILL.md",
+        ".agents/skills/core/systematic-debugging/SKILL.md",
         (
             "disposable PostgreSQL",
             "never substitute SQLite",
@@ -365,17 +365,18 @@ def main() -> int:
             "SQLite code or tests",
         ),
     )
-    require_all(
-        failures,
-        "docs/FRAMEWORK_QUALITY_ROADMAP.md",
-        (
-            "Completed P0 — Database Runtime And Query Budget",
-            "Completed P0 — PostgreSQL-Only Database Convergence",
-            "zero-reference source guard",
-            "one application SQL statement",
-            "not an SLO or CI timing budget",
-        ),
-    )
+    if (ROOT / "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md").is_file():
+        require_all(
+            failures,
+            "docs/scaffold/FRAMEWORK_QUALITY_ROADMAP.md",
+            (
+                "Completed P0 — Database Runtime And Query Budget",
+                "Completed P0 — PostgreSQL-Only Database Convergence",
+                "zero-reference source guard",
+                "one application SQL statement",
+                "not an SLO or CI timing budget",
+            ),
+        )
     require_all(
         failures,
         ".agents/skills/README.md",
