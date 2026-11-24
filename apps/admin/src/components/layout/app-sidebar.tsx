@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { navigationItems } from '@/components/layout/navigation';
+import { BrandMark } from '@/components/ui/brand-mark';
 import {
   Sidebar,
   SidebarContent,
@@ -27,28 +28,28 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      variant="inset"
+      variant="sidebar"
       collapsible="icon"
-      className="console-sidebar-material"
+      className="console-sidebar-material border-r border-sidebar-border"
       mobileTitle={t('navigation.console')}
       mobileDescription={t('navigation.mobileDescription')}
     >
-      <SidebarHeader className="border-b border-sidebar-border/70 pb-3 pt-3">
+      <SidebarHeader className="flex h-14 justify-center border-b border-sidebar-border px-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
               size="lg"
               tooltip={env.APP_NAME}
-              className="h-12 data-[active=true]:bg-transparent"
+              className="h-10 hover:bg-transparent data-[active=true]:bg-transparent"
             >
               <Link to="/console" onClick={() => setOpenMobile(false)}>
-                <span className="brand-mark" aria-hidden="true">
-                  {env.APP_NAME.charAt(0).toUpperCase()}
-                </span>
+                <BrandMark />
                 <span className="grid min-w-0 flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{env.APP_NAME}</span>
-                  <span className="truncate text-xs text-muted-foreground">{t('app.shell')}</span>
+                  <span className="truncate font-semibold tracking-tight">{env.APP_NAME}</span>
+                  <span className="truncate text-[11px] text-muted-foreground">
+                    {t('app.shell')}
+                  </span>
                 </span>
               </Link>
             </SidebarMenuButton>

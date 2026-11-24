@@ -94,18 +94,15 @@
 
 @layer components {
   .brand-mark {
-    @apply grid size-8 shrink-0 place-items-center rounded-lg bg-brand text-sm font-semibold text-brand-foreground;
-    box-shadow:
-      0 1px 2px color-mix(in oklch, var(--brand) 22%, transparent),
-      0 5px 14px color-mix(in oklch, var(--brand) 18%, transparent);
+    @apply grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground;
   }
 
   .page-container {
-    @apply mx-auto w-full max-w-7xl px-4 pb-8 pt-6 md:px-7 md:pb-10 md:pt-8 lg:px-9;
+    @apply mx-auto w-full max-w-6xl px-4 pb-10 pt-6 md:px-8 md:pb-12 md:pt-8;
   }
 
   .page-stack {
-    @apply space-y-5;
+    @apply space-y-6;
     animation: page-materialize var(--motion-response) var(--motion-curve) both;
   }
 
@@ -114,19 +111,20 @@
   }
 
   .page-header h1 {
-    @apply mt-1 text-2xl font-semibold tracking-normal;
+    @apply mt-1 text-2xl font-semibold tracking-tight;
   }
 
   .page-header > p:last-child {
-    @apply mt-2 text-sm leading-6 text-subtle;
+    @apply mt-1.5 text-sm leading-6 text-subtle;
   }
 
   .page-eyebrow {
-    @apply text-xs font-medium uppercase tracking-normal text-muted-foreground;
+    @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
   }
 
   .metric-grid {
     @apply grid gap-3 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))];
+    font-variant-numeric: tabular-nums;
   }
 
   .content-grid {
@@ -134,7 +132,7 @@
   }
 
   .icon-surface {
-    @apply grid size-8 shrink-0 place-items-center rounded-md border border-border/70 bg-background/70 text-muted-foreground shadow-xs;
+    @apply grid size-8 shrink-0 place-items-center rounded-md border border-border/80 bg-muted/50 text-muted-foreground;
   }
 
   .definition-row {
@@ -147,6 +145,7 @@
 
   .definition-row dd {
     @apply m-0 truncate text-right font-mono text-xs font-medium;
+    font-variant-numeric: tabular-nums;
   }
 
   /* Segmented look for a single-select shadcn ToggleGroup. */
@@ -208,18 +207,12 @@
 @layer utilities {
   .console-header-material {
     background: var(--material-strong);
-    box-shadow:
-      0 1px 0 var(--border),
-      inset 0 1px var(--material-edge);
-    backdrop-filter: blur(24px) saturate(160%);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
   }
 
   .console-sidebar-material [data-sidebar='sidebar-inner'] {
     background: var(--sidebar);
-    box-shadow:
-      inset -1px 0 var(--sidebar-border),
-      inset 0 1px var(--material-edge);
-    backdrop-filter: blur(28px) saturate(155%);
   }
 
   .console-sidebar-material [data-slot='sidebar-gap'],
@@ -231,18 +224,12 @@
 
   .console-sidebar-material [data-sidebar='menu-button'] {
     transition:
-      transform 120ms ease-out,
       color var(--motion-response) ease,
       background-color var(--motion-response) ease;
   }
 
-  .console-sidebar-material [data-sidebar='menu-button']:active,
-  [data-slot='button']:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-
   .console-sidebar-material [data-sidebar='menu-button'][data-active='true'] {
-    box-shadow: inset 2px 0 var(--brand);
+    font-weight: 500;
   }
 }
 

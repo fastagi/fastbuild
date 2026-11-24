@@ -36,16 +36,16 @@ export function SectionCard({
     <Card
       role="region"
       aria-labelledby={titleId}
-      className={cn('gap-0 overflow-hidden rounded-lg py-0 shadow-xs', className)}
+      className={cn('gap-0 overflow-hidden rounded-lg border-border/80 bg-card py-0 shadow-none', className)}
     >
-      <CardHeader className="gap-3 space-y-0 border-b px-5 py-4">
+      <CardHeader className="gap-3 space-y-0 border-b border-border/70 px-5 py-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-start gap-3">
             <span className="icon-surface" aria-hidden="true">
               <Icon className="size-4" />
             </span>
             <div className="min-w-0">
-              <CardTitle className="text-sm leading-5">
+              <CardTitle className="text-sm font-medium leading-5 tracking-tight">
                 <Heading id={titleId}>{title}</Heading>
               </CardTitle>
               {description ? (

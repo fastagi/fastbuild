@@ -12,7 +12,7 @@ export function ConsoleLayout() {
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <AppSidebar />
-      <SidebarInset className="min-w-0 overflow-hidden bg-background/80">
+      <SidebarInset className="min-w-0 overflow-hidden bg-background">
         <ConsoleHeader />
         <div className="page-container">
           <ConsoleShellScope>

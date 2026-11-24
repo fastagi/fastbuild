@@ -3,6 +3,7 @@ import { Eye, EyeOff, LogIn, ShieldCheck } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SectionCard } from '@/components/layout/section-card';
+import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,12 +46,10 @@ export function SignInPage({ redirectTo }: { redirectTo: string }) {
 
   return (
     <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-10">
-      <div className="flex items-center gap-2.5">
-        <span className="brand-mark" aria-hidden="true">
-          {env.APP_NAME.charAt(0).toUpperCase()}
-        </span>
-        <span className="grid text-sm leading-tight">
-          <span className="font-semibold">{env.APP_NAME}</span>
+      <div className="flex items-center gap-3">
+        <BrandMark size="lg" />
+        <span className="grid text-base leading-tight">
+          <span className="font-semibold tracking-tight">{env.APP_NAME}</span>
           <span className="text-xs text-muted-foreground">{t('app.shell')}</span>
         </span>
       </div>

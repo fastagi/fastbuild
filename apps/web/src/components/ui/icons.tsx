@@ -58,19 +58,17 @@ export const Meta = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// Brand logo
+// Brand logo — Modular Stack "F"
 export const Logo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
     {...props}
   >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+    <rect x="4" y="3.5" width="16" height="4.25" rx="1.25" />
+    <rect x="4" y="10" width="11.5" height="4.25" rx="1.25" />
+    <rect x="4" y="16.5" width="5.25" height="4.25" rx="1.25" />
   </svg>
 );
 

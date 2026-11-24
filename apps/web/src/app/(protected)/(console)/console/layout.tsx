@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LucideIcon,
-  BarChart3,
   Settings,
   Home,
   Bell,
@@ -21,6 +20,7 @@ import {
 
 import { cn } from '@/utils';
 import { ROUTES } from '@/constants/routes';
+import { Logo } from '@/components/ui/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,11 +125,11 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
       <header className="flex h-16 shrink-0 items-center justify-between border-b bg-bg-surface px-4 md:px-6 shadow-sm z-30">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <ConsoleMobileNav mainItems={mainNavItems} secondaryItems={secondaryNavItems} />
-          <Link href={ROUTES.SITE.HOME} className="flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-              <BarChart3 aria-hidden="true" className="h-5 w-5" />
+          <Link href={ROUTES.SITE.HOME} className="flex items-center gap-2.5 group">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+              <Logo aria-hidden="true" className="h-5 w-5" />
             </div>
-            <span className="sr-only text-xl font-bold sm:not-sr-only">{t('console.brand')}</span>
+            <span className="sr-only text-lg font-semibold tracking-tight sm:not-sr-only">{t('console.brand')}</span>
           </Link>
           {organizationEnabled ? (
             <Suspense
