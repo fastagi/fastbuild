@@ -5,10 +5,10 @@ Plan cards with a name, description, preformatted price and period, a feature li
 with a badge. One to four plans lay out responsively; more wrap.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-pricing-table
+cd apps/api && go run ./cmd/fastbuild plugin:add block-pricing-table
 ```
 
-Installs `web/src/components/blocks/pricing-table/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/pricing-table/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy.
 
 ## Usage

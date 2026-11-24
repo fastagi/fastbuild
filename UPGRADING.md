@@ -11,6 +11,34 @@ has an impact level:
 Newest changes come first. Merge the upstream branch, run `make check`, then work through the
 entries in order.
 
+## Unreleased — `apps/` and `packages/` layout
+
+### High — Deployable units moved under `apps/` and `packages/`
+
+The repository root now holds `apps/api`, `apps/web`, `apps/admin`, and `packages/contracts`
+instead of `api/`, `web/`, `admin/`, and `contracts/`. Behavior is unchanged: the Go module path
+stays `github.com/fastagi/fastbuild/api`, each unit keeps its own lockfile and pnpm policies, and
+Docker build contexts are still the unit directory. A fork adopts the layout before merging:
+
+```bash
+mkdir -p apps packages
+git mv api apps/api
+git mv web apps/web
+git mv admin apps/admin
+git mv contracts packages/contracts
+git commit -m "chore: move deployable units under apps/ and packages/"
+```
+
+Then merge upstream so Git matches the renames, and update fork-only references the merge did not
+touch: CI `working-directory`, path filters and cache paths, deploy scripts, Dockerfile build
+contexts called from outside the unit, editor settings, and docs links (sibling apps stay `../web/` from a unit root, while
+the contracts move from `../contracts/` to `../../packages/contracts/`).
+
+`fastbuild project:upgrade` and `fastbuild plugin:add` look for `apps/api/go.mod` and
+`packages/contracts/openapi.yaml`, so run them only after the move. Registry plugin payloads now
+ship under `files/apps/...` and `files/packages/contracts/...`; a project on an older release keeps
+reading the registry from its own release tag and is unaffected until it upgrades.
+
 ## v0.26.0 — Admin deployment, route boundaries, and observability
 
 ### Medium — Web devtools routes are off in production
@@ -290,7 +318,7 @@ payload in one helper. A fork that calls `axios` instances with two explicit typ
 
 When `operator` is selected together with `organization`, `webhook`, or `notification`, the API now
 serves read-mostly operator routes for that starter under `/v1/operator`
-([`contracts/OPERATORS.md`](contracts/OPERATORS.md)): an organization directory with members,
+([`contracts/OPERATORS.md`](packages/contracts/OPERATORS.md)): an organization directory with members,
 secret-free webhook endpoints, deliveries, and attempts with delivery replay, and the notification
 delivery ledger without content. A deployment that selects those starters but must not expose them
 to operators has to remove the mounts in `api/internal/modules/operator/routes.go`.

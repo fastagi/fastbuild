@@ -5,12 +5,12 @@ searches them. Search ranks full-text matches and also finds substrings, so Chin
 languages without word spacing work.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add knowledge-base
+cd apps/api && go run ./cmd/fastbuild plugin:add knowledge-base
 ```
 
 It installs, and `plugin:remove` takes away again:
 
-- the `knowledge` API starter: module, migration, contract (`contracts/KNOWLEDGE.md` and the
+- the `knowledge` API starter: module, migration, contract (`packages/contracts/KNOWLEDGE.md` and the
   OpenAPI fragment); it needs the `organization` starter;
 - the `knowledge` Web feature: a Knowledge console page (`/console/knowledge`) with cursor-paged
   list, search, article view, and owner/admin create, edit, and delete; browser routes that use

@@ -22,7 +22,7 @@ improvising them, and every change passes the same production-grade checks.
 ## Principles
 
 1. **Fast by default** — fast to start (`make init-project`, `make dev`) and fast at runtime, with
-   performance budgets enforced nightly.
+   performance budgets enforced before each release.
 2. **Secure by default** — the safe behavior is the default; risky behavior is an explicit opt-in.
 3. **Contracts first** — the OpenAPI contract is the single source of truth, and both browser shells
    are type-checked against it.

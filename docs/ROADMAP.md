@@ -26,10 +26,10 @@ Review this roadmap at every minor release and move finished items into the chan
 | 1 Plugin registry | Everything, released in v0.25.0; initialized projects verified by the **Initialized project** CI job | — |
 | 2 Full-stack plugins and lifecycle | Slots, `plugin:update` / `remove` / `doctor` / `pack`, knowledge-base Web UI, `scripts/verify-plugin.sh` | Plugin authoring guide and a `make:plugin` generator |
 | 3 Themes and blocks | 3 themes, 8 blocks, contrast and registry guards, `plugin:add` for every kind | Screenshot and accessibility tests for each installed theme |
-| 4 Official plugins | `knowledge-base`, `tags`, `comments`; nightly Plugins workflow | `ai-gateway`, `knowledge-vector`, `billing-stripe`, `forms`, `pages`, `import-export` |
+| 4 Official plugins | `knowledge-base`, `tags`, `comments`; weekly Plugins workflow | `ai-gateway`, `knowledge-vector`, `billing-stripe`, `forms`, `pages`, `import-export` |
 | 5 v1.0 enterprise ready | Shared rate limiting, `project:upgrade`, compatibility promise | OIDC, MFA, email verification, current GORM, external security review, documentation site, three production projects |
 | 6 Templates and agent-native building | 3 templates, `make init-project TEMPLATE=<name>`, `fastbuild mcp`, plugin-selection evaluation (32/32) | An agent evaluation that runs whole describe-to-deploy tasks |
-| 7 Community ecosystem | Third-party registries with `--trust`; nightly install of every official plugin against the current checkout | Plugin × release compatibility results, signed indexes, Admin plugin page, contribution program |
+| 7 Community ecosystem | Third-party registries with `--trust`; weekly install of every official plugin against the current checkout | Plugin × release compatibility results, signed indexes, Admin plugin page, contribution program |
 
 ## Ordering Rules
 
@@ -104,7 +104,7 @@ checks as `knowledge-base`. Candidates, in priority order:
 | `import-export` | Bounded CSV import and export jobs on the workflow capability | Not started |
 
 **Exit:** at least six official plugins, every one installable together in one project with
-`make check` green, and a nightly job that installs each plugin on `main`.
+`make check` green, and a weekly job that installs each plugin on `main`.
 
 ## Stage 5 — v1.0 Enterprise Ready (Q2–Q3 2027)
 
@@ -156,7 +156,7 @@ compatibility result.
 These run in every stage and are tracked in [FRAMEWORK_QUALITY_ROADMAP.md](FRAMEWORK_QUALITY_ROADMAP.md):
 
 - **Security:** zero known high-severity vulnerabilities per release; dependency and container scans.
-- **Performance:** nightly budgets for API latency, bundle size, and memory; regressions block release.
+- **Performance:** budgets for API latency, bundle size, and memory checked before each release; regressions block it.
 - **Developer experience:** clone to running locally in under 15 minutes; clear errors from every CLI command.
 - **Agent guidance:** skills, `AGENTS.md`, and routing evals updated with every new asset type.
 
@@ -164,7 +164,7 @@ These run in every stage and are tracked in [FRAMEWORK_QUALITY_ROADMAP.md](FRAME
 
 | Measure | v0.25 | v1.0 | v1.x |
 |---|---|---|---|
-| Official plugins passing nightly install checks | 3 features | 6+ | 15+ |
+| Official plugins passing weekly install checks | 3 features | 6+ | 15+ |
 | Themes and blocks | 3 and 8 | 3 and 8 | 5 and 20+ |
 | Downstream projects in production | — | 3+ | 20+ |
 | Clone to production deployment | days | under 1 day | under 1 day, from a template |

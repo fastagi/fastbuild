@@ -36,7 +36,7 @@ Those tasks should use the owning local skill or repository guidance.
 2. **Read minimum authority**
    - Vocabulary/ownership: `CONTEXT.md`.
    - Cross-cutting flow: `docs/ARCHITECTURE.md`.
-   - HTTP behavior: the owning file under `contracts/`.
+   - HTTP behavior: the owning file under `packages/contracts/`.
    - Implementation: only the affected half's `AGENTS.md` and owning docs.
    - Roadmap: read it only when ranking work across iterations.
    - ADRs: open only when the decision touches their subject.

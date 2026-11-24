@@ -49,7 +49,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/ASSETS.md",
+        "packages/contracts/ASSETS.md",
         (
             "OPTIONAL_STARTERS=asset",
             "NEXT_PUBLIC_OPTIONAL_FEATURES=asset",
@@ -74,7 +74,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/capabilities/storage/object_store.go",
+        "apps/api/internal/capabilities/storage/object_store.go",
         (
             "type ObjectStore interface",
             "type DirectTransferStore interface",
@@ -86,7 +86,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/storage/local.go",
+        "apps/api/internal/infra/storage/local.go",
         (
             "os.OpenRoot",
             "root.MkdirAll(directory, 0o700)",
@@ -98,7 +98,7 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/internal/infra/storage/local.go",
+        "apps/api/internal/infra/storage/local.go",
         (
             "filepath.Join(s.root, key)",
             "os.WriteFile(",
@@ -106,7 +106,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/storage/r2.go",
+        "apps/api/internal/infra/storage/r2.go",
         (
             '"github.com/aws/aws-sdk-go-v2/',
             "UsePathStyle = true",
@@ -121,7 +121,7 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/go.mod",
+        "apps/api/go.mod",
         (
             "github.com/aws/aws-sdk-go v1",
             "github.com/aws/aws-sdk-go/",
@@ -129,7 +129,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/config/config.go",
+        "apps/api/internal/infra/config/config.go",
         (
             "type ObjectStorageConfig struct",
             "type AssetConfig struct",
@@ -141,7 +141,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/model.go",
+        "apps/api/internal/modules/asset/model.go",
         (
             "idx_assets_user_idempotency",
             "idx_assets_cleanup",
@@ -152,7 +152,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/provider.go",
+        "apps/api/internal/modules/asset/provider.go",
         (
             'config.StarterAsset',
             'WithStarterDependencies(config.StarterUser, config.StarterAudit)',
@@ -163,7 +163,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/service.go",
+        "apps/api/internal/modules/asset/service.go",
         (
             '"asset-uploads/" + id + "/object"',
             '"assets/" + id + "/object"',
@@ -181,7 +181,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/repository.go",
+        "apps/api/internal/modules/asset/repository.go",
         (
             "ResolveContextDB",
             'clause.Locking{Strength: "UPDATE"}',
@@ -192,7 +192,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/service_test.go",
+        "apps/api/internal/modules/asset/service_test.go",
         (
             "TestServiceInspectsFrozenFinalObjectAfterStagingChanges",
             "TestServicePrunesLateReadyStagingWithoutDeletingFinalObject",
@@ -201,7 +201,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/routes.go",
+        "apps/api/internal/modules/asset/routes.go",
         (
             'auth.GET("/assets"',
             'auth.POST("/assets/upload-intents"',
@@ -214,7 +214,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/dto.go",
+        "apps/api/internal/modules/asset/dto.go",
         (
             'json:"original_name"',
             'json:"media_type"',
@@ -225,17 +225,17 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/asset/handler.go",
+        "apps/api/internal/modules/asset/handler.go",
         ("func (h *Handler) Delete", "response.NoContent(c)"),
     )
     require_all(
         failures,
-        "api/internal/modules/asset/handler_test.go",
+        "apps/api/internal/modules/asset/handler_test.go",
         ("TestHandlerDeleteReturnsNoContent", "http.StatusNoContent"),
     )
     forbid_any(
         failures,
-        "api/internal/modules/asset/dto.go",
+        "apps/api/internal/modules/asset/dto.go",
         (
             'json:"user_id"',
             'json:"object_key"',
@@ -245,7 +245,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/infra/console/commands/asset.go",
+        "apps/api/internal/infra/console/commands/asset.go",
         (
             'return "asset:prune"',
             'return "asset:prune [--batch=100]"',
@@ -255,7 +255,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_15_030000_create_assets_table.go",
+        "apps/api/database/migrations/2026_07_15_030000_create_assets_table.go",
         (
             "UseTransaction: true",
             'CREATE TABLE assets (',
@@ -266,7 +266,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/features/asset/schemas.ts",
+        "apps/web/src/features/asset/schemas.ts",
         (
             "strictObject",
             "ASSET_MAX_BROWSER_BYTES",
@@ -276,12 +276,12 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "web/src/features/asset/schemas.ts",
+        "apps/web/src/features/asset/schemas.ts",
         ("deleteAssetResultSchema",),
     )
     require_all(
         failures,
-        "web/src/features/asset/services/asset-transfer.ts",
+        "apps/web/src/features/asset/services/asset-transfer.ts",
         (
             "localTransferPath",
             "credentials: 'omit'",
@@ -298,7 +298,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/asset/services/asset-service.ts",
+        "apps/web/src/features/asset/services/asset-service.ts",
         (
             "parseUploadIntent",
             "await uploadToGrant(intent.upload, file)",
@@ -310,7 +310,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/asset/server/asset-route.ts",
+        "apps/web/src/features/asset/server/asset-route.ts",
         (
             "resolveAssetRoute(",
             "isWebFeatureEnabled('asset')",
@@ -324,7 +324,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/asset/server/mock-asset-store.ts",
+        "apps/web/src/features/asset/server/mock-asset-store.ts",
         (
             "maxMockBytesPerUser",
             "maxAssetsPerUser",
@@ -339,7 +339,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/asset/components/asset-panel.tsx",
+        "apps/web/src/features/asset/components/asset-panel.tsx",
         (
             "export function AssetPanel",
             "useUploadAsset",
@@ -351,7 +351,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/config/optional-features.ts",
+        "apps/web/src/config/optional-features.ts",
         (
             "OPTIONAL_WEB_FEATURES = [",
             "'organization'",
@@ -363,7 +363,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/docs/ASSETS.md",
+        "apps/api/docs/ASSETS.md",
         (
             "asset",
             "stored object",
@@ -374,12 +374,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/docs/ASSETS.md",
+        "apps/web/docs/ASSETS.md",
         ("asset", "stored object", "production", "## Verification"),
     )
     require_all(
         failures,
-        "api/docs/adr/0006-asset-object-boundary.md",
+        "apps/api/docs/adr/0006-asset-object-boundary.md",
         ("asset", "stored object", "Production activation requires R2", "## Consequences"),
     )
     require_all(
@@ -394,7 +394,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         (
             'asset_flow="skipped"',
             'asset_migration_flow="skipped"',
@@ -410,22 +410,22 @@ def main() -> int:
     )
     forbid_any(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         ('!= "404/200"',),
     )
     require_all(
         failures,
-        "web/src/test/asset-contract.test.ts",
+        "apps/web/src/test/asset-contract.test.ts",
         ("asset browser contract", "unknown intent fields", "unsafe requests"),
     )
     require_all(
         failures,
-        "web/src/test/asset-route.test.ts",
+        "apps/web/src/test/asset-route.test.ts",
         ("asset browser route boundary", "cross-origin", "mockUser('bob')"),
     )
     require_all(
         failures,
-        "web/src/test/asset-ui.test.tsx",
+        "apps/web/src/test/asset-ui.test.tsx",
         ("asset console workflow", "unsupported files", "requires confirmation"),
     )
 

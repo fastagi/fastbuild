@@ -39,7 +39,7 @@ def read_frontmatter(skill_file: Path) -> tuple[str, str]:
 
 def load_skills(root: Path) -> dict[str, Skill]:
     skills: dict[str, Skill] = {}
-    for scope in (root / ".agents/skills", root / "api/.agents/skills", root / "web/.agents/skills"):
+    for scope in (root / ".agents/skills", root / "apps/api/.agents/skills", root / "apps/web/.agents/skills"):
         for skill_file in sorted(scope.glob("*/SKILL.md")):
             if ".template" in skill_file.parts:
                 continue

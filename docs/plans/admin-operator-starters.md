@@ -23,7 +23,7 @@ viewing signing secrets or event payloads; reading notification titles, bodies, 
 addresses; publishing notifications; retrying notification deliveries; permission, usage, and asset
 administration.
 
-**Deployable units.** `api/` and `admin/`, joined by `contracts/OPERATORS.md`.
+**Deployable units.** `apps/api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md`.
 
 **Success signal.** With `OPTIONAL_STARTERS=operator,organization,webhook,notification`, an operator
 opens an organization in the Admin Console, sees its members and a failed webhook delivery, replays
@@ -81,7 +81,7 @@ dependency; each group is mounted only when `Config.Starters.Selected(name)` is 
 ## 5. Domain Model and Vocabulary
 
 No new terms. `Platform operator` in `CONTEXT.md` already states that an operator is not an
-organization role. `Operator replay` is defined in `contracts/WEBHOOKS.md`; this plan adds an HTTP
+organization role. `Operator replay` is defined in `packages/contracts/WEBHOOKS.md`; this plan adds an HTTP
 entry point to the existing rule and changes none of it.
 
 ## 6. Persistence Design
@@ -103,7 +103,7 @@ audit list. Retention keeps the table bounded; no cursor is introduced in this r
 
 All routes are under `/v1/operator`, require the operator session, send
 `Cache-Control: private, no-store`, and use the shared envelope and `page`/`per_page` pagination
-(default 15, max 100). Documented in `contracts/OPERATORS.md`.
+(default 15, max 100). Documented in `packages/contracts/OPERATORS.md`.
 
 | Method | Path | Operation | Requires starter | Success |
 |---|---|---|---|---|

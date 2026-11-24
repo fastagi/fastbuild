@@ -53,7 +53,7 @@ jobs:
           bash scripts/dependency-security.sh scan
 
       - name: API image, smoke test, SBOM, and scan
-        working-directory: api
+        working-directory: apps/api
         env:
           OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}
           OCI_REVISION: ${{ github.sha }}
@@ -64,7 +64,7 @@ jobs:
           bash ../scripts/container-security.sh verify fastbuild-api:release "${GITHUB_WORKSPACE}/dist/fastbuild-api.cdx.json"
 
       - name: Web image, smoke test, SBOM, and scan
-        working-directory: web
+        working-directory: apps/web
         env:
           OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}
           OCI_REVISION: ${{ github.sha }}
@@ -75,7 +75,7 @@ jobs:
           bash ../scripts/container-security.sh verify fastbuild-web:release "${GITHUB_WORKSPACE}/dist/fastbuild-web.cdx.json"
 
       - name: Admin image, smoke test, SBOM, and scan
-        working-directory: admin
+        working-directory: apps/admin
         env:
           OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}
           OCI_REVISION: ${{ github.sha }}

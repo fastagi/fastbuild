@@ -5,10 +5,10 @@ build inputs, runtime verification, image inventory and vulnerability policy, an
 publication identity. These controls complement the source dependency policy in
 [`DEPENDENCY_SECURITY.md`](DEPENDENCY_SECURITY.md); one must not be presented as another.
 
-This policy applies to the API, Next.js Web, and Admin Console images. `admin/` emits static
+This policy applies to the API, Next.js Web, and Admin Console images. `apps/admin/` emits static
 assets that may be hosted on OSS/CDN without any container, or served by its optional static nginx
 image; both options, and the cache and header contract, live in
-[`../admin/docs/DEPLOYMENT.md`](../admin/docs/DEPLOYMENT.md).
+[`../apps/admin/docs/DEPLOYMENT.md`](../apps/admin/docs/DEPLOYMENT.md).
 
 ## Semantic Model
 
@@ -56,9 +56,9 @@ together. A digest-only update still requires release-note and image-diff review
 Build and exercise each runtime contract:
 
 ```bash
-cd api && make container-check
-cd web && bash scripts/verify-container.sh fastbuild-web:container-check
-cd admin && bash scripts/verify-container.sh fastbuild-admin:container-check
+cd apps/api && make container-check
+cd apps/web && bash scripts/verify-container.sh fastbuild-web:container-check
+cd apps/admin && bash scripts/verify-container.sh fastbuild-admin:container-check
 ```
 
 The verifiers use `docker buildx build --load`, write OCI source/revision/version labels, request
@@ -67,7 +67,7 @@ then verify non-root execution, health behavior, absence of embedded environment
 SIGTERM termination. The Web verifier additionally checks the exact Node version and confirms that
 development tooling and every `.env*` file are absent. It also requests the real `/login` page and
 requires all nine production browser-security headers exactly once; policy ownership and downstream
-extension rules live in [`../web/docs/SECURITY.md`](../web/docs/SECURITY.md). A second run enables
+extension rules live in [`../apps/web/docs/SECURITY.md`](../apps/web/docs/SECURITY.md). A second run enables
 the production mock mode explicitly and proves the assembled Next.js Proxy redirects an
 unauthenticated protected route before render work. The Admin verifier runs the image with a
 read-only root filesystem and all capabilities dropped, then checks the SPA deep-link fallback,

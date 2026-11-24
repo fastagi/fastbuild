@@ -36,8 +36,8 @@ registry format); runtime installation from the Admin Console (never: code is ad
 embeddings and vector search for the knowledge base (phase 2, behind an adapter); themes, blocks,
 and templates.
 
-**Deployable units.** `api/` (CLI, registry tooling, plugin code once installed) and `contracts/`
-(fragment merge). `web/` and `admin/` are unchanged.
+**Deployable units.** `apps/api/` (CLI, registry tooling, plugin code once installed) and `packages/contracts/`
+(fragment merge). `apps/web/` and `apps/admin/` are unchanged.
 
 **Success signal.** In a project created with `make init-project`, an agent runs
 `fastbuild plugin:add knowledge-base`, follows the plugin's integration steps, and
@@ -77,8 +77,8 @@ sequenceDiagram
   B->>P: make check
 ```
 
-1. **Preconditions.** The command runs inside a FastBuild checkout (`api/go.mod` and
-   `contracts/openapi.yaml` exist). The source resolves: `--source` when given; otherwise the local
+1. **Preconditions.** The command runs inside a FastBuild checkout (`apps/api/go.mod` and
+   `packages/contracts/openapi.yaml` exist). The source resolves: `--source` when given; otherwise the local
    `registry/` when present; otherwise `github:fastagi/fastbuild@<scaffold_version>` from
    `.fastbuild-project.json`.
 2. **Validation.** The plugin name exists in the index; the plugin's `fastbuild` version range
@@ -89,8 +89,8 @@ sequenceDiagram
 4. **Conflicts.** Any destination file that exists with different content aborts the install before
    anything is written. An identical existing file is accepted.
 5. **Writes.** Files are written, the Go starter is wired with the same edits as `make:module`, and
-   the contract fragment is merged with `contracts/scripts/merge-fragment.mjs` when Node.js is
-   available; otherwise it stays in `contracts/fragments/` and the merge appears as an integration
+   the contract fragment is merged with `packages/contracts/scripts/merge-fragment.mjs` when Node.js is
+   available; otherwise it stays in `packages/contracts/fragments/` and the merge appears as an integration
    step.
 6. **Rollback.** If wiring or the merge fails, written files are removed and edited files restored
    from the copies taken before the write; the lock is not written.
@@ -147,7 +147,7 @@ code and never modifies files outside the checkout.
       "version": "0.1.0",
       "source": "github:fastagi/fastbuild@v0.25.0",
       "starter": "knowledge",
-      "files": { "api/internal/modules/knowledge/service.go": "<sha256>" }
+      "files": { "apps/api/internal/modules/knowledge/service.go": "<sha256>" }
     }
   }
 }
@@ -182,7 +182,7 @@ a hard delete.
 
 ## 8. HTTP Contract Design
 
-The plugin ships `contracts/KNOWLEDGE.md` and an OpenAPI fragment merged into the project's
+The plugin ships `packages/contracts/KNOWLEDGE.md` and an OpenAPI fragment merged into the project's
 contract on install. All routes require `auth` and `organization_context`.
 
 | Method and path | Who | Behavior |

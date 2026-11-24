@@ -19,7 +19,7 @@ Starts a subscription-style SaaS product: organizations with roles and permissio
 ```bash
 make init-project NAME="Acme" SLUG=acme MODULE=github.com/acme/app/api TEMPLATE=saas-app
 # or, in an existing project:
-cd api && go run ./cmd/fastbuild plugin:add saas-app
+cd apps/api && go run ./cmd/fastbuild plugin:add saas-app
 ```
 
 It selects the starters `organization`, `permission`, `notification`, `setting`, `usage`. Complete each included plugin's

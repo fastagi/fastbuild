@@ -6,7 +6,7 @@ retains mock BFF or authentication adapter behavior.
 - Replace mock BFF routes with production endpoints or a documented
   same-origin adapter. If retained for development, preserve production and
   same-origin mutation guards.
-- Read `contracts/AUTHENTICATION.md`. The Web cookie contract and Go
+- Read `packages/contracts/AUTHENTICATION.md`. The Web cookie contract and Go
   authentication-session contract are not interchangeable through a base-URL
   change.
 - Preserve the provider-owned authentication store.

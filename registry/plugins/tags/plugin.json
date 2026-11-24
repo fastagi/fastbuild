@@ -18,5 +18,5 @@
     "directory": "tag",
     "handler": "Tag"
   },
-  "fragment": "contracts/fragments/tags.yaml"
+  "fragment": "packages/contracts/fragments/tags.yaml"
 }

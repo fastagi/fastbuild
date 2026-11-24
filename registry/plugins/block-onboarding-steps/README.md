@@ -5,10 +5,10 @@ that are complete, current, or upcoming. Each status is announced in words, the 
 `aria-current="step"`, and only the current step shows its action.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add block-onboarding-steps
+cd apps/api && go run ./cmd/fastbuild plugin:add block-onboarding-steps
 ```
 
-Installs `web/src/components/blocks/onboarding-steps/` (component and test). It is a Server
+Installs `apps/web/src/components/blocks/onboarding-steps/` (component and test). It is a Server
 Component-safe block: no state, no data fetching, no hard-coded copy. Status comes from you.
 
 ## Usage

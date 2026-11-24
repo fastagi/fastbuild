@@ -18,7 +18,7 @@ Console screens.
 passwords, or emails; hard account deletion; impersonation; organization, permission, usage,
 webhook, notification, or asset administration; multi-factor authentication; Web (Next.js) changes.
 
-**Deployable units.** `api/` and `admin/`, joined by `contracts/OPERATORS.md` and `openapi.yaml`.
+**Deployable units.** `apps/api/` and `apps/admin/`, joined by `packages/contracts/OPERATORS.md` and `openapi.yaml`.
 
 **Success signal.** With `OPTIONAL_STARTERS=operator`, a user granted by `fastbuild operator:grant`
 signs in to the Admin Console, disables another user (whose next API call fails with
@@ -160,8 +160,8 @@ No new columns on existing tables. The user list query uses existing indexes
 
 ## 7. HTTP Contract
 
-All routes live under `/v1/operator` and are documented in `contracts/OPERATORS.md` and
-`contracts/openapi.yaml`. Envelope, pagination, and `request_id` follow `contracts/README.md`.
+All routes live under `/v1/operator` and are documented in `packages/contracts/OPERATORS.md` and
+`packages/contracts/openapi.yaml`. Envelope, pagination, and `request_id` follow `packages/contracts/README.md`.
 
 | Method | Path | Operation | Auth | Success |
 |---|---|---|---|---|
@@ -452,7 +452,7 @@ existing audit middleware.
 | 4. App settings and system status | Set/reset app settings; status page | api (`operator`, `setting`), admin | settings and system sections | Same |
 
 Critical path: slice 1 → 2. Slices 3 and 4 depend only on slice 1 and can proceed in either order.
-Each slice updates `contracts/`, `openapi.yaml`, generated types, `UPGRADING.md`, and tests.
+Each slice updates `packages/contracts/`, `openapi.yaml`, generated types, `UPGRADING.md`, and tests.
 
 ## 15. Acceptance Criteria
 

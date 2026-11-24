@@ -67,9 +67,9 @@ until it needs those capabilities.
 
 | Deployable unit | Stack |
 |---|---|
-| `api/` | Go 1.25, Gin, Wire, GORM, PostgreSQL, typed configuration, versioned migrations, structured logging, OpenTelemetry, and operator CLI |
-| `web/` | Customer-facing Next.js 16 application with React 19, TypeScript, Tailwind CSS 4, shadcn/ui, TanStack Query, Zustand, next-intl, and a secure same-origin API adapter |
-| `admin/` | Project management console built with Vite 8, React 19, TanStack Router, TanStack Query, Zustand, Zod, Tailwind CSS 4, shadcn/ui, and i18next |
+| `apps/api/` | Go 1.25, Gin, Wire, GORM, PostgreSQL, typed configuration, versioned migrations, structured logging, OpenTelemetry, and operator CLI |
+| `apps/web/` | Customer-facing Next.js 16 application with React 19, TypeScript, Tailwind CSS 4, shadcn/ui, TanStack Query, Zustand, next-intl, and a secure same-origin API adapter |
+| `apps/admin/` | Project management console built with Vite 8, React 19, TanStack Router, TanStack Query, Zustand, Zod, Tailwind CSS 4, shadcn/ui, and i18next |
 | Delivery | Docker Compose, non-root production images, GitHub Actions, SBOM generation, dependency scanning, container scanning, and bundle budgets |
 
 Each deployable unit is independent. Browser applications communicate with the API through
@@ -77,7 +77,7 @@ documented HTTP contracts and never import backend source code.
 
 ## Frontend Roles
 
-| Need | `web/` | `admin/` |
+| Need | `apps/web/` | `apps/admin/` |
 |---|---:|---:|
 | Server rendering and Server Components | Yes | No |
 | Same-origin HttpOnly auth adapter | Included | Requires a reviewed gateway or browser adapter |
@@ -88,11 +88,11 @@ documented HTTP contracts and never import backend source code.
 | Frontend Node.js runtime in production | Yes | No |
 | TanStack type-safe file routing | No | Yes |
 
-The applications are independent and can run together. `web/` serves customers;
-`admin/` serves platform operators. With the optional `operator` starter it has
+The applications are independent and can run together. `apps/web/` serves customers;
+`apps/admin/` serves platform operators. With the optional `operator` starter it has
 operator sign-in, user management, the global audit log, app settings, system
 status, and read-mostly organization, webhook, and notification-delivery views.
-Tenant self-service stays in `web/`.
+Tenant self-service stays in `apps/web/`.
 
 ## Quick Start
 
@@ -126,7 +126,7 @@ Plugins are reviewed capabilities installed as source: the code lands in your pr
 it. A coding agent can find and install them with the `plugin-integration` skill.
 
 ```bash
-cd api
+cd apps/api
 go run ./cmd/fastbuild plugin:search knowledge
 go run ./cmd/fastbuild plugin:add knowledge-base
 ```
@@ -158,29 +158,29 @@ Ports and the starter selection are environment variables, for example
 `FASTBUILD_API_PORT=18025 make dev`; run `scripts/dev.sh help` for the full list. The seeded accounts and
 local secrets are for development only.
 
-With the stack running, `cd admin && corepack pnpm e2e` drives the Admin Console against the API in
-a browser, and `cd web && corepack pnpm e2e` signs in to the Web application through its API
+With the stack running, `cd apps/admin && corepack pnpm e2e` drives the Admin Console against the API in
+a browser, and `cd apps/web && corepack pnpm e2e` signs in to the Web application through its API
 adapter.
 
 ### Run One Surface
 
 ```bash
-cd api && docker compose up --build --wait     # API image with PostgreSQL
-cd web && corepack pnpm install && corepack pnpm dev    # Web with the development mock BFF
-cd admin && corepack pnpm install && corepack pnpm dev  # Admin Console shell
+cd apps/api && docker compose up --build --wait     # API image with PostgreSQL
+cd apps/web && corepack pnpm install && corepack pnpm dev    # Web with the development mock BFF
+cd apps/admin && corepack pnpm install && corepack pnpm dev  # Admin Console shell
 ```
 
 The Web mock BFF makes the customer console explorable without the API; production requires the
 same-origin API adapter. Build static Admin assets with `corepack pnpm build`, or the Admin
 container with `docker build admin`; both hosting options are in
-[admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md).
+[apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md).
 
 ## Enable Business Starters
 
 Inspect and configure optional API starters with the CLI:
 
 ```bash
-cd api
+cd apps/api
 go run ./cmd/fastbuild starter:list
 go run ./cmd/fastbuild starter:enable permission
 go run ./cmd/fastbuild starter:check
@@ -205,7 +205,7 @@ Dependencies are explicit:
 
 - `permission`, `setting`, `usage`, and `webhook` require `organization`.
 - `notification`, `asset`, and `operator` can be enabled independently. `operator` is the Admin
-  Console's sign-in and administration starter; see [`contracts/OPERATORS.md`](contracts/OPERATORS.md).
+  Console's sign-in and administration starter; see [`packages/contracts/OPERATORS.md`](packages/contracts/OPERATORS.md).
 - API servers, migrations, workers, and browser features should use a compatible starter selection.
 
 Disabling a dependency is rejected while another selected starter needs it. Use an explicit
@@ -230,12 +230,12 @@ Next.js + server adapters        Vite SPA + browser gateway
        email, R2, Redis, AI, telemetry
 ```
 
-- `api/` owns domain rules, persistence, migrations, routes, workers, and provider integrations.
-- `web/` owns customer-facing Next.js routes, account/workspace journeys, UI
+- `apps/api/` owns domain rules, persistence, migrations, routes, workers, and provider integrations.
+- `apps/web/` owns customer-facing Next.js routes, account/workspace journeys, UI
   state, server adapters, and development mocks.
-- `admin/` owns project management routes, operator-facing state, validated
+- `apps/admin/` owns project management routes, operator-facing state, validated
   HTTP clients, and static CDN output.
-- `contracts/` owns stable request, response, `error_code`, `request_id`, pagination, and
+- `packages/contracts/` owns stable request, response, `error_code`, `request_id`, pagination, and
   compatibility semantics.
 - `docs/` owns architecture, security, deployment, CI, and extension guidance.
 
@@ -253,7 +253,7 @@ translation, and shared domain code remains independent of Gin and GORM.
 The API includes a `fastbuild` operator command:
 
 ```bash
-cd api
+cd apps/api
 go run ./cmd/fastbuild version
 go run ./cmd/fastbuild starter:list
 go run ./cmd/fastbuild starter:check
@@ -266,19 +266,19 @@ go run ./cmd/fastbuild audit:prune --before=2026-04-01T00:00:00Z --batch=500
 ```
 
 Starter-specific commands manage notification workers, asset cleanup, setting overrides, usage
-retention, webhook delivery, and other operational workflows. See [api/README.md](api/README.md)
+retention, webhook delivery, and other operational workflows. See [apps/api/README.md](apps/api/README.md)
 for the complete command reference.
 
 ## HTTP Contracts
 
 Public API behavior uses a consistent envelope, stable dotted error codes such as
 `COMMON.NOT_FOUND` and `AUTH.INVALID_CREDENTIALS`, and a request ID on success and failure.
-Contracts under `contracts/` document the shared semantics and each starter workflow.
+Contracts under `packages/contracts/` document the shared semantics and each starter workflow.
 
 Reviewed OpenAPI surfaces are validated and generated with:
 
 ```bash
-cd contracts && corepack pnpm install --frozen-lockfile
+cd packages/contracts && corepack pnpm install --frozen-lockfile
 make contract-check
 make contract-generate
 ```
@@ -286,7 +286,7 @@ make contract-generate
 Runtime route discovery is deterministic and machine-readable:
 
 ```bash
-cd api
+cd apps/api
 DB_ENABLED=false AI_ENABLED=false go run ./cmd/fastbuild route:list --format=json
 ```
 
@@ -309,9 +309,9 @@ FastBuild includes practical application-security foundations:
 
 Deployments still own secrets, TLS termination, ingress policy, PostgreSQL backups, provider
 credentials, scaling, monitoring, and release approvals. Start with
-[api/docs/DEPLOYMENT.md](api/docs/DEPLOYMENT.md),
-[admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md),
-[web/docs/SECURITY.md](web/docs/SECURITY.md), and
+[apps/api/docs/DEPLOYMENT.md](apps/api/docs/DEPLOYMENT.md),
+[apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md),
+[apps/web/docs/SECURITY.md](apps/web/docs/SECURITY.md), and
 [docs/CONTAINER_SECURITY.md](docs/CONTAINER_SECURITY.md).
 
 ## Development Workflow
@@ -331,10 +331,10 @@ benchmark, container, and security commands.
 
 ```text
 fastbuild/
-|-- api/          # Go API, starters, workers, migrations, and CLI
-|-- web/          # Customer-facing Next.js application
-|-- admin/        # Vite and TanStack project management console
-|-- contracts/    # Shared HTTP and starter contracts
+|-- apps/api/          # Go API, starters, workers, migrations, and CLI
+|-- apps/web/          # Customer-facing Next.js application
+|-- apps/admin/        # Vite and TanStack project management console
+|-- packages/contracts/    # Shared HTTP and starter contracts
 |-- docs/         # Architecture, security, delivery, and extension guides
 `-- Makefile      # Workspace verification commands
 ```
@@ -343,14 +343,14 @@ fastbuild/
 
 | Topic | Start here |
 |---|---|
-| API development and commands | [api/README.md](api/README.md) |
-| Customer Web application | [web/README.md](web/README.md) |
-| Admin Console, container, and CDN deployment | [admin/README.md](admin/README.md), [admin/docs/DEPLOYMENT.md](admin/docs/DEPLOYMENT.md) |
+| API development and commands | [apps/api/README.md](apps/api/README.md) |
+| Customer Web application | [apps/web/README.md](apps/web/README.md) |
+| Admin Console, container, and CDN deployment | [apps/admin/README.md](apps/admin/README.md), [apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md) |
 | Architecture and ownership | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| HTTP contracts | [contracts/README.md](contracts/README.md) |
-| Add an API starter or module | [api/docs/ADDING_MODULE.md](api/docs/ADDING_MODULE.md) |
-| Add a Next.js feature | [web/docs/ADDING_FEATURE.md](web/docs/ADDING_FEATURE.md) |
-| Add an Admin Console feature | [admin/docs/ADDING_FEATURE.md](admin/docs/ADDING_FEATURE.md) |
+| HTTP contracts | [packages/contracts/README.md](packages/contracts/README.md) |
+| Add an API starter or module | [apps/api/docs/ADDING_MODULE.md](apps/api/docs/ADDING_MODULE.md) |
+| Add a Next.js feature | [apps/web/docs/ADDING_FEATURE.md](apps/web/docs/ADDING_FEATURE.md) |
+| Add an Admin Console feature | [apps/admin/docs/ADDING_FEATURE.md](apps/admin/docs/ADDING_FEATURE.md) |
 | Long-term roadmap | [docs/ROADMAP.md](docs/ROADMAP.md) |
 | Starter capability matrix | [docs/STARTER_BUSINESS_ROADMAP.md](docs/STARTER_BUSINESS_ROADMAP.md) |
 | CI and releases | [docs/CI.md](docs/CI.md) and [docs/BRANCHING_AND_RELEASES.md](docs/BRANCHING_AND_RELEASES.md) |
@@ -361,7 +361,7 @@ fastbuild/
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), keep public behavior documented under `contracts/`, and run
+Read [CONTRIBUTING.md](CONTRIBUTING.md), keep public behavior documented under `packages/contracts/`, and run
 the relevant verification tier before opening a pull request.
 
 ## Security

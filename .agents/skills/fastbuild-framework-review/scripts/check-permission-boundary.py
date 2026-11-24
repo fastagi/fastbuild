@@ -29,7 +29,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/PERMISSIONS.md",
+        "packages/contracts/PERMISSIONS.md",
         (
             "OPTIONAL_STARTERS=organization,permission",
             "NEXT_PUBLIC_OPTIONAL_FEATURES=organization,permission",
@@ -47,12 +47,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/starter/assembly/starter_manifest.go",
+        "apps/api/internal/starter/assembly/starter_manifest.go",
         ("Dependencies() []string", "WithStarterDependencies"),
     )
     require_all(
         failures,
-        "api/internal/starter/catalog.go",
+        "apps/api/internal/starter/catalog.go",
         (
             "validateDependencies",
             "dependency cycle",
@@ -62,7 +62,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/permission/provider.go",
+        "apps/api/internal/modules/permission/provider.go",
         (
             'config.StarterPermission',
             'WithStarterDependencies(config.StarterOrganization)',
@@ -72,7 +72,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/domain/permission.go",
+        "apps/api/internal/domain/permission.go",
         (
             "type PermissionKey string",
             "PermissionKey) IsValid() bool",
@@ -83,7 +83,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/permission/catalog.go",
+        "apps/api/internal/modules/permission/catalog.go",
         (
             '"permission.roles.read"',
             '"permission.roles.manage"',
@@ -94,7 +94,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/permission/service.go",
+        "apps/api/internal/modules/permission/service.go",
         (
             "persisted permission %q is not registered",
             "permission %q is not registered",
@@ -107,7 +107,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/permission/repository.go",
+        "apps/api/internal/modules/permission/repository.go",
         (
             "effectiveForUpdate",
             'memberships.organization_id = ? AND memberships.user_id = ?',
@@ -119,7 +119,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/permission/routes.go",
+        "apps/api/internal/modules/permission/routes.go",
         (
             'WithMiddleware("auth", "organization_context")',
             'GET("/permission-context"',
@@ -130,7 +130,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/database/migrations/2026_07_15_010000_create_permission_tables.go",
+        "apps/api/database/migrations/2026_07_15_010000_create_permission_tables.go",
         (
             "UseTransaction: true",
             'CREATE TABLE permission_roles (',
@@ -140,7 +140,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/config/optional-features.ts",
+        "apps/web/src/config/optional-features.ts",
         (
             "OPTIONAL_WEB_FEATURES = [",
             "'organization'",
@@ -152,7 +152,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/permission/server/permission-route.ts",
+        "apps/web/src/features/permission/server/permission-route.ts",
         (
             "guardSameOriginMutation(request)",
             "readJsonBody(request)",
@@ -164,7 +164,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/permission/server/mock-permission-store.ts",
+        "apps/web/src/features/permission/server/mock-permission-store.ts",
         (
             "hasPermission(effective, PermissionKey.ROLES_MANAGE)",
             "dominates(effective, role.permissions)",
@@ -174,7 +174,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/permission/services/permission-service.ts",
+        "apps/web/src/features/permission/services/permission-service.ts",
         (
             "permissionContextSchema.safeParse",
             "accessRolePageEnvelopeSchema.safeParse",
@@ -185,7 +185,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/organization/components/organization-overview.tsx",
+        "apps/web/src/features/organization/components/organization-overview.tsx",
         (
             "isWebFeatureEnabled('permission')",
             "PermissionManagement",
@@ -194,7 +194,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/scripts/verify-compose.sh",
+        "apps/api/scripts/verify-compose.sh",
         (
             'permission_flow="skipped"',
             'permission_migration_flow="skipped"',

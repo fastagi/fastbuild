@@ -9,9 +9,9 @@ skill metadata first and loads a full `SKILL.md` only after selecting it.
 | Working directory | Repository skills available |
 |---|---|
 | Repository root | 12 root skills |
-| `api/` | 12 root + 9 API skills |
-| `web/` | 12 root + 13 Web skills |
-| `admin/` | 12 root skills + local `AGENTS.md` |
+| `apps/api/` | 12 root + 9 API skills |
+| `apps/web/` | 12 root + 13 Web skills |
+| `apps/admin/` | 12 root skills + local `AGENTS.md` |
 
 The repository ships 34 skills in total.
 <!-- skill-index:scope:end -->
@@ -19,8 +19,8 @@ The repository ships 34 skills in total.
 User, system, and plugin skills may also appear in Codex; do not add a
 repository skill with the same name as a known built-in skill.
 
-`admin/` uses the root workflows and its focused local instructions. It does
-not duplicate the Next-specific skill set under `web/.agents/skills/`.
+`apps/admin/` uses the root workflows and its focused local instructions. It does
+not duplicate the Next-specific skill set under `apps/web/.agents/skills/`.
 
 ## Routing Policy
 
@@ -107,7 +107,7 @@ Each row comes from the skill's `agents/openai.yaml` `short_description`.
 | `webapp-testing` | Verify a running UI in a browser |
 <!-- skill-index:tables:end -->
 
-Routine coding standards live in `api/AGENTS.md`; explicit diff review uses the
+Routine coding standards live in `apps/api/AGENTS.md`; explicit diff review uses the
 root `fastbuild-code-review`. Separate duplicate skills for those concerns were
 removed so API tasks do not load overlapping rulebooks.
 
@@ -174,7 +174,7 @@ All guards live under `fastbuild-framework-review/scripts/`.
 | AI/email | `check-ai-boundary.py`, `check-email-boundary.py` |
 | Rate limits/cache/PostgreSQL-only database policy/config/telemetry | `check-rate-limit-boundary.py`, `check-cache-boundary.py`, `check-database-boundary.py`, `check-config-authority.py`, `check-sensitive-telemetry.py` |
 | Web performance/security/primitives | `check-web-performance-boundary.py`, `check-web-security-boundary.py`, `check-web-ui-primitive-boundary.py` |
-| Admin Console architecture/security | `admin/scripts/check-architecture.mjs`, `check-auth-contract-boundary.py` |
+| Admin Console architecture/security | `apps/admin/scripts/check-architecture.mjs`, `check-auth-contract-boundary.py` |
 | CI/dependencies/containers | `check-ci-actions.py`, `check-dependency-supply-chain.py`, `check-container-supply-chain.py` |
 | Scaffold surfaces/starters | `check-surface-catalog.py`, `check-starter-catalog.py` |
 | API imports and branch policy | `check-api-boundaries.sh`, `check-branch-governance.sh` |

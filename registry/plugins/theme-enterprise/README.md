@@ -4,7 +4,7 @@ A calm blue theme for business and internal tools. It restyles both browser shel
 tokens only, so every existing component, page, and block picks it up without code changes.
 
 ```bash
-cd api && go run ./cmd/fastbuild plugin:add theme-enterprise
+cd apps/api && go run ./cmd/fastbuild plugin:add theme-enterprise
 ```
 
 | Token area | Change |
@@ -17,8 +17,8 @@ cd api && go run ./cmd/fastbuild plugin:add theme-enterprise
 
 It installs two stylesheets and imports them at the theme slots:
 
-- `web/src/themes/presets/enterprise.css`, imported at `web.theme` in `web/src/themes/index.css`
-- `admin/src/styles/themes/enterprise.css`, imported at `admin.theme` in `admin/src/styles/globals.css`
+- `apps/web/src/themes/presets/enterprise.css`, imported at `web.theme` in `apps/web/src/themes/index.css`
+- `apps/admin/src/styles/themes/enterprise.css`, imported at `admin.theme` in `apps/admin/src/styles/globals.css`
 
 Light and dark mode are both covered. The Web and Admin contrast guards (`pnpm lint`) check every
 readable pair against WCAG AA 4.5:1. Only one theme can be installed at a time; run

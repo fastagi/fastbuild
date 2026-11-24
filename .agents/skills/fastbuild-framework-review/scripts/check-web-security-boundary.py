@@ -53,7 +53,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/security-headers.ts",
+        "apps/web/security-headers.ts",
         (
             "export function getBrowserSecurityHeaders",
             "key: 'Content-Security-Policy'",
@@ -84,7 +84,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/security-headers.ts",
+        "apps/web/security-headers.ts",
         (
             "'unsafe-inline'",
             "'unsafe-eval'",
@@ -95,7 +95,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/next.config.ts",
+        "apps/web/next.config.ts",
         (
             "from './security-headers'",
             "headers: getBrowserSecurityHeaders({",
@@ -105,7 +105,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/next.config.ts",
+        "apps/web/next.config.ts",
         (
             "X-Frame-Options",
             "Content-Security-Policy",
@@ -117,7 +117,7 @@ def main() -> int:
     require_missing(failures, "web/proxy.ts")
     require_all(
         failures,
-        "web/src/proxy.ts",
+        "apps/web/src/proxy.ts",
         (
             "export async function proxy(request: NextRequest)",
             "getAuthRuntimeMode() !== 'mock-session'",
@@ -130,7 +130,7 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/src/proxy.ts",
+        "apps/web/src/proxy.ts",
         (
             "export async function middleware(",
             "Authorization",
@@ -139,7 +139,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/scripts/check-proxy-manifest.mjs",
+        "apps/web/scripts/check-proxy-manifest.mjs",
         (
             ".next/server/functions-config-manifest.json",
             "manifest?.functions?.['/_middleware']",
@@ -152,7 +152,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/package.json",
+        "apps/web/package.json",
         (
             '"proxy:check": "node ./scripts/check-proxy-manifest.mjs"',
             "next build && node ./scripts/check-proxy-manifest.mjs && node ./scripts/check-route-bundle-budget.mjs",
@@ -161,7 +161,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/test/security-headers.test.ts",
+        "apps/web/src/test/security-headers.test.ts",
         (
             "emits unique, injection-safe common headers",
             "uses a structural CSP without weakening script execution policy",
@@ -172,7 +172,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/test/auth-runtime-boundary.test.ts",
+        "apps/web/src/test/auth-runtime-boundary.test.ts",
         (
             "makes proxy enforcement conditional",
             "source('proxy.ts')",
@@ -181,7 +181,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/scripts/verify-container.sh",
+        "apps/web/scripts/verify-container.sh",
         (
             "\"content-security-policy\": \"base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'\"",
             '"strict-transport-security": "max-age=31536000"',
@@ -198,7 +198,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/docs/SECURITY.md",
+        "apps/web/docs/SECURITY.md",
         (
             "# Web Browser Security Boundary",
             "## Ownership",
@@ -217,12 +217,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/README.md",
+        "apps/web/README.md",
         ("docs/SECURITY.md", "`src/proxy.ts` and `AuthGuard`"),
     )
     require_all(
         failures,
-        "web/AGENTS.md",
+        "apps/web/AGENTS.md",
         (
             "## Environment And Security",
             "docs/SECURITY.md",

@@ -48,7 +48,7 @@ def main() -> int:
         index = json.loads(index_path.read_text(encoding="utf-8"))
         for plugin in index.get("plugins", []):
             for file in plugin.get("files", {}):
-                if file in tracked_set and not file.startswith("contracts/fragments/"):
+                if file in tracked_set and not file.startswith("packages/contracts/fragments/"):
                     failures.append(f"{file} belongs to plugin {plugin['name']}; run plugin:remove {plugin['name']}")
     if failures:
         print("Tracked artifact check failed:", file=sys.stderr)

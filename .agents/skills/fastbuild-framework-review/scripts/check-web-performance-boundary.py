@@ -64,36 +64,36 @@ def require_absent(
 
 
 def check_package_scripts(failures: list[str]) -> None:
-    document = load_json(failures, "web/package.json")
+    document = load_json(failures, "apps/web/package.json")
     if not isinstance(document, dict):
         return
     scripts = document.get("scripts")
     if not isinstance(scripts, dict):
-        failures.append("web/package.json scripts must be an object")
+        failures.append("apps/web/package.json scripts must be an object")
         return
 
     budget_command = "node ./scripts/check-route-bundle-budget.mjs"
     for name in ("build", "build:quiet"):
         command = scripts.get(name)
         if not isinstance(command, str) or "next build" not in command:
-            failures.append(f"web/package.json {name} must run next build")
+            failures.append(f"apps/web/package.json {name} must run next build")
         elif not command.endswith(f"&& {budget_command}"):
-            failures.append(f"web/package.json {name} must finish with the route budget gate")
+            failures.append(f"apps/web/package.json {name} must finish with the route budget gate")
 
     if scripts.get("bundle:check") != budget_command:
-        failures.append("web/package.json bundle:check must run the canonical budget checker")
+        failures.append("apps/web/package.json bundle:check must run the canonical budget checker")
     analyzer = scripts.get("bundle:analyze")
     if not isinstance(analyzer, str) or "next experimental-analyze --output" not in analyzer:
-        failures.append("web/package.json bundle:analyze must use the official Turbopack analyzer")
+        failures.append("apps/web/package.json bundle:analyze must use the official Turbopack analyzer")
 
 
 def check_budget_policy(failures: list[str]) -> None:
-    document = load_json(failures, "web/performance-budgets.json")
+    document = load_json(failures, "apps/web/performance-budgets.json")
     if not isinstance(document, dict):
         return
     if set(document) != {"firstLoadUncompressedJavaScript"}:
         failures.append(
-            "web/performance-budgets.json must own only firstLoadUncompressedJavaScript"
+            "apps/web/performance-budgets.json must own only firstLoadUncompressedJavaScript"
         )
         return
     policy = document["firstLoadUncompressedJavaScript"]
@@ -118,7 +118,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/scripts/check-route-bundle-budget.mjs",
+        "apps/web/scripts/check-route-bundle-budget.mjs",
         (
             ".next/diagnostics/route-bundle-stats.json",
             "firstLoadUncompressedJsBytes",
@@ -133,7 +133,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/components/theme-toggle.tsx",
+        "apps/web/src/components/theme-toggle.tsx",
         (
             "const supportedThemes = ['light', 'dark', 'system'] as const",
             "useSyncExternalStore",
@@ -146,12 +146,12 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/src/components/theme-toggle.tsx",
+        "apps/web/src/components/theme-toggle.tsx",
         ("dropdown-menu", "<Button", "DropdownMenu"),
     )
     require_all(
         failures,
-        "web/src/components/features/site/site-header-nav.tsx",
+        "apps/web/src/components/features/site/site-header-nav.tsx",
         (
             "buttonVariants({ variant: 'ghost', size: 'sm' })",
             "'interactive rounded-md max-sm:hidden'",
@@ -159,21 +159,21 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/src/components/features/site/site-header-nav.tsx",
+        "apps/web/src/components/features/site/site-header-nav.tsx",
         ("<Button",),
     )
     require_all(
         failures,
-        "web/src/components/analytics.tsx",
+        "apps/web/src/components/analytics.tsx",
         (
             "if (!GA_MEASUREMENT_ID) return null;",
             'strategy="lazyOnload"',
         ),
     )
-    require_absent(failures, "web/src/components/analytics.tsx", ("'use client'", '"use client"'))
+    require_absent(failures, "apps/web/src/components/analytics.tsx", ("'use client'", '"use client"'))
     require_all(
         failures,
-        "web/Dockerfile",
+        "apps/web/Dockerfile",
         (
             "COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./",
             "RUN corepack enable pnpm && pnpm i --frozen-lockfile",
@@ -186,13 +186,13 @@ def main() -> int:
     )
     require_absent(
         failures,
-        "web/Dockerfile",
+        "apps/web/Dockerfile",
         ("ENV NODE_ENV production", "ENV NEXT_TELEMETRY_DISABLED 1", 'ENV HOSTNAME "0.0.0.0"'),
     )
 
     require_all(
         failures,
-        "web/src/test/theme-toggle.test.tsx",
+        "apps/web/src/test/theme-toggle.test.tsx",
         (
             "native three-state selector",
             "hydrates a persisted theme",
@@ -203,18 +203,18 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/test/root-runtime-boundary.test.ts",
+        "apps/web/src/test/root-runtime-boundary.test.ts",
         ("strategy=\"lazyOnload\"", "if (!GA_MEASUREMENT_ID) return null;"),
     )
     require_all(
         failures,
-        "web/src/test/route-accessibility-contract.test.ts",
+        "apps/web/src/test/route-accessibility-contract.test.ts",
         ("semantic and bounded on narrow screens", "max-sm:hidden"),
     )
 
     require_all(
         failures,
-        "web/docs/PERFORMANCE.md",
+        "apps/web/docs/PERFORMANCE.md",
         (
             "# Web Performance Boundary",
             "firstLoadUncompressedJsBytes",
@@ -234,17 +234,17 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/README.md",
+        "apps/web/README.md",
         ("docs/PERFORMANCE.md", "pnpm bundle:check", "pnpm bundle:analyze"),
     )
     require_all(
         failures,
-        "web/AGENTS.md",
+        "apps/web/AGENTS.md",
         ("docs/PERFORMANCE.md", "route budgets", "Web Vitals"),
     )
     require_all(
         failures,
-        "web/.agents/skills/web-perf/SKILL.md",
+        "apps/web/.agents/skills/web-perf/SKILL.md",
         ("deterministic route", "pnpm bundle:check", "field p75"),
     )
     require_all(

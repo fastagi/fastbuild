@@ -68,7 +68,7 @@ cat <<EOF
 
 <!-- Use [x] for what you ran; [ ] for what the reviewer should run. -->
 - [ ] Unit: \`go test ./<changed-pkg>/...\` (or \`pnpm test\`)
-- [ ] API: \`cd api && bash ../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./<changed-pkg>/...\`
+- [ ] API: \`cd apps/api && bash ../../.agents/skills/verification-before-completion/scripts/run-tiers.sh 1 ./<changed-pkg>/...\`
 - [ ] Lint: \`pnpm type-check && pnpm lint\` (web)
 - [ ] Manual: TODO — what should the reviewer click through?
 

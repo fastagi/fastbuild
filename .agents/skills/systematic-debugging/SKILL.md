@@ -67,8 +67,8 @@ For each candidate cause, write down:
 
 Use the project's existing tooling:
 
-- `api/`: structured logs (see `logging-standards` skill), `go test -race`, pprof, `gorm.Logger` for SQL.
-- `web/`: browser devtools network/console, React DevTools, Next.js build trace.
+- `apps/api/`: structured logs (see `logging-standards` skill), `go test -race`, pprof, `gorm.Logger` for SQL.
+- `apps/web/`: browser devtools network/console, React DevTools, Next.js build trace.
 
 A real root cause explains *every* observed symptom. If a candidate fix doesn't explain all symptoms, it's a band-aid, not a root cause.
 

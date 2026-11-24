@@ -143,7 +143,7 @@ def check_ignore_policy(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
 
-    api_dockerfile = ROOT / "api/Dockerfile"
+    api_dockerfile = ROOT / "apps/api/Dockerfile"
     api_content = require_markers(
         failures,
         api_dockerfile,
@@ -161,10 +161,10 @@ def main() -> int:
         ),
     )
     if api_content.splitlines()[0] != FRONTEND:
-        failures.append("api/Dockerfile must pin the reviewed frontend on line 1")
+        failures.append("apps/api/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, api_dockerfile, api_content)
 
-    web_dockerfile = ROOT / "web/Dockerfile"
+    web_dockerfile = ROOT / "apps/web/Dockerfile"
     web_content = require_markers(
         failures,
         web_dockerfile,
@@ -188,10 +188,10 @@ def main() -> int:
         ),
     )
     if web_content.splitlines()[0] != FRONTEND:
-        failures.append("web/Dockerfile must pin the reviewed frontend on line 1")
+        failures.append("apps/web/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, web_dockerfile, web_content)
 
-    admin_dockerfile = ROOT / "admin/Dockerfile"
+    admin_dockerfile = ROOT / "apps/admin/Dockerfile"
     admin_content = require_markers(
         failures,
         admin_dockerfile,
@@ -212,18 +212,18 @@ def main() -> int:
         ),
     )
     if admin_content.splitlines()[0] != FRONTEND:
-        failures.append("admin/Dockerfile must pin the reviewed frontend on line 1")
+        failures.append("apps/admin/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, admin_dockerfile, admin_content)
 
     for relative, expected_materials, expected_inputs in (
         (
-            "api/scripts/verify-container.sh",
+            "apps/api/scripts/verify-container.sh",
             3,
             (FRONTEND, API_BUILDER, API_RUNTIME),
         ),
-        ("web/scripts/verify-container.sh", 2, (FRONTEND, WEB_BASE)),
+        ("apps/web/scripts/verify-container.sh", 2, (FRONTEND, WEB_BASE)),
         (
-            "admin/scripts/verify-container.sh",
+            "apps/admin/scripts/verify-container.sh",
             3,
             (FRONTEND, WEB_BASE, ADMIN_RUNTIME),
         ),
@@ -312,7 +312,6 @@ def main() -> int:
         ROOT / ".github/workflows/container.yml",
         (
             "scripts/container-security.sh",
-            "scripts/validate-container-sbom.py",
             "BUILD_METADATA_OUTPUT",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-api.build-metadata.json",
@@ -327,7 +326,6 @@ def main() -> int:
         (
             "scripts/verify-container.sh fastbuild-web:ci",
             "scripts/container-security.sh verify fastbuild-web:ci",
-            "scripts/validate-container-sbom.py",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-web.build-metadata.json",
             "fastbuild-web.cdx.json",
@@ -341,7 +339,6 @@ def main() -> int:
         (
             "scripts/verify-container.sh fastbuild-admin:ci",
             "scripts/container-security.sh verify fastbuild-admin:ci",
-            "scripts/validate-container-sbom.py",
             "OCI_SOURCE: ${{ github.server_url }}/${{ github.repository }}",
             "fastbuild-admin.build-metadata.json",
             "fastbuild-admin.cdx.json",

@@ -34,7 +34,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "contracts/API_KEYS.md",
+        "packages/contracts/API_KEYS.md",
         (
             "The plaintext appears only in this successful",
             "JSON string array",
@@ -56,12 +56,12 @@ def main() -> int:
 
     require_all(
         failures,
-        "api/internal/modules/apikey/model.go",
+        "apps/api/internal/modules/apikey/model.go",
         ("json.Marshal(scopes)", "json.Unmarshal", "Compatibility for rows written before"),
     )
     require_all(
         failures,
-        "api/internal/modules/apikey/repository.go",
+        "apps/api/internal/modules/apikey/repository.go",
         (
             "revoked_at IS NULL",
             '"last_used_at"',
@@ -69,15 +69,15 @@ def main() -> int:
             "expires_at IS NULL OR expires_at > ?",
         ),
     )
-    repository = read("api/internal/modules/apikey/repository.go")
+    repository = read("apps/api/internal/modules/apikey/repository.go")
     if re.search(r"\.Save\s*\(", repository):
         failures.append(
-            "api/internal/modules/apikey/repository.go must not use full-row Save for revoke or use tracking"
+            "apps/api/internal/modules/apikey/repository.go must not use full-row Save for revoke or use tracking"
         )
 
     require_all(
         failures,
-        "api/internal/modules/apikey/service.go",
+        "apps/api/internal/modules/apikey/service.go",
         (
             "MaxAPIKeyScopes",
             "MaxAPIKeyScopeLength",
@@ -90,7 +90,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/apikey/scope_middleware.go",
+        "apps/api/internal/modules/apikey/scope_middleware.go",
         (
             "func RequireScopes(",
             "domain.CodePermissionDenied",
@@ -100,13 +100,13 @@ def main() -> int:
     )
     require_all(
         failures,
-        "api/internal/modules/apikey/handler.go",
+        "apps/api/internal/modules/apikey/handler.go",
         ("ValidationErrorHandler", "response.HandleError(c, \"API key authentication failed\", err)"),
     )
 
     require_all(
         failures,
-        "web/src/features/api-key/schemas.ts",
+        "apps/web/src/features/api-key/schemas.ts",
         (
             "strictObject",
             "apiKeyPageEnvelopeSchema",
@@ -117,12 +117,12 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/api-key/hooks/use-api-keys.ts",
+        "apps/web/src/features/api-key/hooks/use-api-keys.ts",
         ("gcTime: 0", "apiKeyKeys.list()", "invalidateQueries"),
     )
     require_all(
         failures,
-        "web/src/features/api-key/components/api-key-panel.tsx",
+        "apps/web/src/features/api-key/components/api-key-panel.tsx",
         (
             "createApiKey.reset()",
             "setCreated(null)",
@@ -131,7 +131,7 @@ def main() -> int:
         ),
     )
     settings_page = read(
-        "web/src/app/(protected)/(console)/console/settings/page.tsx"
+        "apps/web/src/app/(protected)/(console)/console/settings/page.tsx"
     )
     if "<ApiKeyPanel />" not in settings_page or "sk_demo" in settings_page:
         failures.append(
@@ -140,7 +140,7 @@ def main() -> int:
 
     require_all(
         failures,
-        "web/src/features/api-key/server/api-key-route.ts",
+        "apps/web/src/features/api-key/server/api-key-route.ts",
         (
             "resolveApiKeyRoute()",
             "guardSameOriginMutation(request)",
@@ -152,7 +152,7 @@ def main() -> int:
     )
     require_all(
         failures,
-        "web/src/features/api-key/server/mock-api-key-store.ts",
+        "apps/web/src/features/api-key/server/mock-api-key-store.ts",
         (
             "createHash('sha256')",
             "key_hash:",
@@ -160,7 +160,7 @@ def main() -> int:
             "owner_key",
         ),
     )
-    mock_store = read("web/src/features/api-key/server/mock-api-key-store.ts")
+    mock_store = read("apps/web/src/features/api-key/server/mock-api-key-store.ts")
     record_match = re.search(
         r"interface MockApiKeyRecord.*?\{(?P<body>.*?)\}", mock_store, re.DOTALL
     )
@@ -168,19 +168,19 @@ def main() -> int:
         failures.append("MockApiKeyRecord must never persist plaintext API key material")
 
     for relative_path in (
-        "web/src/app/api/api-keys/route.ts",
-        "web/src/app/api/api-keys/[apiKeyId]/route.ts",
+        "apps/web/src/app/api/api-keys/route.ts",
+        "apps/web/src/app/api/api-keys/[apiKeyId]/route.ts",
     ):
         require_all(failures, relative_path, ("privateApiKeyResponse(",))
 
     for relative_path in (
-        "api/internal/modules/apikey/repository_test.go",
-        "api/internal/modules/apikey/handler_middleware_test.go",
-        "api/internal/modules/apikey/scope_middleware_test.go",
-        "web/src/test/api-key-contract.test.ts",
-        "web/src/test/api-key-route.test.ts",
-        "web/src/test/api-key-ui.test.tsx",
-        "web/docs/API_KEYS.md",
+        "apps/api/internal/modules/apikey/repository_test.go",
+        "apps/api/internal/modules/apikey/handler_middleware_test.go",
+        "apps/api/internal/modules/apikey/scope_middleware_test.go",
+        "apps/web/src/test/api-key-contract.test.ts",
+        "apps/web/src/test/api-key-route.test.ts",
+        "apps/web/src/test/api-key-ui.test.tsx",
+        "apps/web/docs/API_KEYS.md",
     ):
         if not (ROOT / relative_path).is_file():
             failures.append(f"missing API key boundary evidence: {relative_path}")

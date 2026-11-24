@@ -5,7 +5,7 @@
 #
 #   scripts/verify-plugin.sh <plugin>
 #
-# FASTBUILD_TEST_POSTGRES_DSN enables the plugin's PostgreSQL tests. contracts/, web/, and admin/
+# FASTBUILD_TEST_POSTGRES_DSN enables the plugin's PostgreSQL tests. packages/contracts/, apps/web/, and apps/admin/
 # need their dependencies installed (pnpm install) for the halves the plugin touches.
 set -euo pipefail
 
@@ -32,8 +32,8 @@ field() {
   node -e 'const p = JSON.parse(require("fs").readFileSync(0, "utf8")).plugin;
     const files = Object.keys(p.files ?? {});
     const value = { kind: p.kind || "feature", starter: p.starter?.directory ?? "", fragment: p.fragment ?? "",
-      api: files.some(f => f.startsWith("api/")), web: files.some(f => f.startsWith("web/")),
-      admin: files.some(f => f.startsWith("admin/")) || (p.wiring ?? []).some(w => w.slot.startsWith("admin.")),
+      api: files.some(f => f.startsWith("apps/api/")), web: files.some(f => f.startsWith("apps/web/")),
+      admin: files.some(f => f.startsWith("apps/admin/")) || (p.wiring ?? []).some(w => w.slot.startsWith("admin.")),
       webWiring: (p.wiring ?? []).some(w => w.slot.startsWith("web.")) }[process.argv[1]];
     process.stdout.write(String(value));' "$1" <<<"$info"
 }

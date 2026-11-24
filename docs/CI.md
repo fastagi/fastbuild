@@ -10,7 +10,7 @@ compatible with supported runners, and reviewable without trusting a movable act
 | `ci.yml` | Root governance, OpenAPI lint/generation/route/breaking gates, API build/lint/test/runtime-route/race gates, PostgreSQL 15-18 compatibility, plus Next.js Web and Admin Console type/lint/test/build gates | `contents: read` |
 | `container.yml` | API image identity, smoke test, SBOM/scan evidence, and local Compose lifecycle | `contents: read` |
 | `e2e.yml` | Starts PostgreSQL, the API, and one browser shell with `make dev`, then runs Playwright against one browser shell: its main flows, WCAG AA checks with axe in light and dark mode, and screenshots at phone and desktop widths compared with baselines rendered on the CI runner (refresh them with the `update_snapshots` input and commit the uploaded artifact) | `contents: read` |
-| `perf.yml` | Weekly and on demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
+| `perf.yml` | On demand: a release build against PostgreSQL under the k6 baseline, failing when a hot path leaves its p95 or error budget; k6 is a checksum-pinned release | `contents: read` |
 | `dependency-security.yml` | Scheduled and change-triggered OSV lockfile scan plus CycloneDX SBOM artifact | `contents: read` |
 | `release.yml` | On a `vX.Y.Z` tag: requires the tag on `main` with a changelog section, builds and scans the API, Web, and Admin images, attests the SBOMs, and publishes the GitHub release | `contents: read`; the job elevates to `contents: write`, `id-token: write`, `attestations: write` |
 | `skill-self-test.yml` | Starter-module skill validators in one job (Skill metadata is validated by `make governance`) | `contents: read` |
@@ -25,24 +25,28 @@ permission-policy entry in `check-ci-actions.py` and a role in the table above.
 
 ## When Checks Run
 
-A pull request runs only what its change can break; everything else runs after merge, weekly,
-and before a release, so coverage is unchanged while a typical pull request runs five to eight checks.
-Draft pull requests run nothing: open a draft while iterating, and checks start when it is marked
-ready for review. Scheduled runs happen once a week, on Monday between 02:41 and 05:17 UTC.
+CI is lean by default, because agent-driven changes land often. A pull request runs only the fast
+checks its change can break; merges to `main` run nothing extra; the full suite runs weekly and on
+every release tag; image and performance checks run on demand. Draft pull requests run nothing: open
+a draft while iterating, and checks start when it is marked ready for review. Scheduled runs happen
+once a week, on Monday between 02:41 and 05:17 UTC.
 
-| Check | Pull request (not draft) | Push to `main` | Weekly | Release tag |
+| Check | Pull request (not draft) | Weekly | On demand | Release tag |
 |---|---|---|---|---|
 | Governance | Always | Yes | Yes | Via `make release-check` |
-| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `contracts/`, `api/`, `web/`, `admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
+| HTTP contracts, API (PostgreSQL 16), Web, Admin | When `packages/contracts/`, `apps/api/`, `apps/web/`, `apps/admin/`, `registry/`, or CI changes, per area | Yes | Yes | Via `make release-check` |
 | Web and Admin on Node 24 | No | Yes | Yes | Via `make release-check` |
 | PostgreSQL 15, 17, 18 compatibility | No | Yes | Yes | — |
 | Initialized project (`scripts/verify-init-project.sh`) | When `project:init`, ignore rules, root docs, or repository scripts change | Yes | Yes | — |
-| API, Web, and Admin containers | When an image input changes (Dockerfile, dependency manifests, container scripts) | No | Yes | Built and scanned by `release.yml` |
-| End-to-end | When a browser shell, sign-in, the operator flow, or the dev stack changes | No | Yes | — |
-| Dependency security | When a dependency manifest changes | No | Yes | — |
-| Skill self-test | When starter modules or skills change | No | — | — |
-| Plugins | When the registry or plugin machinery changes | No | Yes | — |
-| Performance baseline | — | — | Yes | — |
+| Dependency security | When a dependency manifest changes | Yes | Yes | — |
+| Skill self-test | When starter modules or skills change | — | Yes | — |
+| End-to-end | No | Yes | Yes | — |
+| Plugins | No (registry checksums run in the contracts job) | Yes | Yes | — |
+| API, Web, and Admin containers | No | No | Yes | Built and scanned by `release.yml` |
+| Performance baseline | No | No | Yes | — |
+
+A downstream project that wants more coverage per change can add `pull_request` paths back to a
+workflow; the guards check workflow content, not its triggers.
 
 Every workflow also has `workflow_dispatch`, so any check can be run on demand from the Actions tab.
 A scheduled failure is fixed like a failing pull request: open a fix before the next release.
@@ -79,9 +83,9 @@ the centralized production browser-security response policy. This proves image/r
 unit test and root governance check separately own policy semantics and Next.js Proxy conventions.
 The Admin image smoke check runs nginx with a read-only root filesystem and proves the SPA deep-link
 fallback, cache headers, `/api` proxy routing, and the browser-security headers from
-[`admin/docs/DEPLOYMENT.md`](../admin/docs/DEPLOYMENT.md).
+[`apps/admin/docs/DEPLOYMENT.md`](../apps/admin/docs/DEPLOYMENT.md).
 
-The action runtime is separate from browser project runtimes: CI tests both `web/` and `admin/`
+The action runtime is separate from browser project runtimes: CI tests both `apps/web/` and `apps/admin/`
 on Node 22 and Node 24. Node 22 remains the production image and type-definition baseline. Each
 pnpm version comes from that project's `packageManager`; the setup action receives its exact
 `package_json_file` instead of duplicating the version in workflow YAML. Both workspaces require
@@ -91,7 +95,7 @@ interpret either lockfile.
 The API job runs `make wire-check` after its build/lint/test tier. It regenerates the Wire graph
 and fails when the committed `internal/wiring/wire_gen.go` is stale, so a provider-set edit cannot
 merge without its generated output (see
-[`../api/docs/adr/0014-wire-maintenance-posture.md`](../api/docs/adr/0014-wire-maintenance-posture.md)).
+[`../apps/api/docs/adr/0014-wire-maintenance-posture.md`](../apps/api/docs/adr/0014-wire-maintenance-posture.md)).
 
 The API job then runs `make route-catalog-check`. That command assembles
 the real configured runtime, emits schema-versioned JSON, validates its closed shape and ordering,
@@ -104,7 +108,7 @@ migrations, repositories, transaction and locking behavior, optional starter per
 PostgreSQL durable tasks without repeating unrelated browser or pure-Go checks. On every supported
 version, `database/migrations` compares the schema a fresh database receives from all migrations
 with `testdata/schema.golden.sql`, and proves that a full reset rolls back to an empty schema. The support window
-is documented in [`../api/docs/DATABASE.md`](../api/docs/DATABASE.md) and must move forward before an
+is documented in [`../apps/api/docs/DATABASE.md`](../apps/api/docs/DATABASE.md) and must move forward before an
 upstream major version reaches end of life.
 
 The HTTP Contracts job validates OpenAPI 3.1, checks committed TypeScript output in both browser
@@ -117,7 +121,7 @@ when the target commit has no schema.
 
 The Dependency Security workflow calls the same root script available to developers. It downloads
 OSV-Scanner 2.3.8 from the official release, verifies the platform asset by SHA-256, scans
-`api/go.mod` plus the contracts, Web, and Admin Console pnpm lockfiles, validates a CycloneDX 1.5
+`apps/api/go.mod` plus the contracts, Web, and Admin Console pnpm lockfiles, validates a CycloneDX 1.5
 inventory, and uploads that inventory for 14 days. It uses read-only repository permission and does
 not depend on private-repository GitHub Advanced Security availability.
 
@@ -159,7 +163,7 @@ python3 .agents/skills/fastbuild-framework-review/scripts/check-ci-actions.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-dependency-supply-chain.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-container-supply-chain.py
 python3 .agents/skills/fastbuild-framework-review/scripts/check-route-contract-discovery.py
-cd api && make route-catalog-check
+cd apps/api && make route-catalog-check
 make dependency-scan
 make check
 ```

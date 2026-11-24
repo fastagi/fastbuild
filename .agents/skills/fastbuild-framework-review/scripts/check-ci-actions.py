@@ -194,20 +194,20 @@ def main() -> int:
         failures.append(f"reviewed workflow .github/workflows/{workflow} is missing")
 
     ci_workflow = (WORKFLOW_ROOT / "ci.yml").read_text(encoding="utf-8")
-    if "package_json_file: web/package.json" not in ci_workflow:
-        failures.append("ci.yml must source the pnpm version from web/package.json")
+    if "package_json_file: apps/web/package.json" not in ci_workflow:
+        failures.append("ci.yml must source the pnpm version from apps/web/package.json")
     for marker in (
-        # Pull requests run Node 22; pushes to main and the weekly run add Node 24.
+        # Pull requests run Node 22; the weekly and manual runs add Node 24.
         """fromJSON('["22"]') || fromJSON('["22", "24"]')""",
         "node-version: ${{ matrix.node-version }}",
         "fail-fast: false",
     ):
         if marker not in ci_workflow:
             failures.append(f"ci.yml must keep the Web Node 22/24 matrix marker {marker!r}")
-    package_data = json.loads((ROOT / "web/package.json").read_text(encoding="utf-8"))
+    package_data = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
     package_manager = package_data.get("packageManager", "")
     if not re.fullmatch(r"pnpm@\d+\.\d+\.\d+", package_manager):
-        failures.append("web/package.json must pin an exact pnpm packageManager version")
+        failures.append("apps/web/package.json must pin an exact pnpm packageManager version")
 
     container_workflow = (WORKFLOW_ROOT / "container.yml").read_text(encoding="utf-8")
     container_check_at = container_workflow.find(
@@ -247,7 +247,7 @@ def main() -> int:
         if marker not in admin_container_workflow:
             failures.append(f"admin-container.yml must contain {marker!r}")
 
-    compose_verifier = (ROOT / "api/scripts/verify-compose.sh").read_text(
+    compose_verifier = (ROOT / "apps/api/scripts/verify-compose.sh").read_text(
         encoding="utf-8"
     )
     for marker in (
@@ -257,7 +257,7 @@ def main() -> int:
     ):
         if marker not in compose_verifier:
             failures.append(
-                f"api/scripts/verify-compose.sh must contain {marker!r}"
+                f"apps/api/scripts/verify-compose.sh must contain {marker!r}"
             )
 
     ci_doc = (ROOT / "docs/CI.md").read_text(encoding="utf-8")

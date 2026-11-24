@@ -16,7 +16,7 @@ Starts an internal or customer-facing knowledge portal: the knowledge base with 
 ```bash
 make init-project NAME="Acme" SLUG=acme MODULE=github.com/acme/app/api TEMPLATE=knowledge-portal
 # or, in an existing project:
-cd api && go run ./cmd/fastbuild plugin:add knowledge-portal
+cd apps/api && go run ./cmd/fastbuild plugin:add knowledge-portal
 ```
 
 It selects the starters `organization`, `notification`. Complete each included plugin's

@@ -2,7 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: npm
-    directory: /contracts
+    directory: /packages/contracts
     schedule:
       interval: monthly
       day: monday
@@ -23,7 +23,7 @@ updates:
       prefix: deps(contracts)
 
   - package-ecosystem: npm
-    directory: /web
+    directory: /apps/web
     schedule:
       interval: monthly
       day: monday
@@ -47,7 +47,7 @@ updates:
       prefix: deps(web)
 
   - package-ecosystem: gomod
-    directory: /api
+    directory: /apps/api
     schedule:
       interval: monthly
       day: monday
@@ -68,7 +68,7 @@ updates:
       prefix: deps(api)
 
   - package-ecosystem: npm
-    directory: /admin
+    directory: /apps/admin
     schedule:
       interval: monthly
       day: monday
@@ -113,7 +113,7 @@ updates:
       prefix: deps(actions)
 
   - package-ecosystem: docker
-    directory: /api
+    directory: /apps/api
     schedule:
       interval: monthly
       day: monday
@@ -134,7 +134,7 @@ updates:
       prefix: deps(api-image)
 
   - package-ecosystem: docker
-    directory: /web
+    directory: /apps/web
     schedule:
       interval: monthly
       day: monday

@@ -2,26 +2,62 @@
 
 FastBuild is a multi-deployable scaffold:
 
-- `api/` is the Go backend. It owns persistence, domain rules, HTTP routes, migrations, seeders, and operational integrations.
-- `web/` is the customer-facing Next.js application. It owns public and account
+- `apps/api/` is the Go backend. It owns persistence, domain rules, HTTP routes, migrations, seeders, and operational integrations.
+- `apps/web/` is the customer-facing Next.js application. It owns public and account
   journeys, user workspace UI, SSR, client state, mock BFF route handlers, and
   server-owned browser adapters.
-- `admin/` is the project management application. It uses Vite and TanStack
+- `apps/admin/` is the project management application. It uses Vite and TanStack
   Router and builds to static OSS/CDN assets with no production Node.js runtime.
+- `packages/contracts/` holds the OpenAPI contract, fragments, and contract tooling.
 
-The units are independently deployable. A downstream application may deploy
-`web/`, `admin/`, or both. All integration uses HTTP contracts, not shared source.
+The apps are independently deployable. A downstream application may deploy
+`apps/web/`, `apps/admin/`, or both. Apps integrate over HTTP contracts and never import each
+other's source; shared TypeScript lives in packages that follow the layers below.
 
 ## Boundaries
 
-- API and browser-shell code must not import each other's source.
-- Both browser shells talk to API behavior over HTTP only.
-- Contracts are documented under `contracts/`.
+- Apps must not import each other's source.
+- Every client talks to API behavior over HTTP only.
+- Contracts are documented under `packages/contracts/`.
+- Packages never import apps, and the Go API consumes only `packages/contracts/`.
 - The user-facing brand is `FastBuild`; lowercase `fastbuild` is reserved for identifiers, packages, binaries, and env keys.
+
+## Apps and Packages
+
+`apps/` holds deployable units and `packages/` holds shared code that is never deployed alone.
+
+| Path | Role |
+|---|---|
+| `apps/api/` | Go backend |
+| `apps/web/` | Next.js SSR; cookie-based browser auth through server-owned adapters |
+| `apps/admin/` | Vite SPA; static assets; HttpOnly operator session |
+| `packages/contracts/` | OpenAPI contract, fragments, and contract tooling; the single source of HTTP truth |
+
+Dependency rules:
+
+1. Apps may depend on packages; packages never depend on apps, and apps never import each other.
+2. Package dependencies never form a cycle.
+3. A package is platform-neutral unless its name states its platform. Neutral packages import no
+   DOM, Next.js, or other platform API.
+4. The Go API reads only `packages/contracts/`.
+5. Every app is removable: deleting it, plus packages only it uses, keeps the rest green.
+
+Packages carry logic, types, and design tokens. UI components stay in the app that renders them
+unless a package names its platform, so removing one app never strands another's components.
+
+### Client Credential Custody
+
+Each client keeps credentials where its platform can protect them. Browser JavaScript never holds
+a bearer credential.
+
+| Client | Credential custody |
+|---|---|
+| Web application | HttpOnly same-origin cookie held by the production auth adapter |
+| Admin Console | HttpOnly operator session issued by the Go API |
 
 ## API Shape
 
-The API uses DDD-flavored starter modules under `api/internal/modules/`.
+The API uses DDD-flavored starter modules under `apps/api/internal/modules/`.
 
 Default starter modules:
 
@@ -46,7 +82,7 @@ Handler -> Service -> Repository -> Database
 DTO -> Domain -> PO
 ```
 
-Infrastructure capabilities live under `api/internal/infra/` and `api/internal/capabilities/`.
+Infrastructure capabilities live under `apps/api/internal/infra/` and `apps/api/internal/capabilities/`.
 For the starter readiness matrix and next reusable business starters, see
 [`STARTER_BUSINESS_ROADMAP.md`](STARTER_BUSINESS_ROADMAP.md).
 
@@ -54,7 +90,7 @@ For the starter readiness matrix and next reusable business starters, see
 
 Most starter operations own their transaction inside one repository. When an invariant spans two
 active starters on the same database, the transaction owner may bind its GORM transaction to a
-callback-only context through `api/internal/infra/database/transaction_context.go`. Cooperating
+callback-only context through `apps/api/internal/infra/database/transaction_context.go`. Cooperating
 repositories resolve that context before falling back to their configured database.
 
 - The transaction context must not escape its callback or be stored for later work.
@@ -83,12 +119,12 @@ Handlers and services read the verified value with
 `domain.OrganizationContextFromContext(ctx)`. They must not parse the transport header again,
 persist a process-wide current organization, or trust an organization ID copied from a request
 body. Every request therefore observes current membership and role state, including removal,
-leave, and ownership transfer. See [`../contracts/ORGANIZATIONS.md`](../contracts/ORGANIZATIONS.md)
+leave, and ownership transfer. See [`../packages/contracts/ORGANIZATIONS.md`](../packages/contracts/ORGANIZATIONS.md)
 for the public header, cache, CORS, and non-disclosure contract.
 
 ## Customer Web Shape
 
-The web app uses Next.js App Router and feature-first folders under `web/src/features/`.
+The web app uses Next.js App Router and feature-first folders under `apps/web/src/features/`.
 
 Typical flow:
 
@@ -96,9 +132,9 @@ Typical flow:
 Page or component -> Feature hook -> Feature service -> src/http/request.ts -> HTTP API
 ```
 
-Mock BFF route handlers under `web/src/app/api/` are part of the scaffold so the Next.js shell can
+Mock BFF route handlers under `apps/web/src/app/api/` are part of the scaffold so the Next.js shell can
 run without a backend during development. They are replaceable development flows, not the
-production API; see `web/docs/MOCK_BFF.md` for downstream replacement steps.
+production API; see `apps/web/docs/MOCK_BFF.md` for downstream replacement steps.
 
 Production browser calls that use the FastBuild HttpOnly API session follow a fixed same-origin adapter
 flow:
@@ -107,7 +143,7 @@ flow:
 Browser feature -> /api allowlist Route Handler -> bounded server-only API client -> Go /v1 route
 ```
 
-`web/src/server/api-adapter/` owns credentials, trusted client-IP parsing, timeout, bounded upstream
+`apps/web/src/server/api-adapter/` owns credentials, trusted client-IP parsing, timeout, bounded upstream
 JSON, safe response headers, and generic display copy. It accepts code-owned relative paths only;
 do not replace the allowlist with a catch-all proxy. The optional organization feature is selected
 with `NEXT_PUBLIC_OPTIONAL_FEATURES=organization`, derives the active organization from
@@ -140,7 +176,7 @@ and bounded content inspection promote bytes to an immutable final key. The Web 
 fixed management adapters, ephemeral transfer execution, bounded mock parity, and console state; it
 never receives object keys, local paths, checksums, or durable provider URLs. Production requires an
 explicit R2 adapter while local storage remains a rooted development implementation. See
-[`../contracts/ASSETS.md`](../contracts/ASSETS.md).
+[`../packages/contracts/ASSETS.md`](../packages/contracts/ASSETS.md).
 
 The organization-dependent `setting` starter is selected with `organization,setting` in the API
 and Next.js Web shell. The API owns the finite typed catalog, effective default/override resolution, monotonic
@@ -148,7 +184,7 @@ versions, compare-and-swap writes, public app caching, private scope isolation, 
 and account cleanup. The Web feature accepts only the five shipped definitions, uses fixed
 same-origin routes, and exposes real user and organization preferences. Unknown definitions fail
 closed instead of becoming an arbitrary settings editor. See
-[`../contracts/SETTINGS.md`](../contracts/SETTINGS.md).
+[`../packages/contracts/SETTINGS.md`](../packages/contracts/SETTINGS.md).
 
 The organization-dependent `usage` starter is selected with `organization,usage` in the API and
 Next.js Web shell.
@@ -157,12 +193,12 @@ summary is browser-readable. Exact retained idempotency, safe integers, UTC peri
 quota CAS, denied-decision persistence, retention, and account cleanup stay in the API. The Next.js
 Web shell uses two fixed private adapters and strict catalog validation; it cannot ingest events or
 mutate quota.
-See [`../contracts/USAGE.md`](../contracts/USAGE.md).
+See [`../packages/contracts/USAGE.md`](../packages/contracts/USAGE.md).
 
 ## Admin Console Shape
 
 The static app uses Vite, TanStack Router, and feature-first folders under
-`admin/src/features/`.
+`apps/admin/src/features/`.
 
 Typical flow:
 
@@ -171,11 +207,11 @@ TanStack route -> Feature component -> Query hook -> Feature service
   -> src/http/client.ts -> HTTP API
 ```
 
-Routes under `admin/src/routes/` are generated into one type-safe route tree and split
+Routes under `apps/admin/src/routes/` are generated into one type-safe route tree and split
 automatically. TanStack Query owns remote state, Zustand owns shared browser-only UI state, Zod
 validates important responses, and i18next owns formal user-facing copy.
 
-`admin/` emits only `dist/` static assets. It has no Route Handlers, Server Components, server
+`apps/admin/` emits only `dist/` static assets. It has no Route Handlers, Server Components, server
 functions, private runtime environment, or mock BFF. Production routing serves existing hashed
 assets, routes an allowlisted `/api/*` prefix to a reviewed backend when needed, and rewrites other
 application paths to `index.html`.
@@ -185,8 +221,8 @@ browser gateway or explicit Go browser-session boundary that owns HttpOnly cooki
 enforcement, and fixed upstream mappings. Client route guards remain UX only. The optional `operator`
 starter is that boundary for the Admin Console: with it the console has operator sign-in and
 administration screens, and without it only system readiness and browser preferences. See
-[`../admin/docs/ARCHITECTURE.md`](../admin/docs/ARCHITECTURE.md) and
-[`../admin/docs/SECURITY.md`](../admin/docs/SECURITY.md).
+[`../apps/admin/docs/ARCHITECTURE.md`](../apps/admin/docs/ARCHITECTURE.md) and
+[`../apps/admin/docs/SECURITY.md`](../apps/admin/docs/SECURITY.md).
 
 For the full list of scaffold surfaces and downstream keep/delete/replace rules, see
 [`SCAFFOLD_SURFACES.md`](SCAFFOLD_SURFACES.md).
@@ -195,9 +231,10 @@ For the full list of scaffold surfaces and downstream keep/delete/replace rules,
 
 For a vertical feature:
 
-1. Update or add the HTTP contract under `contracts/`.
-2. Implement the API module or endpoint in `api/`.
+1. Update or add the HTTP contract under `packages/contracts/`.
+2. Implement the API module or endpoint in `apps/api/`.
 3. Add service, hook, UI, and tests in each browser shell the downstream app supports.
 4. Run verification in each changed deployable unit, or `make check` at the repo root.
 
-For cross-cutting changes, prefer small, explicit changes on each side over a shared source package.
+For cross-cutting changes, prefer small, explicit changes on each side. Move code into a package
+only when two apps need the same platform-neutral behavior, and keep it within the rules above.
