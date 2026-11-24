@@ -26,6 +26,8 @@ jobs:
       contracts: ${{ steps.areas.outputs.contracts }}
       web: ${{ steps.areas.outputs.web }}
       admin: ${{ steps.areas.outputs.admin }}
+      desktop: ${{ steps.areas.outputs.desktop }}
+      mobile: ${{ steps.areas.outputs.mobile }}
       project: ${{ steps.areas.outputs.project }}
     steps:
       - name: Checkout
@@ -40,7 +42,7 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           if [ "$EVENT" != "pull_request" ]; then
-            for area in api contracts web admin project; do echo "$area=true" >> "$GITHUB_OUTPUT"; done
+            for area in api contracts web admin desktop mobile project; do echo "$area=true" >> "$GITHUB_OUTPUT"; done
             exit 0
           fi
           changed=$(git diff --name-only "$BASE_SHA" HEAD)
@@ -53,6 +55,8 @@ jobs:
           flag contracts '^(packages/contracts/|api/)'
           flag web '^(apps/web/|packages/contracts/)'
           flag admin '^(apps/admin/|packages/contracts/)'
+          flag desktop '^(apps/desktop/|packages/)'
+          flag mobile '^(apps/mobile/|packages/)'
           # What a new project inherits: project:init, ignore rules, root docs, and repository checks.
           flag project '^(api/internal/infra/console/|api/\.gitignore|\.gitignore|Makefile|README\.md|tools/|packages/contracts/scripts/)'
           echo "Changed files:"; echo "$changed"
@@ -294,6 +298,76 @@ jobs:
 
       - name: Verification — Tier 2 (type-check + lint + test + static build)
         run: bash ../../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 2
+
+  desktop:
+    name: Desktop (Node ${{ matrix.node-version }})
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true'
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
+        node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
+    defaults:
+      run:
+        working-directory: apps/desktop
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          package_json_file: apps/desktop/package.json
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+          cache-dependency-path: apps/desktop/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verification (type-check + lint + test + build)
+        run: pnpm type-check && pnpm lint && pnpm test -- --run && pnpm build
+
+  mobile:
+    name: Mobile (Node ${{ matrix.node-version }})
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Node 22 is the production baseline; Node 24 runs after merge and weekly.
+        node-version: ${{ github.event_name == 'pull_request' && fromJSON('["22"]') || fromJSON('["22", "24"]') }}
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6.0.9
+        with:
+          package_json_file: apps/mobile/package.json
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+          cache-dependency-path: apps/mobile/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verification (type-check + test)
+        run: pnpm type-check && pnpm test
 
   initialized-project:
     name: Initialized project
