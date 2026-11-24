@@ -34,6 +34,20 @@ for grab_bag in pkg/support pkg/utils pkg/common pkg/helpers internal/infra/util
 done
 assert_absent_path "internal/infra/contracts" "the term contract is reserved for HTTP contracts under root packages/contracts/; name Go interfaces for their seam."
 
+# Enforce flat module layout: one domain = one sibling package, no nested sub-packages or grab-bag modules.
+for grab_bag_module in common shared misc utils helpers base; do
+  assert_absent_path "internal/modules/$grab_bag_module" "create a focused sibling domain module instead of a grab-bag module."
+done
+
+if [ -d "$API_ROOT/internal/modules" ]; then
+  while IFS= read -r nested_dir; do
+    [ -n "$nested_dir" ] || continue
+    rel_nested=${nested_dir#"$API_ROOT/"}
+    echo "api/$rel_nested violates flat module layout; keep each module as one flat Go package (split files by <subconcern>_*.go prefix or create a sibling module under internal/modules/<name>/; only testdata/ is allowed)." >&2
+    exit 1
+  done < <(find "$API_ROOT/internal/modules" -mindepth 2 -maxdepth 2 -type d ! -name testdata | sort)
+fi
+
 KNOWN_VIOLATIONS=()
 
 violations=()

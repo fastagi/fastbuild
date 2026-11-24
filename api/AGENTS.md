@@ -58,6 +58,23 @@ A starter module normally has `model.go`, `dto.go`, `repository.go`,
 `service.go`, `handler.go`, `routes.go`, `provider.go`, and focused tests.
 Capabilities should not gain HTTP files merely to match that template.
 
+### Flat Module Layout
+
+- Keep `internal/modules/` strictly flat: **one domain = one sibling package**
+  at `internal/modules/<name>/`.
+- Never create nested layer or sub-domain folders inside a module
+  (`handler/`, `service/`, `repository/`, `dto/`, `model/`, `utils/`, etc.;
+  only `testdata/` is allowed for test fixtures).
+- Never pile unrelated business domains into one mega-module (such as dumping
+  billing or orders into `user/` or `organization/`) and never create grab-bag
+  modules (`common`, `shared`, `misc`, `utils`, `helpers`, `base`). Create a
+  new sibling module with `go run ./cmd/fastbuild make:module <name>`.
+- When a single module has multiple cohesive sub-concerns, split flat files by
+  prefix (`<subconcern>_handler.go`, `<subconcern>_service.go`,
+  `<subconcern>_repository.go`) in the same package rather than nesting folders
+  or stuffing everything into one giant `service.go`.
+- `tools/guards/check-api-boundaries.sh` enforces this flat layout.
+
 ### Layer Rules
 
 - `internal/domain/` stays framework-free and standard-library-only.

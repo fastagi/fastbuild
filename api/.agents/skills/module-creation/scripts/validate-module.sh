@@ -20,6 +20,15 @@ fi
 
 echo "✓ Module directory exists"
 
+# Enforce flat module layout (no nested subdirectories except testdata)
+NESTED_DIRS=$(find "${MODULE_DIR}" -mindepth 1 -maxdepth 1 -type d ! -name testdata | sort)
+if [ -n "${NESTED_DIRS}" ]; then
+    echo "❌ Nested subdirectories are forbidden inside a module (keep one flat package; split files by <subconcern>_*.go prefix):"
+    echo "${NESTED_DIRS}" | sed 's/^/  - /'
+    exit 1
+fi
+echo "✓ Flat module layout verified"
+
 # Check for 8 required files
 REQUIRED_FILES=(
     "model.go"

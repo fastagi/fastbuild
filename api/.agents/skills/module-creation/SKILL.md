@@ -47,7 +47,9 @@ behavior.
    go run ./cmd/fastbuild make:module <Name>
    ```
 
-   The default route-owning shape is:
+   The default route-owning shape is a **strictly flat single package** (no
+   nested `handler/`, `service/`, `repository/`, or `dto/` subdirectories; only
+   `testdata/` is allowed):
 
    ```text
    model.go
@@ -59,6 +61,12 @@ behavior.
    provider.go
    service_test.go
    ```
+
+   Keep modules separated by domain as flat sibling directories under
+   `internal/modules/<name>/` (never dump unrelated domains into an existing
+   module or a `common`/`shared`/`utils` grab-bag). For multi-concern modules,
+   split flat files by prefix (`<subconcern>_service.go`, etc.) instead of
+   adding nested folders or growing one giant file.
 
 2. **Implement the vertical flow**
    - `model.go`: persistence objects and table behavior.
