@@ -25,7 +25,7 @@ registerUnauthorizedHandler(() => {
   if (currentPath === '/login') {
     return;
   }
-  queryClient.setQueryData(['operator-session'], null);
+  queryClient.setQueryData(['operator', 'session'], null);
   void router.navigate({
     to: '/login',
     search: { redirect: router.state.location.href },

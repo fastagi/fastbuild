@@ -12,8 +12,12 @@ function handlePotentialUnauthorized(error: unknown, queryKey?: readonly unknown
   if (!(error instanceof ApiError) || error.status !== 401) {
     return;
   }
-  // The operator-session probe itself handles initial unauthenticated redirects in the route guard.
-  if (queryKey?.[0] === 'operator-session') {
+  // Operator session probe handles initial unauthenticated redirects in the route guard,
+  // and user-scoped MFA endpoints render their own fallback when only an operator session exists.
+  if (
+    (queryKey?.[0] === 'operator' && queryKey?.[1] === 'session') ||
+    (queryKey?.[0] === 'auth' && queryKey?.[1] === 'mfa')
+  ) {
     return;
   }
   onUnauthorizedHandler?.();

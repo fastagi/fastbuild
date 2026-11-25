@@ -16,7 +16,7 @@ export default async function ProtectedLayout({
   return (
     <AuthenticatedProviders bootstrap={bootstrap}>
       <AuthGuard>{children}</AuthGuard>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" offset={72} />
     </AuthenticatedProviders>
   );
 }

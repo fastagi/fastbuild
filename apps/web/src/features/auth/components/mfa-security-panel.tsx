@@ -151,26 +151,28 @@ export function MfaSecurityPanel() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          <dl className="grid gap-3 rounded-lg border border-border bg-bg-surface/60 p-4 text-sm sm:grid-cols-3">
-            <div>
-              <dt className="text-text-muted">{t('methodLabel')}</dt>
-              <dd className="mt-1 font-medium text-text-main">{t('methodTotp')}</dd>
-            </div>
-            <div>
-              <dt className="text-text-muted">{t('remainingCodesLabel')}</dt>
-              <dd className="mt-1 font-medium text-text-main">
-                {status.remaining_recovery_codes}
-              </dd>
-            </div>
-            {status.enrolled_at ? (
+          {status.enabled ? (
+            <dl className="grid gap-3 rounded-lg border border-border bg-bg-surface/60 p-4 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-text-muted">{t('enrolledAtLabel')}</dt>
+                <dt className="text-text-muted">{t('methodLabel')}</dt>
+                <dd className="mt-1 font-medium text-text-main">{t('methodTotp')}</dd>
+              </div>
+              <div>
+                <dt className="text-text-muted">{t('remainingCodesLabel')}</dt>
                 <dd className="mt-1 font-medium text-text-main">
-                  {dateFormatter.format(new Date(status.enrolled_at))}
+                  {status.remaining_recovery_codes}
                 </dd>
               </div>
-            ) : null}
-          </dl>
+              {status.enrolled_at ? (
+                <div>
+                  <dt className="text-text-muted">{t('enrolledAtLabel')}</dt>
+                  <dd className="mt-1 font-medium text-text-main">
+                    {dateFormatter.format(new Date(status.enrolled_at))}
+                  </dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
 
           {recoveryCodes && (
             <div className="space-y-4 rounded-lg border border-border bg-bg-surface p-4">

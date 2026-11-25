@@ -23,13 +23,21 @@ describe('queryClient mid-session 401 handling', () => {
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
   });
 
-  it('skips the handler for the operator-session probe and non-401 errors', async () => {
+  it('skips the handler for the operator-session probe, mfa status probe, and non-401 errors', async () => {
     const onUnauthorized = vi.fn();
     registerUnauthorizedHandler(onUnauthorized);
 
     await expect(
       queryClient.fetchQuery({
-        queryKey: ['operator-session'],
+        queryKey: ['operator', 'session'],
+        queryFn: () =>
+          Promise.reject(new ApiError('Unauthorized', 'AUTH.UNAUTHORIZED', { status: 401 })),
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+
+    await expect(
+      queryClient.fetchQuery({
+        queryKey: ['auth', 'mfa', 'status'],
         queryFn: () =>
           Promise.reject(new ApiError('Unauthorized', 'AUTH.UNAUTHORIZED', { status: 401 })),
       }),

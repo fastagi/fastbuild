@@ -2,6 +2,7 @@ import { PropsWithChildren } from 'react';
 import Link from 'next/link';
 import { SiteHeaderNav } from '@/components/features/site/site-header-nav';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Logo } from '@/components/ui/icons';
 import { getT } from '@/i18n/server';
 
 /**
@@ -19,19 +20,8 @@ export default async function SiteLayout({ children }: PropsWithChildren) {
           <div className="flex items-center gap-8">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform group-hover:scale-110">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-5 w-5"
-                >
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-                </svg>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+                <Logo aria-hidden="true" className="h-5 w-5" />
               </div>
               <span className="text-xl font-bold tracking-tight">FastBuild</span>
             </Link>

@@ -162,8 +162,8 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
       id: 'request',
       cardWide: true,
       header: t('audit.columns.request'),
-      headerClassName: 'hidden lg:table-cell',
-      className: 'hidden max-w-[16rem] lg:table-cell',
+      headerClassName: 'hidden xl:table-cell',
+      className: 'hidden max-w-[14rem] xl:table-cell',
       cell: (entry) => (
         <div className="min-w-0">
           <code className="block truncate text-xs" title={`${entry.method} ${entry.path}`}>
@@ -297,6 +297,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
                 <Input
                   id="audit-from"
                   type="date"
+                  className="dark:scheme-dark"
                   value={from}
                   onChange={(event) => setFrom(event.target.value)}
                 />
@@ -306,6 +307,7 @@ export function AuditPage({ search, onSearchChange }: AuditPageProps) {
                 <Input
                   id="audit-to"
                   type="date"
+                  className="dark:scheme-dark"
                   value={to}
                   onChange={(event) => setTo(event.target.value)}
                 />

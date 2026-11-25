@@ -95,7 +95,7 @@ export default async function AuthLayout({ children }: PropsWithChildren) {
 
       {/* Right Panel - Form Area */}
       <RouteMessagesProvider additionalMessages={clientMessages}>
-        <main className="flex-1 flex flex-col relative bg-background">
+        <main className="flex-1 flex flex-col relative bg-background text-foreground">
           {/* Subtle gradient overlay for depth */}
           <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-transparent to-muted/20 pointer-events-none" />
 
