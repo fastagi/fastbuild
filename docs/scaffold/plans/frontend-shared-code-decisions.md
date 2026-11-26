@@ -1,6 +1,7 @@
 # Frontend Shared Code — Decisions To Make
 
-Status: Proposed (2026-11-26). Nothing here is implemented. Each section states a question the
+Status: Proposed (2026-11-26). Section 3's first step, one shared copy of the generated types,
+is implemented; nothing else here is. Each section states a question the
 [agent loop upgrade](agent-loop-upgrade.md) left open, the facts, and a recommendation for the
 maintainer to accept or reject.
 
@@ -13,8 +14,9 @@ maintainer to accept or reject.
 - UI primitives exist three times: `apps/web/src/components/ui` (34 files),
   `apps/admin/src/components/ui` (31 files), and `packages/ui` (22 files). The Web and Admin
   copies share 21 file names and have diverged.
-- The generated contract types are written twice, byte for byte: `apps/web` and `apps/admin`
-  each hold a 6,612-line `src/http/generated/openapi.ts`.
+- The generated contract types were written twice, byte for byte: `apps/web` and `apps/admin`
+  each held a 6,612-line `src/http/generated/openapi.ts`. They now share
+  `packages/contract-types`.
 - `packages/api-client` is hand-written, has no link to the generated types, and is used only by
   desktop and mobile. Web calls the API through axios; Admin through fetch.
 - Admin sits at 297.8 of 300 KiB gzip. Web's largest route has 32 KB of raw headroom.
@@ -54,12 +56,13 @@ package needs a build step.
 
 ## 3. Should There Be One Generated API Client?
 
-**Recommendation: share the generated types now; keep per-feature services.**
+**Recommendation: share the generated types (done); keep per-feature services.**
 
-Generate `openapi.ts` once into a `packages/contract-types` package that Web, Admin, desktop, and
-mobile list in their workspaces, and delete the two copies. This removes 6,612 duplicated lines
-and gives `packages/api-client` a contract to be checked against, without changing how any app
-makes a request.
+`openapi.ts` is generated once into `packages/contract-types`, a types-only workspace package
+that Web and Admin import as `@fastbuild/contract-types/openapi`. This removed 6,612 duplicated
+lines without changing how either app makes a request. Desktop and mobile do not use it yet:
+`packages/api-client` still has hand-written types, and checking those against the contract is
+the next step.
 
 A single generated client for all four apps is a larger step and is not recommended yet. Web and
 Admin differ on purpose: Web calls same-origin route handlers that hold the session, and Admin
@@ -75,3 +78,22 @@ The Admin Console is the operator surface: it authorizes through `/v1/operator` 
 organization-scoped routes `make:module --scope=organization` generates. An Admin feature
 generator therefore needs a matching operator API first; generating the page alone would produce
 a screen with no route it is allowed to call.
+
+## 5. Container Images And Shared Packages
+
+Fixed on 2026-11-26. The Web and Admin images built with their own directory as the context, so
+`../../packages/*` was outside the build: the Web `builder` stage failed with
+`Can't resolve '@fastbuild/tokens/brand'`, and Admin failed the same way.
+
+Each image now keeps its directory as the main context and receives the shared packages through a
+named BuildKit context (`--build-context packages=../../packages`). The Dockerfile copies exactly
+the packages its `pnpm-workspace.yaml` lists, and `check-container-supply-chain.py` fails when the
+two lists differ. Both `verify-container.sh` scripts pass end to end.
+
+One runtime change in the Web image: `next.config.ts` roots Turbopack at the repository, so the
+standalone output mirrors the workspace. The server now runs from `/app/apps/web/server.js`
+instead of `/app/server.js`; the command is still `node server.js`.
+
+This was the smallest fix. A root pnpm workspace, phase 2 of the internal client-platforms plan,
+would make the repository root the natural build context instead; section 2 does not weigh that
+argument and should be read with it in mind.

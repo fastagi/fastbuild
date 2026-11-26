@@ -7,7 +7,8 @@ unstaged, and untracked work. Each changed area selects its own checks:
   api/                     derived-artifact check, ``go vet ./...``, the architecture analyzers,
                            lint and ``go test -short`` on the changed packages, and the route
                            catalog when routes changed
-  packages/contracts/      the contract gate
+  packages/contracts/,     the contract gate, plus a type-check of both browser apps when the
+  packages/contract-types/ generated types changed
   apps/web, apps/admin     type-check, lint, and the tests related to the changed files
   apps/desktop, mobile     type-check and tests
   packages/<name>/         that package's own tests
@@ -142,7 +143,12 @@ def plan(files: list[str]) -> list[Step]:
         if any(Path(path).name in ROUTE_FILE_NAMES for path in api_files):
             steps.append(Step("route catalog matches the contract", ["make", "route-catalog-check"], "api"))
 
-    contract_files = [path for path in files if under(path, "packages/contracts")]
+    # The generated types change only with the contract, and both browser apps compile against them.
+    contract_files = [
+        path
+        for path in files
+        if under(path, "packages/contracts") or under(path, "packages/contract-types")
+    ]
     if contract_files:
         steps.append(Step("contract gate", ["make", "contract-check"]))
         if not any(step.label.startswith("route catalog") for step in steps):
@@ -151,6 +157,8 @@ def plan(files: list[str]) -> list[Step]:
     for app in BROWSER_APPS:
         app_files = [path for path in files if under(path, app)]
         if not app_files:
+            if any(under(path, "packages/contract-types") for path in files):
+                steps.append(Step(f"{app} type-check", [*pnpm(), "type-check"], app))
             continue
         steps.append(Step(f"{app} type-check", [*pnpm(), "type-check"], app))
         steps.append(Step(f"{app} lint", [*pnpm(), "lint"], app))

@@ -1,0 +1,19 @@
+{
+  "name": "@fastbuild/contract-types",
+  "version": "0.1.0",
+  "description": "TypeScript types generated from the FastBuild OpenAPI contract. Types only: no runtime code.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0",
+    "pnpm": "10.34.5"
+  },
+  "exports": {
+    ".": "./src/openapi.ts",
+    "./openapi": "./src/openapi.ts"
+  },
+  "files": [
+    "src"
+  ]
+}

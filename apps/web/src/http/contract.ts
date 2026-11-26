@@ -1,4 +1,4 @@
-import type { operations } from '@/http/generated/openapi';
+import type { operations } from '@fastbuild/contract-types/openapi';
 
 type JsonContent<Response> = Response extends { content: { 'application/json': infer Body } }
   ? Body

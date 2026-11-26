@@ -5,10 +5,8 @@ import openapiTS, { astToString } from 'openapi-typescript';
 
 const contractDirectory = fileURLToPath(new URL('../', import.meta.url));
 const schemaURL = new URL('../openapi.yaml', import.meta.url);
-const outputs = [
-  new URL('../../../apps/web/src/http/generated/openapi.ts', import.meta.url),
-  new URL('../../../apps/admin/src/http/generated/openapi.ts', import.meta.url),
-];
+// One copy, shared by every client through the @fastbuild/contract-types workspace package.
+const outputs = [new URL('../../contract-types/src/openapi.ts', import.meta.url)];
 const checkOnly = process.argv.includes('--check');
 const header = [
   '// Generated from packages/contracts/openapi.yaml by cd packages/contracts && corepack pnpm generate.',

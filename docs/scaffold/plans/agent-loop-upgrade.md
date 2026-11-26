@@ -181,7 +181,8 @@ Changed from the proposal, with the reason:
 Not done; each needs a decision recorded in
 [frontend-shared-code-decisions.md](frontend-shared-code-decisions.md):
 
-- one shared copy of the generated contract types, and whether to generate a client;
+- whether to generate a client (the generated contract types are now shared through
+  `packages/contract-types`);
 - Web and Admin on `@fastbuild/ui`;
 - a root workspace with task caching (recommended against);
 - an Admin feature generator, which first needs an operator route generator.

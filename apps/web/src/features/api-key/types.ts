@@ -1,4 +1,4 @@
-import type { components } from '@/http/generated/openapi';
+import type { components } from '@fastbuild/contract-types/openapi';
 
 export type ApiKey = components['schemas']['APIKey'];
 

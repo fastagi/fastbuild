@@ -53,8 +53,8 @@ jobs:
           }
           flag api '^(api/|Makefile)'
           flag contracts '^(packages/contracts/|api/)'
-          flag web '^(apps/web/|packages/contracts/)'
-          flag admin '^(apps/admin/|packages/contracts/)'
+          flag web '^(apps/web/|packages/contracts/|packages/contract-types/)'
+          flag admin '^(apps/admin/|packages/contracts/|packages/contract-types/)'
           flag desktop '^(apps/desktop/|packages/)'
           flag mobile '^(apps/mobile/|packages/)'
           # What a new project inherits: project:init, ignore rules, root docs, and repository checks.

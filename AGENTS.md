@@ -20,6 +20,7 @@ FastBuild is an AI-era scaffold, not a product application:
   `@fastbuild/tokens`, `@fastbuild/core`, and `@fastbuild/api-client` with
   `expo-secure-store` native auth.
 - `packages/`: shared workspace packages — `contracts/` (OpenAPI + fragments),
+  `contract-types/` (TypeScript types generated from the contract),
   `config/` (tsconfig/prettier), `tokens/` (zero-chroma obsidian/alabaster CSS +
   RN theme + Modular Stack F brand mark), `core/` (errors, validation, i18n),
   `api-client/` (cookie + native rotating refresh client), and `ui/` (shared
