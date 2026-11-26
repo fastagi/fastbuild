@@ -45,6 +45,8 @@ behavior.
 
    ```bash
    go run ./cmd/fastbuild make:module <Name>
+   # organization-owned data: confined to the active organization, with isolation tests
+   go run ./cmd/fastbuild make:module <Name> --scope=organization
    ```
 
    The default route-owning shape is a **strictly flat single package** (no
@@ -92,10 +94,13 @@ behavior.
    - Ensure disabled database behavior returns service-unavailable rather than
      panicking.
 
-5. **Regenerate assembly**
+5. **Regenerate derived artifacts**
+
+   From the repository root; this covers Wire, the OpenAPI fragment, contract types, the
+   starter catalog, and the golden schema when a test database is configured:
 
    ```bash
-   make wire
+   make sync
    ```
 
 6. **Prove activation**

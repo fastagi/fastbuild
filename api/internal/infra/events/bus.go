@@ -3,6 +3,7 @@ package events
 import (
 	"context"
 	"log"
+	"runtime/debug"
 	"sort"
 	"sync"
 
@@ -16,6 +17,8 @@ type EventBus struct {
 	handlers   []handlerEntry
 	middleware []EventMiddleware
 	closed     bool
+	// inFlight counts asynchronous deliveries so Shutdown can wait for them.
+	inFlight sync.WaitGroup
 }
 
 // EventMiddleware wraps event handling for cross-cutting concerns
@@ -97,7 +100,12 @@ func (b *EventBus) Publish(ctx context.Context, e BasicEvent) error {
 		b.mu.RUnlock()
 		return ErrEventBusClosed
 	}
+	return b.dispatchLocked(ctx, e)
+}
 
+// dispatchLocked delivers one event. The caller holds the read lock and has checked that the bus
+// is open; the lock is released before any handler runs.
+func (b *EventBus) dispatchLocked(ctx context.Context, e BasicEvent) error {
 	// Ensure event has metadata by wrapping if necessary
 	event := Wrap(e)
 
@@ -105,15 +113,27 @@ func (b *EventBus) Publish(ctx context.Context, e BasicEvent) error {
 	matchingHandlers := b.findMatchingHandlers(event.EventName())
 	middleware := make([]EventMiddleware, len(b.middleware))
 	copy(middleware, b.middleware)
+	// Count asynchronous deliveries while the lock still excludes Shutdown, so Shutdown never
+	// starts waiting before a delivery it must wait for has been counted.
+	for _, entry := range matchingHandlers {
+		if entry.async {
+			b.inFlight.Add(1)
+		}
+	}
 	b.mu.RUnlock()
 
-	// Execute handlers in priority order
+	// Execute handlers in priority order. After the first failure or cancellation nothing else
+	// starts, but every counted asynchronous delivery is still released.
+	var firstErr error
 	for _, entry := range matchingHandlers {
-		// Check context cancellation before each handler
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
+		if firstErr == nil {
+			firstErr = ctx.Err()
+		}
+		if firstErr != nil {
+			if entry.async {
+				b.inFlight.Done()
+			}
+			continue
 		}
 
 		// Build middleware chain for this handler
@@ -122,26 +142,50 @@ func (b *EventBus) Publish(ctx context.Context, e BasicEvent) error {
 		if entry.async {
 			// Async handlers don't block; errors are logged but not propagated.
 			go func(h EventHandler, e Event) {
+				defer b.inFlight.Done()
+				defer recoverAsyncHandler(e)
 				if err := h(ctx, e); err != nil {
 					log.Printf("event bus: async handler for %q failed: %v", e.EventName(), err)
 				}
 			}(handler, event)
-		} else {
-			// Sync handlers block and propagate errors
-			if err := handler(ctx, event); err != nil {
-				return err
-			}
+			continue
 		}
+
+		// Sync handlers block and propagate errors
+		firstErr = handler(ctx, event)
 	}
 
-	return nil
+	return firstErr
+}
+
+// recoverAsyncHandler keeps a panicking asynchronous handler from terminating the process.
+func recoverAsyncHandler(e Event) {
+	if recovered := recover(); recovered != nil {
+		log.Printf("event bus: async handler for %q panicked: %v\n%s", e.EventName(), recovered, debug.Stack())
+	}
 }
 
 // PublishAsync sends an event to all matching subscribers asynchronously.
-// Does not wait for handlers to complete and does not return errors.
+// Does not wait for handlers to complete and does not return errors. Shutdown waits for it.
 func (b *EventBus) PublishAsync(ctx context.Context, e BasicEvent) {
+	b.mu.RLock()
+	if b.closed {
+		b.mu.RUnlock()
+		return
+	}
+	b.inFlight.Add(1)
+	b.mu.RUnlock()
+
 	go func() {
-		_ = b.Publish(ctx, e) //nolint:errcheck // fire-and-forget by API contract
+		defer b.inFlight.Done()
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				log.Printf("event bus: async publish of %q panicked: %v\n%s", e.EventName(), recovered, debug.Stack())
+			}
+		}()
+		// Deliver even if Shutdown began after this publish was accepted.
+		b.mu.RLock()
+		_ = b.dispatchLocked(ctx, e) //nolint:errcheck // fire-and-forget by API contract
 	}()
 }
 
@@ -183,6 +227,23 @@ func (b *EventBus) Close() {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	b.closed = true
+}
+
+// Shutdown closes the bus and waits for asynchronous deliveries that were already accepted. It
+// returns the context error when they do not finish in time.
+func (b *EventBus) Shutdown(ctx context.Context) error {
+	b.Close()
+	done := make(chan struct{})
+	go func() {
+		b.inFlight.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // Clear removes all handlers and middleware

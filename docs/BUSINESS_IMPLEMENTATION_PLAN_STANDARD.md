@@ -26,6 +26,10 @@ contract, introduces no new state or authorization rule, and has an obvious
 verification path. The reduced plan must still state scope, affected owner,
 acceptance criteria, and verification.
 
+One generated resource that keeps the generator's shape and ownership scope MAY use the
+[CRUD resource plan checklist](CRUD_PLAN_CHECKLIST.md) instead of this standard. The checklist
+states its own limits; work that exceeds them returns here.
+
 The plan does not replace the authority of:
 
 - `CONTEXT.md` for global vocabulary and surface ownership;

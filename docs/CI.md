@@ -51,6 +51,25 @@ workflow; the guards check workflow content, not its triggers.
 Every workflow also has `workflow_dispatch`, so any check can be run on demand from the Actions tab.
 A scheduled failure is fixed like a failing pull request: open a fix before the next release.
 
+## Local Gate Timings
+
+Measured on 2026-11-26 at `f4044bd` on an Apple M3 Max with a warm module cache. Use them to spot a
+gate that has become slower, not as a budget for other hardware.
+
+| Command | Wall time |
+|---|---:|
+| `go test ./internal/modules/<module>/...` | 1.3 s |
+| `make wire` | 3.3 s |
+| Relink `cmd/fastbuild` or `cmd/server` after a Go edit | 12 s |
+| `go build ./...` | 22 s |
+| `make sync` | 5 s |
+| `make governance` | 9.3 s |
+| `make verify-changed` after an API-only change | 16 s |
+| `go test ./...` in `api/` without PostgreSQL | 60 s |
+
+`internal/infra/console/commands` accounts for 45 s of the API test run; its plugin install test
+alone takes 15.6 s.
+
 ## Runner Contract
 
 Workflows default to `ubuntu-latest`. An installation may set repository variable

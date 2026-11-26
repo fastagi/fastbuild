@@ -184,6 +184,9 @@ bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 
 make wire
 make wire-check
 
+# Architecture analyzers: organization scoping and goroutine ownership in starter modules
+make archlint
+
 # Runtime route assembly
 make route-catalog-check
 

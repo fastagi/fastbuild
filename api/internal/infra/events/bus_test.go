@@ -378,3 +378,53 @@ func TestEventBus_Clear(t *testing.T) {
 		t.Errorf("HandlerCount after Clear = %d, want 0", bus.HandlerCount())
 	}
 }
+
+func TestEventBus_AsyncHandlerPanicIsContained(t *testing.T) {
+	bus := NewEventBus()
+
+	bus.Subscribe("test.event", func(ctx context.Context, event Event) error {
+		panic("handler failure")
+	}, WithAsync())
+
+	if err := bus.Publish(context.Background(), newTestEvent("test.event", "")); err != nil {
+		t.Fatalf("Publish error = %v", err)
+	}
+	// Reaching Shutdown without the process dying proves the panic was recovered.
+	if err := bus.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown error = %v", err)
+	}
+}
+
+func TestEventBus_ShutdownWaitsForAsyncDeliveries(t *testing.T) {
+	bus := NewEventBus()
+
+	release := make(chan struct{})
+	var finished atomic.Int32
+	bus.Subscribe("test.event", func(ctx context.Context, event Event) error {
+		<-release
+		finished.Add(1)
+		return nil
+	}, WithAsync())
+
+	if err := bus.Publish(context.Background(), newTestEvent("test.event", "")); err != nil {
+		t.Fatalf("Publish error = %v", err)
+	}
+	bus.PublishAsync(context.Background(), newTestEvent("test.event", ""))
+
+	expired, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := bus.Shutdown(expired); err != context.Canceled {
+		t.Fatalf("Shutdown with blocked handlers = %v, want context.Canceled", err)
+	}
+
+	close(release)
+	if err := bus.Shutdown(context.Background()); err != nil {
+		t.Fatalf("Shutdown error = %v", err)
+	}
+	if got := finished.Load(); got != 2 {
+		t.Fatalf("finished deliveries = %d, want 2", got)
+	}
+	if err := bus.Publish(context.Background(), newTestEvent("test.event", "")); err != ErrEventBusClosed {
+		t.Fatalf("Publish after Shutdown = %v, want ErrEventBusClosed", err)
+	}
+}

@@ -178,6 +178,9 @@ jobs:
       - name: Verify Wire output is current
         run: make wire-check
 
+      - name: Run architecture analyzers
+        run: make archlint
+
       - name: Verify runtime route catalog
         run: make route-catalog-check
 

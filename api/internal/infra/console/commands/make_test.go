@@ -1,15 +1,18 @@
 package commands
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"text/template"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 )
 
 func TestMakeModuleCommandCreatesDDDScaffold(t *testing.T) {
@@ -110,6 +113,54 @@ func TestMakeServiceCommandRequiresExistingModule(t *testing.T) {
 // files, then compiles and tests it inside the real module through a Go build overlay, so the
 // generator's output is proven to build, pass its own tests, and satisfy the starter catalog.
 func TestMakeModuleGeneratesAWiredStarterThatBuilds(t *testing.T) {
+	assertGeneratedStarterBuildsAndPasses(t, []string{"BlogPost"})
+}
+
+// TestMakeModuleGeneratesAnOrganizationScopedStarter proves the --scope=organization output without
+// edits: its service tests reject another organization, and its repository test proves the same in
+// SQL when FASTBUILD_TEST_POSTGRES_DSN is set.
+func TestMakeModuleGeneratesAnOrganizationScopedStarter(t *testing.T) {
+	tmp := assertGeneratedStarterBuildsAndPasses(t, []string{"BlogPost", "--scope=organization"})
+
+	module := filepath.Join(tmp, "internal", "modules", "blog_post")
+	routes, err := os.ReadFile(filepath.Join(module, "routes.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(routes), `group.WithMiddleware("auth", "organization_context")`)
+	provider, err := os.ReadFile(filepath.Join(module, "provider.go"))
+	require.NoError(t, err)
+	assert.Contains(t, string(provider), "config.StarterOrganization")
+	repository, err := os.ReadFile(filepath.Join(module, "repository.go"))
+	require.NoError(t, err)
+	assert.NotContains(t, string(repository), ".Save(", "Save writes by primary key alone")
+	assert.FileExists(t, filepath.Join(module, "repository_postgres_test.go"))
+}
+
+func TestMakeModuleRejectsUnknownScope(t *testing.T) {
+	_, _, err := parseMakeModuleArgs([]string{"BlogPost", "--scope=team"})
+	require.ErrorContains(t, err, "--scope=organization")
+	_, _, err = parseMakeModuleArgs([]string{"--scope=organization"})
+	require.ErrorContains(t, err, "module name is required")
+}
+
+func TestScopedOpenAPIFragmentRequiresTheOrganizationHeaderOnEveryOperation(t *testing.T) {
+	const header = "#/components/parameters/OrganizationContext"
+	assert.Equal(t, 5, strings.Count(openAPIFragmentTemplate, "operationId:"))
+	assert.Equal(t, 5, strings.Count(scopedOpenAPIFragmentTemplate, header))
+	assert.Equal(t, 5, strings.Count(scopedOpenAPIFragmentTemplate, "#/components/responses/Forbidden"))
+	assert.Equal(t, 5, strings.Count(scopedOpenAPIFragmentTemplate, "#/components/responses/OrganizationContextInvalid"))
+	assert.NotContains(t, scopedOpenAPIFragmentTemplate, "#/components/responses/InvalidInput")
+
+	var rendered bytes.Buffer
+	require.NoError(t, template.Must(template.New("").Parse(scopedOpenAPIFragmentTemplate)).
+		Execute(&rendered, moduleScaffoldData("BlogPost")))
+	var fragment map[string]any
+	require.NoError(t, yaml.Unmarshal(rendered.Bytes(), &fragment), "the fragment must stay valid YAML")
+}
+
+// assertGeneratedStarterBuildsAndPasses runs make:module with args and returns the generated api
+// directory.
+func assertGeneratedStarterBuildsAndPasses(t *testing.T, args []string) string {
+	t.Helper()
 	if testing.Short() {
 		t.Skip("compiles generated code against the whole API module")
 	}
@@ -133,7 +184,7 @@ func TestMakeModuleGeneratesAWiredStarterThatBuilds(t *testing.T) {
 	}
 
 	require.NoError(t, os.Chdir(tmp))
-	runErr := NewMakeModuleCommand().Run([]string{"BlogPost"})
+	runErr := NewMakeModuleCommand().Run(args)
 	require.NoError(t, os.Chdir(wd))
 	require.NoError(t, runErr)
 
@@ -179,4 +230,5 @@ func TestMakeModuleGeneratesAWiredStarterThatBuilds(t *testing.T) {
 	generatedTests.Dir = filepath.Join(tmp, "internal", "modules", "blog_post")
 	output, err := generatedTests.CombinedOutput()
 	require.NoError(t, err, "generated starter tests\n%s", output)
+	return tmp
 }

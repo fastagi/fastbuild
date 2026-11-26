@@ -22,7 +22,7 @@ under `apps/web/.agents/skills/`.
 src/app/                 provider, query client, and router composition
 src/routes/              thin TanStack file-route entries
 src/features/<feature>/  components, hooks, services, store, and types
-src/components/ui/       shadcn/ui primitives owned by this deployable unit
+src/components/ui/       shadcn/ui-style primitives built on @ui-sdk/react (no Radix)
 src/components/layout/   shared route layouts
 src/config/              validated public environment and feature catalog
 src/http/                transport, envelopes, errors, and response bounds

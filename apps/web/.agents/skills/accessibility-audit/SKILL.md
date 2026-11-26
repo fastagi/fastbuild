@@ -16,7 +16,7 @@ Identify the pages, components, user workflows, supported locales, and changed
 interaction states before auditing. Read:
 
 1. `apps/web/AGENTS.md` and the target code.
-2. The underlying shadcn/Radix primitive when custom composition changes its
+2. The underlying `@ui-sdk/react` primitive when custom composition changes its
    semantic or focus contract.
 3. Existing public tests for the same interaction.
 4. WAI-ARIA Authoring Practices only for the specific composite widget being

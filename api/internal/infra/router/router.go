@@ -25,8 +25,18 @@ type Route struct {
 	name        string
 	middleware  []Middleware
 	router      *Router
-	constraints map[string]string
+	constraints map[string]*regexp.Regexp
 }
+
+// Shared constraint patterns are compiled once per process.
+var (
+	numberConstraint       = regexp.MustCompile(`^\d+$`)
+	alphaConstraint        = regexp.MustCompile(`^[a-zA-Z]+$`)
+	alphaNumericConstraint = regexp.MustCompile(`^[a-zA-Z0-9]+$`)
+	uuidConstraint         = regexp.MustCompile(
+		`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+	)
+)
 
 // Name sets the route name for URL generation
 func (r *Route) Name(name string) *Route {
@@ -37,7 +47,10 @@ func (r *Route) Name(name string) *Route {
 	return r
 }
 
-// Middleware adds middleware to this specific route
+// Middleware adds pre-handler guards to this specific route. Guards run in order after the group
+// middleware and before the handler, and a guard that aborts stops the request. They are not
+// wrapped around the handler: code after c.Next() in a guard runs before the handler does, so
+// middleware that must observe the response belongs on the group (Router.Middleware).
 func (r *Route) Middleware(middleware ...Middleware) *Route {
 	r.middleware = append(r.middleware, middleware...)
 	return r
@@ -176,7 +189,7 @@ func (r *Router) addRoute(method, path string, handler Handler) *Route {
 		path:        r.prefix + path,
 		handler:     handler,
 		router:      r,
-		constraints: make(map[string]string),
+		constraints: make(map[string]*regexp.Regexp),
 	}
 	// Register with a wrapper that will apply constraints
 	r.group.Handle(method, path, route.wrapHandler())
@@ -192,16 +205,12 @@ func (rt *Route) wrapHandler() Handler {
 
 		// Apply constraints
 		for param, pattern := range rt.constraints {
-			value := c.Param(param)
-			if value != "" {
-				re := regexp.MustCompile(pattern)
-				if !re.MatchString(value) {
-					response.AbortNotFound(c, fmt.Sprintf("Invalid parameter: %s", param))
-					return
-				}
+			if value := c.Param(param); value != "" && !pattern.MatchString(value) {
+				response.AbortNotFound(c, fmt.Sprintf("Invalid parameter: %s", param))
+				return
 			}
 		}
-		// Apply route-specific middleware
+		// Apply route-specific guards; see Route.Middleware for the ordering contract.
 		for _, mw := range rt.middleware {
 			mw(c)
 			if c.IsAborted() {
@@ -404,8 +413,16 @@ func (r *Router) Pattern(param, pattern string) *Router {
 	return r
 }
 
-// Where adds a constraint to a route parameter
+// Where adds a constraint to a route parameter. The pattern is compiled here, during route
+// registration, so an invalid pattern stops startup instead of failing the first request.
 func (rt *Route) Where(param, pattern string) *Route {
+	return rt.where(param, regexp.MustCompile(pattern))
+}
+
+func (rt *Route) where(param string, pattern *regexp.Regexp) *Route {
+	if rt.constraints == nil {
+		rt.constraints = make(map[string]*regexp.Regexp)
+	}
 	rt.constraints[param] = pattern
 	return rt
 }
@@ -413,7 +430,7 @@ func (rt *Route) Where(param, pattern string) *Route {
 // WhereNumber constrains parameter to numbers only
 func (rt *Route) WhereNumber(params ...string) *Route {
 	for _, param := range params {
-		rt.Where(param, `^\d+$`)
+		rt.where(param, numberConstraint)
 	}
 	return rt
 }
@@ -421,7 +438,7 @@ func (rt *Route) WhereNumber(params ...string) *Route {
 // WhereAlpha constrains parameter to letters only
 func (rt *Route) WhereAlpha(params ...string) *Route {
 	for _, param := range params {
-		rt.Where(param, `^[a-zA-Z]+$`)
+		rt.where(param, alphaConstraint)
 	}
 	return rt
 }
@@ -429,7 +446,7 @@ func (rt *Route) WhereAlpha(params ...string) *Route {
 // WhereAlphaNumeric constrains parameter to alphanumeric
 func (rt *Route) WhereAlphaNumeric(params ...string) *Route {
 	for _, param := range params {
-		rt.Where(param, `^[a-zA-Z0-9]+$`)
+		rt.where(param, alphaNumericConstraint)
 	}
 	return rt
 }
@@ -437,7 +454,7 @@ func (rt *Route) WhereAlphaNumeric(params ...string) *Route {
 // WhereUUID constrains parameter to UUID format
 func (rt *Route) WhereUUID(params ...string) *Route {
 	for _, param := range params {
-		rt.Where(param, `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+		rt.where(param, uuidConstraint)
 	}
 	return rt
 }

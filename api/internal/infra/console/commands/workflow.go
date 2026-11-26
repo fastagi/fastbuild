@@ -244,5 +244,7 @@ func workflowQueueRuntimeConfig(cfg *config.Config, db *gorm.DB) workflow.QueueR
 		DefaultQueue: cfg.Queue.DefaultQueue,
 		BufferSize:   cfg.Queue.BufferSize,
 		Database:     db,
+		// Tasks pushed inside a business transaction commit or roll back with it.
+		TransactionResolver: database.TransactionFromContext,
 	}
 }

@@ -13,6 +13,8 @@ type QueueRuntimeConfig struct {
 	DefaultQueue string
 	BufferSize   int
 	Database     *gorm.DB
+	// TransactionResolver lets the postgres driver enqueue inside the caller's transaction.
+	TransactionResolver TransactionResolver
 }
 
 // Bootstrap applies process-level workflow runtime configuration.
@@ -38,7 +40,7 @@ func Bootstrap(cfg QueueRuntimeConfig) (*Manager, error) {
 			queueManager.RegisterDriver("memory", NewMemoryDriver(bufferSize))
 		}
 	case "postgres":
-		driver, err := NewPostgresDriver(cfg.Database)
+		driver, err := NewPostgresDriver(cfg.Database, WithTransactionResolver(cfg.TransactionResolver))
 		if err != nil {
 			return nil, err
 		}

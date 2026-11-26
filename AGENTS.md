@@ -43,7 +43,8 @@ Start with the smallest context that can answer the task:
    is active.
 5. For a new material business capability or cross-boundary workflow, complete
    [docs/BUSINESS_IMPLEMENTATION_PLAN_STANDARD.md](docs/BUSINESS_IMPLEMENTATION_PLAN_STANDARD.md)
-   before implementation. Small local changes may use its reduced-plan rule.
+   before implementation. Small local changes may use its reduced-plan rule, and one
+   generated CRUD resource may use [docs/CRUD_PLAN_CHECKLIST.md](docs/CRUD_PLAN_CHECKLIST.md).
 6. Load at most one primary skill when its trigger clearly matches. Routine
    local work already covered by the nearest `AGENTS.md` and code may load none.
    A skill's `Pair With` section is navigation, not automatic chaining.
@@ -123,7 +124,10 @@ public HTTP behavior. The nearest `AGENTS.md` wins for local implementation.
 
 ## Verification Budget
 
-During implementation, run the narrowest check that proves the edited seam:
+After editing providers, routes, contracts, migrations, or starters, run `make sync` once; it
+regenerates every derived artifact. Then `make verify-changed` selects and runs the narrowest
+checks for the changed files (`ARGS=--list` prints them, `ARGS=--json` reports them). The list
+below is what it selects, for when a single check is enough:
 
 - Agent guidance or skill-only change: `make agent-check-changed` while
   iterating, then `make agent-check` once before merge
@@ -141,6 +145,11 @@ rerun an unchanged successful gate in the same turn.
 ## Common Commands
 
 ```bash
+# Inner loop
+make sync
+make sync-check
+make verify-changed
+
 # Agent guidance & context
 make agent-check-changed
 make agent-check

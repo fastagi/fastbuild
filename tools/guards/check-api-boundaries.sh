@@ -50,6 +50,32 @@ fi
 
 KNOWN_VIOLATIONS=()
 
+# Starter modules meet through internal/domain interfaces. A direct import of a sibling module is
+# allowed only for the edges below, which predate this rule; add an edge only with a recorded reason.
+ALLOWED_MODULE_EDGES=(
+  "apikey audit"
+  "asset audit" "asset user"
+  "notification audit" "notification user"
+  "operator audit" "operator notification" "operator organization" "operator setting" "operator user" "operator webhook"
+  "organization audit" "organization user"
+  "permission audit" "permission organization"
+  "setting audit" "setting organization" "setting user"
+  "usage audit" "usage organization" "usage user"
+  "user audit"
+  "webhook audit" "webhook organization"
+)
+
+is_allowed_module_edge() {
+  local candidate=$1
+  local allowed
+  for allowed in "${ALLOWED_MODULE_EDGES[@]}"; do
+    if [ "$candidate" = "$allowed" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 violations=()
 
 append_violation() {
@@ -99,6 +125,19 @@ scan_imports() {
               ;;
           esac
           ;;
+        modules)
+          case "$imported" in
+            "$MODULE/internal/modules/"*)
+              local from=${pkg#"$MODULE/internal/modules/"}
+              local to=${imported#"$MODULE/internal/modules/"}
+              from=${from%%/*}
+              to=${to%%/*}
+              if [ "$from" != "$to" ] && ! is_allowed_module_edge "$from $to"; then
+                append_violation "$pkg" "$imported" "modules meet through internal/domain interfaces, not sibling imports"
+              fi
+              ;;
+          esac
+          ;;
         *)
           echo "unknown rule: $rule" >&2
           exit 2
@@ -126,6 +165,7 @@ scan_imports ./pkg/... pkg
 scan_imports ./internal/domain domain
 scan_imports ./internal/capabilities/... capabilities
 scan_imports ./internal/infra/... infra
+scan_imports ./internal/modules/... modules
 
 new_violations=()
 known_count=0
