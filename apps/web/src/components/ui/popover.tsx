@@ -13,34 +13,72 @@
 "use client"
 
 import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import * as PopoverPrimitive from "@ui-sdk/react/popover"
 
 import { cn } from "@/utils"
+import { Slot, asChildProps } from "@/components/ui/slot"
 
-const Popover = PopoverPrimitive.Root
+type WithClassName<T> = Omit<T, "className" | "children"> & {
+  className?: string
+  children?: React.ReactNode
+}
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+const Popover = PopoverPrimitive.Popover
 
-const PopoverAnchor = PopoverPrimitive.Anchor
+function PopoverTrigger({
+  asChild,
+  children,
+  ...props
+}: React.ComponentProps<typeof PopoverPrimitive.PopoverTrigger> & {
+  asChild?: boolean
+}) {
+  return (
+    <PopoverPrimitive.PopoverTrigger
+      data-slot="popover-trigger"
+      {...props}
+      {...asChildProps(asChild, children as React.ReactNode)}
+    />
+  )
+}
 
-const PopoverContent = React.forwardRef<
-  React.ComponentRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
+function PopoverAnchor({
+  asChild = false,
+  ...props
+}: React.ComponentProps<"div"> & { asChild?: boolean }) {
+  const Comp = asChild ? Slot : "div"
+  return <Comp data-slot="popover-anchor" {...props} />
+}
+
+function PopoverContent({
+  className,
+  align = "center",
+  sideOffset = 4,
+  render,
+  ...props
+}: WithClassName<React.ComponentProps<typeof PopoverPrimitive.PopoverContent>>) {
+  const resolvedRender =
+    render ??
+    (props["aria-label"] && !props["aria-labelledby"]
+      ? (elProps: Record<string, unknown>) => {
+          const nextProps = { ...elProps }
+          delete nextProps["aria-labelledby"]
+          return <div {...nextProps} />
+        }
+      : undefined)
+
+  return (
+    <PopoverPrimitive.PopoverContent
+      data-slot="popover-content"
       align={align}
       sideOffset={sideOffset}
+      render={resolvedRender}
       className={cn(
-        "z-50 w-auto rounded-2xl border bg-popover/80 p-0 text-popover-foreground shadow-premium outline-hidden animate-in fade-in zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-        "backdrop-blur-xl",
+        "z-50 m-0 w-auto origin-(--transform-origin) rounded-2xl border bg-popover/80 p-0 text-popover-foreground shadow-premium outline-hidden backdrop-blur-xl transition-[opacity,scale] duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0 motion-reduce:transition-none",
         className
       )}
       {...props}
     />
-  </PopoverPrimitive.Portal>
-))
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+  )
+}
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

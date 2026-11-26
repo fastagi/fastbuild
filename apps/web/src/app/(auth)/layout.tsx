@@ -3,7 +3,7 @@ import { Boxes, Languages, Layers, Shield } from 'lucide-react';
 import { getMessages } from 'next-intl/server';
 import { BrandLogo } from '@/components/ui/icons';
 import { Toaster } from '@/components/ui/sonner';
-import { LanguageSwitcher } from '@/components/common';
+import { LanguageSwitcher } from '@/components/common/locale-switcher';
 import { CLIENT_MESSAGE_NAMESPACES } from '@/i18n/client-message-namespaces';
 import { selectMessageNamespaces } from '@/i18n/message-selection';
 import { RouteMessagesProvider } from '@/i18n/route-messages-provider';

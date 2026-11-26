@@ -47,7 +47,7 @@ def main() -> int:
         "apps/web/src/components/ui/button.tsx",
         (
             "Slot, Slottable",
-            "@radix-ui/react-slot",
+            "@/components/ui/slot",
             "aria-disabled:pointer-events-none",
             "const isDisabled = disabled || loading",
             "<Slottable>{composedChild}</Slottable>",
@@ -58,6 +58,11 @@ def main() -> int:
             "onClickCapture: preventDisabledClick",
             "preventDisabledClick",
         ),
+    )
+    require_absent(
+        failures,
+        "apps/web/package.json",
+        ("@radix-ui/",),
     )
     require_absent(
         failures,

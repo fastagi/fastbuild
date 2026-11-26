@@ -17,18 +17,46 @@
 "use client"
 
 import * as React from "react"
-import * as TabsPrimitive from "@radix-ui/react-tabs"
+import * as TabsPrimitive from "@ui-sdk/react/tabs"
 
 import { cn } from "@/utils"
 
+type WithClassName<T> = Omit<T, "className" | "children"> & {
+  className?: string
+  children?: React.ReactNode
+}
+
+type TabsProps = Omit<
+  WithClassName<React.ComponentProps<typeof TabsPrimitive.Tabs<string>>>,
+  "value" | "defaultValue" | "onValueChange"
+> & {
+  value?: string
+  defaultValue?: string
+  onValueChange?: (value: string) => void
+}
+
 function Tabs({
   className,
+  value,
+  defaultValue,
+  onValueChange,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+}: TabsProps) {
   return (
-    <TabsPrimitive.Root
+    <TabsPrimitive.Tabs
       data-slot="tabs"
       className={cn("flex flex-col gap-2", className)}
+      {...(value === undefined ? {} : { value })}
+      {...(defaultValue === undefined ? {} : { defaultValue })}
+      {...(onValueChange
+        ? {
+            onValueChange: (next: string | null) => {
+              if (next !== null) {
+                onValueChange(next)
+              }
+            },
+          }
+        : {})}
       {...props}
     />
   )
@@ -39,7 +67,9 @@ const EDGE_TOLERANCE_PX = 1
 const REVEAL_MARGIN_PX = 32
 
 function revealActiveTrigger(list: HTMLElement, behavior: ScrollBehavior) {
-  const active = list.querySelector<HTMLElement>('[role="tab"][data-state="active"]')
+  const active = list.querySelector<HTMLElement>(
+    '[role="tab"][data-selected], [role="tab"][aria-selected="true"]'
+  )
   if (!active || list.scrollWidth <= list.clientWidth) return
 
   const listRect = list.getBoundingClientRect()
@@ -62,7 +92,7 @@ function TabsList({
   className,
   ref,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: WithClassName<React.ComponentProps<typeof TabsPrimitive.TabsList>>) {
   const [list, setList] = React.useState<HTMLDivElement | null>(null)
   const [overflow, setOverflow] = React.useState({ start: false, end: false })
 
@@ -105,7 +135,7 @@ function TabsList({
     const mutationObserver = new MutationObserver(onTabsChanged)
     mutationObserver.observe(list, {
       attributes: true,
-      attributeFilter: ["data-state"],
+      attributeFilter: ["aria-selected", "data-selected"],
       childList: true,
       subtree: true,
     })
@@ -118,7 +148,7 @@ function TabsList({
   }, [list])
 
   return (
-    <TabsPrimitive.List
+    <TabsPrimitive.TabsList
       ref={setRefs}
       data-slot="tabs-list"
       data-overflow-start={overflow.start ? "" : undefined}
@@ -136,15 +166,15 @@ function TabsList({
 function TabsTrigger({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+}: WithClassName<React.ComponentProps<typeof TabsPrimitive.TabsTab>>) {
   return (
-    <TabsPrimitive.Trigger
+    <TabsPrimitive.TabsTab
       data-slot="tabs-trigger"
       className={cn(
         "inline-flex h-[calc(100%-1px)] flex-1 shrink-0 items-center justify-center gap-1.5 rounded-md border border-transparent px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-ring interactive-subtle",
         "text-muted-foreground hover:text-foreground/70",
-        "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md data-[state=active]:ring-1 data-[state=active]:ring-black/5 dark:data-[state=active]:ring-white/10",
-        "disabled:cursor-not-allowed disabled:opacity-50",
+        "data-selected:bg-background data-selected:text-foreground data-selected:shadow-md data-selected:ring-1 data-selected:ring-black/5 dark:data-selected:ring-white/10",
+        "disabled:cursor-not-allowed disabled:opacity-50 data-disabled:cursor-not-allowed data-disabled:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
@@ -156,9 +186,9 @@ function TabsTrigger({
 function TabsContent({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+}: WithClassName<React.ComponentProps<typeof TabsPrimitive.TabsPanel>>) {
   return (
-    <TabsPrimitive.Content
+    <TabsPrimitive.TabsPanel
       data-slot="tabs-content"
       className={cn("flex-1 outline-none", className)}
       {...props}

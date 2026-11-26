@@ -13,29 +13,37 @@
 "use client"
 
 import * as React from "react"
-import * as SwitchPrimitive from "@radix-ui/react-switch"
+import * as SwitchPrimitive from "@ui-sdk/react/switch"
 
 import { cn } from "@/utils"
 
-const Switch = React.forwardRef<
-  React.ElementRef<typeof SwitchPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SwitchPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <SwitchPrimitive.Root
-    className={cn(
-      "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-ring interactive",
-      className
-    )}
-    {...props}
-    ref={ref}
-  >
-    <SwitchPrimitive.Thumb
-      className={cn(
-        "pointer-events-none block h-4 w-4 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-      )}
-    />
-  </SwitchPrimitive.Root>
-))
-Switch.displayName = SwitchPrimitive.Root.displayName
+type SwitchProps = Omit<
+  React.ComponentProps<typeof SwitchPrimitive.Switch>,
+  "className" | "onCheckedChange"
+> & {
+  className?: string
+  onCheckedChange?: (checked: boolean) => void
+}
 
-export { Switch } 
+function Switch({ className, onCheckedChange, ...props }: SwitchProps) {
+  return (
+    <SwitchPrimitive.Switch
+      data-slot="switch"
+      className={cn(
+        "peer inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent bg-input shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 data-checked:bg-primary data-disabled:cursor-not-allowed data-disabled:opacity-50 focus-ring interactive",
+        className
+      )}
+      {...props}
+      {...(onCheckedChange
+        ? { onCheckedChange: (checked: boolean) => onCheckedChange(checked) }
+        : {})}
+    >
+      <SwitchPrimitive.SwitchThumb
+        data-slot="switch-thumb"
+        className="pointer-events-none block h-4 w-4 translate-x-0 rounded-full bg-background shadow-lg ring-0 transition-transform data-checked:translate-x-4"
+      />
+    </SwitchPrimitive.Switch>
+  )
+}
+
+export { Switch }
