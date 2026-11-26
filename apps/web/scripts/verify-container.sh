@@ -51,6 +51,7 @@ BUILDX_METADATA_PROVENANCE=max BUILDX_METADATA_WARNINGS=1 \
     --build-arg "OCI_SOURCE=${OCI_SOURCE}" \
     --build-arg "OCI_REVISION=${OCI_REVISION}" \
     --build-arg "OCI_VERSION=${OCI_VERSION}" \
+    --build-context "packages=${ROOT_DIR}/../../packages" \
     --tag "${IMAGE_TAG}" "${ROOT_DIR}"
 
 python3 - "${BUILD_METADATA_OUTPUT}" <<'PY'
@@ -131,9 +132,12 @@ docker run --rm --entrypoint node "${IMAGE_TAG}" -e '
       if (name.startsWith("yarn-")) present.push(`/opt/${name}`);
     }
   }
-  for (const name of fs.readdirSync("/app")) {
-    if (name === ".env" || name.startsWith(".env.")) present.push(`/app/${name}`);
+  for (const directory of ["/app", "/app/apps/web"]) {
+    for (const name of fs.readdirSync(directory)) {
+      if (name === ".env" || name.startsWith(".env.")) present.push(`${directory}/${name}`);
+    }
   }
+  if (!fs.existsSync("/app/apps/web/server.js")) present.push("missing /app/apps/web/server.js");
   if (present.length) {
     console.error(`forbidden runtime paths: ${present.join(", ")}`);
     process.exit(1);

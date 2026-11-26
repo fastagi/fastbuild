@@ -5,6 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # The image needs the shared workspace packages, which live outside this directory.
+      additional_contexts:
+        packages: ../../packages
     container_name: fastbuild-web
     restart: unless-stopped
     ports:

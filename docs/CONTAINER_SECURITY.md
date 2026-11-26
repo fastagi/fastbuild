@@ -61,6 +61,12 @@ cd apps/web && bash scripts/verify-container.sh fastbuild-web:container-check
 cd apps/admin && bash scripts/verify-container.sh fastbuild-admin:container-check
 ```
 
+The Web and Admin images build from their own directory and receive the shared workspace packages
+through a second, named BuildKit context, `--build-context packages=../../packages`. Each
+Dockerfile copies exactly the packages its `pnpm-workspace.yaml` lists, to the same relative path
+the lockfile uses; `check-container-supply-chain.py` fails when the two lists differ. A plain
+`docker build .` without that context stops at the first `COPY --from=packages`.
+
 The verifiers use `docker buildx build --load`, write OCI source/revision/version labels, request
 maximal BuildKit metadata, and check that provenance contains every reviewed material digest. They
 then verify non-root execution, health behavior, absence of embedded environment files, and bounded

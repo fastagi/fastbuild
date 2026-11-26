@@ -67,9 +67,11 @@ must be served over TLS.
 port 8080 with a read-only root filesystem; only `/tmp` must be writable.
 
 ```bash
-docker build -t fastbuild-admin \
+cd apps/admin
+docker buildx build -t fastbuild-admin \
+  --build-context packages=../../packages \
   --build-arg VITE_OPTIONAL_FEATURES=operator \
-  admin
+  .
 docker run --rm -p 8080:8080 --read-only --tmpfs /tmp:uid=101,gid=101 \
   -e ADMIN_API_UPSTREAM=http://host.docker.internal:8025 \
   fastbuild-admin

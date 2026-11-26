@@ -172,7 +172,8 @@ cd apps/admin && corepack pnpm install && corepack pnpm dev  # Admin Console she
 
 The Web mock BFF makes the customer console explorable without the API; production requires the
 same-origin API adapter. Build static Admin assets with `corepack pnpm build`, or the Admin
-container with `docker build admin`; both hosting options are in
+container with `cd apps/admin && docker buildx build --build-context packages=../../packages .`;
+both hosting options are in
 [apps/admin/docs/DEPLOYMENT.md](apps/admin/docs/DEPLOYMENT.md).
 
 ## Enable Business Starters

@@ -46,6 +46,44 @@ def require_markers(failures: list[str], path: Path, markers: tuple[str, ...]) -
     return content
 
 
+def check_workspace_packages(failures: list[str], app: str, dockerfile: str, verifier: str) -> None:
+    """Every shared package an app lists in its workspace must reach its image build."""
+    workspace = (ROOT / app / "pnpm-workspace.yaml").read_text(encoding="utf-8")
+    listed = sorted(set(re.findall(r"^\s*-\s*\.\./\.\./packages/([a-z0-9-]+)\s*$", workspace, re.M)))
+    copied = sorted(
+        set(
+            re.findall(
+                r"^COPY --from=packages ([a-z0-9-]+) /workspace/packages/([a-z0-9-]+)$",
+                dockerfile,
+                re.M,
+            )
+        )
+    )
+    manifests = sorted(
+        set(
+            re.findall(
+                r"^COPY --from=packages ([a-z0-9-]+)/package\.json /workspace/packages/([a-z0-9-]+)/package\.json$",
+                dockerfile,
+                re.M,
+            )
+        )
+    )
+    expected = [(name, name) for name in listed]
+    if copied != expected:
+        failures.append(
+            f"{app}/Dockerfile must copy exactly the packages in pnpm-workspace.yaml "
+            f"({', '.join(listed) or 'none'}) with COPY --from=packages <name> /workspace/packages/<name>"
+        )
+    if manifests != expected:
+        failures.append(
+            f"{app}/Dockerfile must copy each listed package's package.json before installing dependencies"
+        )
+    if listed and f"WORKDIR /workspace/{app}" not in dockerfile:
+        failures.append(f"{app}/Dockerfile must build in /workspace/{app} so ../../packages resolves")
+    if listed and '--build-context "packages=${ROOT_DIR}/../../packages"' not in verifier:
+        failures.append(f"{app}/scripts/verify-container.sh must pass the packages build context")
+
+
 def check_external_from_pins(failures: list[str], path: Path, content: str) -> None:
     aliases: set[str] = set()
     for line_number, line in enumerate(content.splitlines(), start=1):
@@ -214,6 +252,10 @@ def main() -> int:
     if admin_content.splitlines()[0] != FRONTEND:
         failures.append("apps/admin/Dockerfile must pin the reviewed frontend on line 1")
     check_external_from_pins(failures, admin_dockerfile, admin_content)
+
+    for app, content in (("apps/web", web_content), ("apps/admin", admin_content)):
+        verifier = (ROOT / app / "scripts/verify-container.sh").read_text(encoding="utf-8")
+        check_workspace_packages(failures, app, content, verifier)
 
     for relative, expected_materials, expected_inputs in (
         (

@@ -6,19 +6,31 @@ ARG OCI_VERSION=dev
 # Keep native dependencies ABI-compatible between build and runtime.
 FROM docker.io/library/node:22.23.3-alpine3.24@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS base
 
+# The build context is this directory. The shared workspace packages live outside it and arrive
+# through a second, named context:
+#
+#   docker buildx build --build-context packages=../../packages .
+#
+# Every package listed in pnpm-workspace.yaml is copied below at the same relative path
+# (../../packages/<name>) that the workspace file and the lockfile use.
+
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
+WORKDIR /workspace/apps/web
 
 # Install dependencies based on the preferred package manager
+COPY --from=packages tokens/package.json /workspace/packages/tokens/package.json
+COPY --from=packages contract-types/package.json /workspace/packages/contract-types/package.json
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+WORKDIR /workspace/apps/web
+COPY --from=deps /workspace/apps/web/node_modules ./node_modules
+COPY --from=packages tokens /workspace/packages/tokens
+COPY --from=packages contract-types /workspace/packages/contract-types
 COPY . .
 RUN mkdir -p public
 
@@ -61,12 +73,15 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-COPY --from=builder --chown=1000:1000 /app/public ./public
-
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=1000:1000 /app/.next/standalone ./
-COPY --from=builder --chown=1000:1000 /app/.next/static ./.next/static
+# next.config.ts roots tracing at the workspace, so the standalone tree mirrors it and the server
+# lives at apps/web/server.js. Static assets and public files sit beside that server.
+COPY --from=builder --chown=1000:1000 /workspace/apps/web/.next/standalone ./
+COPY --from=builder --chown=1000:1000 /workspace/apps/web/public ./apps/web/public
+COPY --from=builder --chown=1000:1000 /workspace/apps/web/.next/static ./apps/web/.next/static
+
+WORKDIR /app/apps/web
 
 USER 1000:1000
 

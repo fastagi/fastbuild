@@ -1,0 +1,7 @@
+# packages/ is the named build context "packages" of the Web and Admin images.
+# Only package sources belong in it.
+**/node_modules
+**/dist
+**/coverage
+**/.env*
+contracts

@@ -62,7 +62,8 @@ corepack pnpm build
 
 Deploy it one of two ways:
 
-- **Container:** `docker build -t fastbuild-admin --build-arg VITE_OPTIONAL_FEATURES=operator .`
+- **Container:**
+  `docker buildx build -t fastbuild-admin --build-context packages=../../packages --build-arg VITE_OPTIONAL_FEATURES=operator .`
   produces a non-root nginx image that serves the SPA with deep-link fallback and proxies
   same-origin `/api/*` to the API. Kubernetes wiring lives in
   [`../../deploy/kubernetes/base/admin.yaml`](../../deploy/kubernetes/base/admin.yaml).

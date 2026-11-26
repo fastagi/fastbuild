@@ -5,8 +5,17 @@ ARG OCI_VERSION=dev
 
 # Build the static console with the same reviewed Node base as the Web image.
 FROM docker.io/library/node:22.23.3-alpine3.24@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402 AS builder
-WORKDIR /app
+# The build context is this directory. The shared workspace packages live outside it and arrive
+# through a second, named context:
+#
+#   docker buildx build --build-context packages=../../packages .
+#
+# Every package listed in pnpm-workspace.yaml is copied below at the same relative path
+# (../../packages/<name>) that the workspace file and the lockfile use.
+WORKDIR /workspace/apps/admin
 
+COPY --from=packages tokens/package.json /workspace/packages/tokens/package.json
+COPY --from=packages contract-types/package.json /workspace/packages/contract-types/package.json
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
@@ -20,6 +29,8 @@ ARG VITE_DEFAULT_LOCALE=en-US
 ARG VITE_OPTIONAL_FEATURES=
 ENV VITE_BASE_PATH=/
 
+COPY --from=packages tokens /workspace/packages/tokens
+COPY --from=packages contract-types /workspace/packages/contract-types
 COPY . .
 RUN corepack enable pnpm && pnpm run build
 
@@ -36,7 +47,7 @@ RUN rm -rf /sbin/apk /etc/apk /usr/share/apk /var/cache/apk \
 COPY --chown=0:0 deploy/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY --chown=0:0 deploy/nginx/templates/ /etc/nginx/templates/
 COPY --chown=0:0 --chmod=0755 deploy/nginx/05-admin-render-dir.sh /docker-entrypoint.d/
-COPY --from=builder --chown=0:0 /app/dist/ /usr/share/nginx/html/
+COPY --from=builder --chown=0:0 /workspace/apps/admin/dist/ /usr/share/nginx/html/
 RUN rm -rf /usr/share/nginx/html/.vite
 
 FROM scratch AS runner
