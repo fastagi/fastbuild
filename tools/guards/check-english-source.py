@@ -16,7 +16,10 @@ SOURCE_SUFFIXES = {".css", ".go", ".js", ".mjs", ".py", ".sh", ".ts", ".tsx", ".
 IGNORED_PARTS = {".git", ".next", "coverage", "dist", "node_modules"}
 
 
-PLUGIN_FILES = re.compile(r"^registry/plugins/[^/]+/files/")
+# Plugin files and generator templates are stored under a prefix and installed at the path after it.
+PLUGIN_FILES = re.compile(
+    r"^(?:registry/plugins/[^/]+/files/|api/internal/infra/console/commands/templates/[^/]+/files/)"
+)
 
 
 def installed_path(path: Path) -> str:

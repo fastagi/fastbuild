@@ -2,6 +2,23 @@
 
 Use this checklist for feature-first additions under `apps/web/`.
 
+## Generate A Feature
+
+For a starter created with `make:module <name> --scope=organization`, generate the whole Web
+feature instead of writing it:
+
+```bash
+cd ../../api && go run ./cmd/fastbuild make:feature <name> --web
+```
+
+It writes the service, schemas, hooks, console page, route handlers, development mock, both
+locales, and tests, and registers them at the Web slots. The result lists, creates, renames, and
+deletes the resource for the active organization and passes type-check, lint, and the guard
+tests unchanged. The name must be one lowercase word. Extend it from there: change the contract
+first, then `schemas.ts`, the mock store, and the workspace component.
+
+The rest of this guide describes the same structure for a feature written by hand.
+
 ## Placement
 
 - Put feature-owned code in `src/features/<feature>/`.

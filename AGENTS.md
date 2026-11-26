@@ -145,6 +145,10 @@ rerun an unchanged successful gate in the same turn.
 ## Common Commands
 
 ```bash
+# Generators
+cd api && go run ./cmd/fastbuild make:module <name> --scope=organization
+cd api && go run ./cmd/fastbuild make:feature <name> --web
+
 # Inner loop
 make sync
 make sync-check

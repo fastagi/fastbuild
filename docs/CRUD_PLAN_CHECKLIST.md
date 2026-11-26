@@ -35,6 +35,7 @@ If any line is false, write the full plan.
 cd api && go run ./cmd/fastbuild make:module <name> --scope=organization
 # edit the fragment in packages/contracts/fragments/, the fields, and the migration
 make sync
+cd api && go run ./cmd/fastbuild make:feature <name> --web   # optional: the Web console page
 make verify-changed
 ```
 

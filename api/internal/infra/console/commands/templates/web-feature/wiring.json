@@ -1,0 +1,43 @@
+[
+  { "slot": "web.features", "lines": ["'widget',"] },
+  { "slot": "web.feature-dependencies", "lines": ["widget: ['organization'],"] },
+  { "slot": "web.routes.console", "lines": ["WIDGETS: '/console/widgets',"] },
+  { "slot": "web.console.nav-icons", "lines": ["Boxes,"] },
+  {
+    "slot": "web.console.nav",
+    "lines": [
+      "...(isWebFeatureEnabled('widget')",
+      "  ? [",
+      "      {",
+      "        titleKey: 'nav.widget' as const,",
+      "        href: ROUTES.CONSOLE.WIDGETS,",
+      "        icon: Boxes,",
+      "      },",
+      "    ]",
+      "  : []),"
+    ]
+  },
+  { "slot": "web.i18n.modules", "lines": ["'widget',"] },
+  {
+    "slot": "web.i18n.loaders",
+    "lines": [
+      "widget: {",
+      "  'zh-Hans': () => import('./modules/widget/zh-Hans'),",
+      "  'en-US': () => import('./modules/widget/en-US'),",
+      "},"
+    ]
+  },
+  {
+    "slot": "web.i18n.message-imports",
+    "lines": ["import widget, { type WidgetMessages } from './widget/en-US';"]
+  },
+  { "slot": "web.i18n.messages", "lines": ["widget,"] },
+  { "slot": "web.i18n.message-schema", "lines": ["widget: WidgetMessages;"] },
+  {
+    "slot": "web.i18n.zh-hans-schema",
+    "lines": ["widget: typeof import('./widget/zh-Hans').default;"]
+  },
+  { "slot": "web.i18n.client-namespaces", "lines": ["widget: ['widget'],"] },
+  { "slot": "web.i18n.nav.en-us", "lines": ["widget: 'Widgets',"] },
+  { "slot": "web.i18n.nav.zh-hans", "lines": ["widget: 'Widgets',"] }
+]

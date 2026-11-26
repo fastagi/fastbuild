@@ -154,17 +154,40 @@ Carried forward:
   analyzer that forbids them. It needs the 71 existing call sites migrated first.
 - A `--scope=user` variant.
 
-### Iteration 3 — Contract-Driven Frontend (large, needs an ADR)
+### Iteration 3 — Contract-Driven Frontend (large) — partly done 2026-11-26
 
-1. Generate one typed client from OpenAPI into `packages/api-client`, used by all four apps.
-   Remove per-feature services, the duplicated generated type files, and `assertContract` calls.
-2. Generate Web route handlers and mocks from the contract; delete the regexp source tests.
-3. `make:feature --web --admin`: page, route, hook, i18n, and co-located test, with registries
-   updated through slots.
-4. ADR: Web and Admin adopt `@fastbuild/ui`, and whether a root workspace with task caching is
-   compatible with the rule that every app stays removable.
+Done:
 
-Exit: a Web feature touches five files or fewer by hand; one client implementation remains.
+1. `make:feature <name> --web` generates the Web feature for a starter made with
+   `make:module --scope=organization`: 20 files (service, schemas, hooks, console page, explicit
+   route handlers, development mock, both locales, four test files) and 14 slot inserts. A builder
+   edits none of them to reach a working, tested list-create-rename-delete page.
+2. The templates are a real feature for a resource named `widget`, embedded in the CLI and
+   renamed on generation. They were developed in `apps/web` and passed type-check, lint, all 443
+   tests, and a production build there before being embedded.
+3. `tools/scaffold/verify-generators.sh` generates a starter and its feature in a scratch copy and
+   runs the API, contract, and Web checks; the weekly `plugins.yml` workflow runs it, so the
+   templates cannot drift from `apps/web` unnoticed. It takes about 70 seconds.
+
+Changed from the proposal, with the reason:
+
+- No shared route kit and no generated route handlers. The Web guard tests locate each feature's
+  `resolve<Feature>Route`, read resolver, and mutation resolver by name in
+  `features/<feature>/server/<feature>-route.ts`. A shared kit would hide them, so the generator
+  writes that file in the established shape instead.
+- The feature name must be one lowercase word, because no existing Web feature uses a
+  multi-word name and the message namespace and slot lines do not quote one.
+
+Not done; each needs a decision recorded in
+[frontend-shared-code-decisions.md](frontend-shared-code-decisions.md):
+
+- one shared copy of the generated contract types, and whether to generate a client;
+- Web and Admin on `@fastbuild/ui`;
+- a root workspace with task caching (recommended against);
+- an Admin feature generator, which first needs an operator route generator.
+
+The generated page was verified by component tests and a production build, not viewed in a
+browser.
 
 ### Iteration 4 — Measured Performance (medium)
 

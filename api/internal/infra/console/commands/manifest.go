@@ -68,6 +68,7 @@ func DefaultManifests(version string) []Manifest {
 		Registration{Command: NewMakeSeederCommand()},
 		Registration{Command: NewMakeMigrationCommand()},
 		Registration{Command: NewMakeModuleCommand()},
+		Registration{Command: NewMakeFeatureCommand()},
 	)
 
 	migrateCommand := NewMigrateCommand()
