@@ -237,14 +237,15 @@ func (r *Registry) Modules() []assembly.Module {
 	return slices.Clone(r.modules)
 }
 
-// RegisterRoutes lets route-aware modules attach their HTTP routes.
-// Shutdown lets every ShutdownModule finish its background work, in registration order.
+// Shutdown lets every ShutdownModule finish its background work in reverse registration order, so
+// a module stops before the modules registered ahead of it that it may still be using (the audit
+// starter registers first and therefore drains last).
 func (r *Registry) Shutdown(ctx context.Context) error {
 	if r == nil {
 		return nil
 	}
 	var errs []error
-	for _, module := range r.Modules() {
+	for _, module := range slices.Backward(r.Modules()) {
 		if closer, ok := module.(assembly.ShutdownModule); ok {
 			if err := closer.Shutdown(ctx); err != nil {
 				errs = append(errs, fmt.Errorf("%s: %w", module.Name(), err))
@@ -254,6 +255,7 @@ func (r *Registry) Shutdown(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
+// RegisterRoutes lets route-aware modules attach their HTTP routes.
 func (r *Registry) RegisterRoutes(routes *router.Router) {
 	if r == nil {
 		return

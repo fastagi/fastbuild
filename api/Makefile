@@ -21,7 +21,7 @@ else
 	PATH_SEP=/
 endif
 
-.PHONY: all build build-server build-all container-check compose-check route-catalog-check wire-check clean test test-kest test-race test-race-critical test-postgres-compatibility benchmark-cache benchmark-database benchmark-http benchmark-rate-limit benchmark-workflow perf starter-catalog cover lint lint-fix generate wire mock dev air server migrate seed tidy update vuln setup install build-windows build-linux build-darwin build-all-platforms build-prod help
+.PHONY: all build build-server build-all container-check compose-check route-catalog-check wire-check archlint clean test test-kest test-race test-race-critical test-postgres-compatibility benchmark-cache benchmark-database benchmark-http benchmark-rate-limit benchmark-workflow perf starter-catalog cover lint lint-fix generate wire mock dev air server migrate seed tidy update vuln setup install build-windows build-linux build-darwin build-all-platforms build-prod help
 
 # Default target
 all: lint test build
@@ -215,6 +215,11 @@ wire-check:
 	if cmp -s "$$snapshot" internal/wiring/wire_gen.go; then rm -f "$$snapshot"; else \
 	diff -u "$$snapshot" internal/wiring/wire_gen.go; cp "$$snapshot" internal/wiring/wire_gen.go; rm -f "$$snapshot"; \
 	echo "wire_gen.go is stale: run 'make wire' and commit the result" >&2; exit 1; fi
+
+# Architecture analyzers for starter modules: queries on organization-owned models must be confined
+# to one organization (orgscope), and every goroutine names what stops it (ownedgo).
+archlint:
+	@go run ./cmd/tools/archlint -orgscope.baseline=cmd/tools/archlint/orgscope/baseline.txt ./internal/modules/...
 
 # Generate mocks
 mock:

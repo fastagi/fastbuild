@@ -26,8 +26,10 @@ corepack pnpm check:routes
 corepack pnpm generate
 ```
 
-Generated files are committed so downstream projects and editors receive types without running a
-generator during installation. CI fails when either copy is stale.
+`generate` writes one file, `packages/contract-types/src/openapi.ts`. Web and Admin import it as
+`@fastbuild/contract-types/openapi`, a types-only workspace package. It is committed so downstream
+projects and editors receive types without running a generator during installation. CI fails when
+it is stale.
 
 ## Change Workflow
 

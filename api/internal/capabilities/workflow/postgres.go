@@ -80,16 +80,44 @@ type DurableDriver interface {
 
 // PostgresDriver provides durable, multi-replica-safe task execution.
 type PostgresDriver struct {
-	db     *gorm.DB
-	mu     sync.RWMutex
-	closed bool
+	db          *gorm.DB
+	transaction TransactionResolver
+	mu          sync.RWMutex
+	closed      bool
 }
 
-func NewPostgresDriver(db *gorm.DB) (*PostgresDriver, error) {
+// TransactionResolver returns the business transaction bound to ctx, if any.
+type TransactionResolver func(ctx context.Context) (*gorm.DB, bool)
+
+// PostgresDriverOption configures a PostgresDriver.
+type PostgresDriverOption func(*PostgresDriver)
+
+// WithTransactionResolver makes enqueueing join the caller's transaction: a task pushed inside a
+// business transaction commits or rolls back with it. Claiming, completing, and the other worker
+// operations always use the driver's own connection.
+func WithTransactionResolver(resolve TransactionResolver) PostgresDriverOption {
+	return func(d *PostgresDriver) { d.transaction = resolve }
+}
+
+func NewPostgresDriver(db *gorm.DB, opts ...PostgresDriverOption) (*PostgresDriver, error) {
 	if db == nil {
 		return nil, fmt.Errorf("postgres workflow driver requires a database")
 	}
-	return &PostgresDriver{db: db}, nil
+	driver := &PostgresDriver{db: db}
+	for _, opt := range opts {
+		opt(driver)
+	}
+	return driver, nil
+}
+
+// enqueueDB returns the handle an insert runs on and whether it is a caller-owned transaction.
+func (d *PostgresDriver) enqueueDB(ctx context.Context) (*gorm.DB, bool) {
+	if d.transaction != nil {
+		if tx, ok := d.transaction(ctx); ok && tx != nil {
+			return tx.WithContext(ctx), true
+		}
+	}
+	return d.db.WithContext(ctx), false
 }
 
 func (d *PostgresDriver) Push(ctx context.Context, queue string, payload []byte) error {
@@ -152,15 +180,23 @@ func (d *PostgresDriver) insert(ctx context.Context, queue string, payload []byt
 		}
 		row.IdempotencyKey = &key
 	}
-	result := d.db.WithContext(ctx).Create(&row)
-	if result.Error == nil {
+	db, joined := d.enqueueDB(ctx)
+	var insertErr error
+	if joined {
+		// A failed statement aborts a PostgreSQL transaction, so the insert runs under a savepoint
+		// and an idempotency collision leaves the caller's transaction usable.
+		insertErr = db.Transaction(func(savepoint *gorm.DB) error { return savepoint.Create(&row).Error })
+	} else {
+		insertErr = db.Create(&row).Error
+	}
+	if insertErr == nil {
 		return row.ID, nil
 	}
 	if row.IdempotencyKey == nil {
-		return "", fmt.Errorf("insert workflow task: %w", result.Error)
+		return "", fmt.Errorf("insert workflow task: %w", insertErr)
 	}
 	var existing TaskPO
-	findErr := d.db.WithContext(ctx).
+	findErr := db.
 		Where("queue = ? AND idempotency_key = ?", queue, *row.IdempotencyKey).
 		Take(&existing).Error
 	if findErr == nil && existing.PayloadHash == row.PayloadHash {
@@ -169,7 +205,7 @@ func (d *PostgresDriver) insert(ctx context.Context, queue string, payload []byt
 	if findErr == nil {
 		return "", ErrIdempotencyConflict
 	}
-	return "", fmt.Errorf("insert workflow task: %w", result.Error)
+	return "", fmt.Errorf("insert workflow task: %w", insertErr)
 }
 
 // Pop is intentionally unsupported because durable work must be acknowledged.

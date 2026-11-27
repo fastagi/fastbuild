@@ -5,7 +5,8 @@
 Rules enforced:
 1. `apps/<A>` never imports `apps/<B>`.
 2. `packages/*` never imports `apps/*`.
-3. Platform-neutral packages (`packages/tokens`, `packages/core`, `packages/api-client`)
+3. Platform-neutral packages (`packages/tokens`, `packages/core`, `packages/api-client`,
+   `packages/contract-types`)
    never import `react-dom`, `next`, `next/*`, `electron`, or `react-native` (`react-native/*`).
 4. `packages/*` dependency graph has no cycles (checked via both `package.json` and source imports).
 """
@@ -35,7 +36,7 @@ SKIP_DIRS = {
 
 SOURCE_EXTS = {".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".mts", ".cts"}
 
-PLATFORM_NEUTRAL_PACKAGES = {"tokens", "core", "api-client"}
+PLATFORM_NEUTRAL_PACKAGES = {"tokens", "core", "api-client", "contract-types"}
 
 FORBIDDEN_NEUTRAL_PREFIXES = (
     "react-dom",

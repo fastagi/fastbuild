@@ -66,6 +66,7 @@ BUILDX_METADATA_PROVENANCE=max BUILDX_METADATA_WARNINGS=1 \
     --build-arg "OCI_REVISION=${OCI_REVISION}" \
     --build-arg "OCI_VERSION=${OCI_VERSION}" \
     --build-arg "VITE_OPTIONAL_FEATURES=operator" \
+    --build-context "packages=${ROOT_DIR}/../../packages" \
     --tag "${IMAGE_TAG}" "${ROOT_DIR}"
 
 python3 - "${BUILD_METADATA_OUTPUT}" <<'PY'

@@ -32,6 +32,7 @@ other's source; shared TypeScript lives in packages that follow the layers below
 | `apps/web/` | Next.js SSR; cookie-based browser auth through server-owned adapters |
 | `apps/admin/` | Vite SPA; static assets; HttpOnly operator session |
 | `packages/contracts/` | OpenAPI contract, fragments, and contract tooling; the single source of HTTP truth |
+| `packages/contract-types/` | TypeScript types generated from the contract; types only, shared by Web and Admin |
 
 Dependency rules:
 

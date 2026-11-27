@@ -1,6 +1,7 @@
 packages:
   - .
   - ../../packages/tokens
+  - ../../packages/contract-types
 
 packageManagerStrictVersion: true
 minimumReleaseAge: 1440

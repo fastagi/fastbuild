@@ -24,7 +24,7 @@ and design semantics, never source code or runtime state.
 | Area      | Tooling                                              |
 | --------- | ---------------------------------------------------- |
 | Framework | Next.js 16 App Router                                |
-| UI        | React 19.2.7, Tailwind CSS 4, Radix UI, lucide-react |
+| UI        | React 19.2.7, Tailwind CSS 4, `@ui-sdk/react` behavior primitives, lucide-react |
 | State     | TanStack Query 5, Zustand 5                          |
 | i18n      | next-intl 4                                          |
 | Tests     | Vitest 4, Testing Library, happy-dom                 |

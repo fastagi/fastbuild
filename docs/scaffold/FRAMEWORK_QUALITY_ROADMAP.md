@@ -594,7 +594,7 @@ Verification:
 
 - `cd apps/web && pnpm build && pnpm bundle:check`
 - `cd apps/web && pnpm bundle:analyze`
-- `cd apps/web && docker build --tag fastbuild-web:local .`
+- `cd apps/web && docker buildx build --build-context packages=../../packages --tag fastbuild-web:local .`
 - `cd apps/web && pnpm type-check && pnpm lint && pnpm test -- --run`
 - Three production Lighthouse runs plus desktop and 390 by 844 browser interaction/overflow checks
 - `make governance` and `make check`

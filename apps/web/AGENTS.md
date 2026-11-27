@@ -33,7 +33,7 @@ behavior remain mandatory without loading an audit skill every time.
 src/app/                 App Router routes and route groups
 src/app/api/             development mock BFF route handlers
 src/features/<feature>/  components, hooks, services, store, server, types
-src/components/ui/       shadcn primitives
+src/components/ui/       shadcn-style primitives built on @ui-sdk/react (no Radix)
 src/components/features/ shared composed feature UI
 src/components/common/   generic shared components
 src/components/blocks/   registry blocks installed with plugin:add; copy arrives via props
@@ -112,7 +112,8 @@ status, error, session, or pagination behavior changes.
 
 ## UI And Internationalization
 
-- Use shadcn primitives and existing variants before creating a new control.
+- Use shadcn primitives and existing variants before creating a new control. Their behavior
+  layer is `@ui-sdk/react`; do not add `@radix-ui/*` packages.
 - Use theme tokens from `src/themes/`; do not hardcode parallel design systems.
 - Keep controls keyboard accessible, visibly focused, responsive, and stable
   during loading/error/empty states.

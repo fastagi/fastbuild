@@ -299,14 +299,42 @@ func (c *MakeModuleCommand) Name() string { return "make:module" }
 func (c *MakeModuleCommand) Description() string {
 	return "Create a complete module (model, service, handler, repository)"
 }
-func (c *MakeModuleCommand) Usage() string { return "make:module <name>" }
+func (c *MakeModuleCommand) Usage() string {
+	return "make:module <name> [--scope=organization]"
+}
+
+// moduleScopeOrganization confines the generated starter to the verified active organization.
+const moduleScopeOrganization = "organization"
+
+func parseMakeModuleArgs(args []string) (name, scope string, err error) {
+	for _, argument := range args {
+		switch {
+		case strings.HasPrefix(argument, "--scope="):
+			scope = strings.TrimPrefix(argument, "--scope=")
+			if scope != moduleScopeOrganization {
+				return "", "", fmt.Errorf("unsupported --scope %q: use --scope=%s", scope, moduleScopeOrganization)
+			}
+		case strings.HasPrefix(argument, "-"):
+			return "", "", fmt.Errorf("unknown option %q", argument)
+		case name == "":
+			name = argument
+		default:
+			return "", "", fmt.Errorf("unexpected argument %q", argument)
+		}
+	}
+	if name == "" {
+		return "", "", fmt.Errorf("module name is required")
+	}
+	return name, scope, nil
+}
 
 func (c *MakeModuleCommand) Run(args []string) error {
-	if len(args) < 1 {
-		return fmt.Errorf("module name is required")
+	name, scope, parseErr := parseMakeModuleArgs(args)
+	if parseErr != nil {
+		return parseErr
 	}
+	scoped := scope == moduleScopeOrganization
 
-	name := args[0]
 	data := moduleScaffoldData(name)
 	if err := validateModuleName(data); err != nil {
 		return err
@@ -340,6 +368,19 @@ func (c *MakeModuleCommand) Run(args []string) error {
 		{filepath.Join(dir, "provider.go"), providerTemplate},
 		{filepath.Join("database", "migrations", data["MigrationID"]+".go"), migrationTemplate},
 	}
+	fragmentTemplate := openAPIFragmentTemplate
+	if scoped {
+		fragmentTemplate = scopedOpenAPIFragmentTemplate
+		for index := range files {
+			if replacement, ok := scopedModuleTemplates[files[index].template]; ok {
+				files[index].template = replacement
+			}
+		}
+		files = append(files, struct {
+			path     string
+			template string
+		}{filepath.Join(dir, "repository_postgres_test.go"), scopedRepositoryTestTemplate})
+	}
 	for _, f := range files {
 		if err := generateFile(f.path, f.template, data); err != nil {
 			return err
@@ -347,7 +388,7 @@ func (c *MakeModuleCommand) Run(args []string) error {
 		c.output.Success("Created: %s", f.path)
 	}
 
-	if fragment, written, fragmentErr := writeOpenAPIFragment(data); fragmentErr != nil {
+	if fragment, written, fragmentErr := writeOpenAPIFragment(data, fragmentTemplate); fragmentErr != nil {
 		c.output.Warning("Could not write the OpenAPI fragment: %v", fragmentErr)
 	} else if written {
 		c.output.Success("Created: %s", fragment)
@@ -365,12 +406,18 @@ func (c *MakeModuleCommand) Run(args []string) error {
 	if err != nil {
 		c.output.Info("  - Add %s to internal/infra/config/starters.go and the starter to internal/starter/defaults.go", data["StarterConst"])
 	}
-	c.output.Info("  1. make wire")
-	c.output.Info("  2. FASTBUILD_UPDATE_GOLDEN_SCHEMA=1 go test ./database/migrations -run TestMigrationsProduceGoldenSchema (with FASTBUILD_TEST_POSTGRES_DSN)")
-	c.output.Info("  3. Review ../packages/contracts/fragments/%s.yaml, then: cd ../packages/contracts && corepack pnpm merge-fragment fragments/%s.yaml", snake, snake)
-	c.output.Info("  4. Set the starter summary in provider.go, then: make starter-catalog")
-	c.output.Info("  5. Enable it with OPTIONAL_STARTERS=%s and run go test ./...", data["PackageName"])
-	c.output.Info("Routes require a signed-in user but no ownership: add record ownership before production use.")
+	c.output.Info("  1. Set the starter summary in provider.go and review ../packages/contracts/fragments/%s.yaml", snake)
+	c.output.Info("  2. From the repository root: make sync")
+	c.output.Info("     (Wire graph, OpenAPI merge, contract types, starter catalog; the golden schema too when")
+	c.output.Info("     FASTBUILD_TEST_POSTGRES_DSN points at a disposable database)")
+	c.output.Info("  3. Enable it with OPTIONAL_STARTERS=%s, then from the repository root: make verify-changed", data["PackageName"])
+	if scoped {
+		c.output.Info("Every route is confined to the active organization: members read, owners and admins write.")
+		c.output.Info("Enable the organization starter too: OPTIONAL_STARTERS=organization,%s", data["PackageName"])
+	} else {
+		c.output.Info("Routes require a signed-in user but no ownership. For organization-owned data, generate with")
+		c.output.Info("--scope=organization instead; otherwise add record ownership before production use.")
+	}
 	return nil
 }
 
@@ -453,7 +500,7 @@ var apiToProjectRoot = ".."
 
 // writeOpenAPIFragment writes the contract fragment for a generated starter next to the API, when the
 // repository has a contracts directory. It never overwrites an existing fragment.
-func writeOpenAPIFragment(data map[string]string) (string, bool, error) {
+func writeOpenAPIFragment(data map[string]string, fragmentTemplate string) (string, bool, error) {
 	contracts := filepath.Join(apiToProjectRoot, "packages", "contracts")
 	if stat, statErr := os.Stat(contracts); errors.Is(statErr, os.ErrNotExist) || (statErr == nil && !stat.IsDir()) {
 		return "", false, nil // a standalone API tree has no shared contract to extend
@@ -467,7 +514,7 @@ func writeOpenAPIFragment(data map[string]string) (string, bool, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return "", false, err
 	}
-	if err := generateFile(path, openAPIFragmentTemplate, data); err != nil {
+	if err := generateFile(path, fragmentTemplate, data); err != nil {
 		return "", false, err
 	}
 	return path, true, nil

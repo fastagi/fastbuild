@@ -34,6 +34,7 @@ func (r *backgroundRunner) run(ctx context.Context, task func(context.Context)) 
 		return
 	}
 	detached := context.WithoutCancel(ctx)
+	//archlint:goroutine bounded by the slots semaphore and ends at the task timeout
 	go func() {
 		defer func() { <-r.slots }()
 		defer func() {

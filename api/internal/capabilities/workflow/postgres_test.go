@@ -128,6 +128,49 @@ func TestPostgresDriverDeadLettersAnExpiredFinalAttempt(t *testing.T) {
 	assert.Equal(t, "lease_expired", task.LastFailureCode)
 }
 
+type workflowTestTransactionKey struct{}
+
+func workflowTestTransaction(ctx context.Context) (*gorm.DB, bool) {
+	tx, ok := ctx.Value(workflowTestTransactionKey{}).(*gorm.DB)
+	return tx, ok
+}
+
+func TestPostgresDriverEnqueuesInsideTheCallersTransaction(t *testing.T) {
+	db := openWorkflowPostgres(t)
+	driver, err := NewPostgresDriver(db, WithTransactionResolver(workflowTestTransaction))
+	require.NoError(t, err)
+	countTasks := func() int64 {
+		var count int64
+		require.NoError(t, db.Model(&TaskPO{}).Count(&count).Error)
+		return count
+	}
+
+	rollback := errors.New("business failure")
+	err = db.Transaction(func(tx *gorm.DB) error {
+		ctx := context.WithValue(context.Background(), workflowTestTransactionKey{}, tx)
+		require.NoError(t, driver.Push(ctx, "billing", workflowTestPayload(t, uuid.NewString(), "")))
+		return rollback
+	})
+	require.ErrorIs(t, err, rollback)
+	assert.Zero(t, countTasks(), "a task pushed in a rolled-back transaction must not exist")
+
+	require.NoError(t, db.Transaction(func(tx *gorm.DB) error {
+		ctx := context.WithValue(context.Background(), workflowTestTransactionKey{}, tx)
+		first, err := driver.PushTask(ctx, "billing", workflowTestPayload(t, uuid.NewString(), "invoice:7"))
+		require.NoError(t, err)
+		// The collision must not abort the caller's transaction.
+		duplicate, err := driver.PushTask(ctx, "billing", workflowTestPayload(t, uuid.NewString(), "invoice:7"))
+		require.NoError(t, err)
+		assert.Equal(t, first, duplicate)
+		return tx.Exec("SELECT 1").Error
+	}))
+	assert.EqualValues(t, 1, countTasks())
+
+	// Without a bound transaction the driver uses its own connection, as before.
+	require.NoError(t, driver.Push(context.Background(), "billing", workflowTestPayload(t, uuid.NewString(), "")))
+	assert.EqualValues(t, 2, countTasks())
+}
+
 func openWorkflowPostgres(t *testing.T) *gorm.DB {
 	t.Helper()
 	dsn := os.Getenv("FASTBUILD_TEST_POSTGRES_DSN")

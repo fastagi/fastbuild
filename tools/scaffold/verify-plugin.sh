@@ -16,12 +16,31 @@ trap 'rm -rf "$scratch"' EXIT
 
 step() { printf '\n==> %s\n' "$*"; }
 
+# Gives a scratch app its dependencies without installing: every entry links to the checkout's
+# node_modules, except the @fastbuild workspace packages, which link to the scratch copy so that
+# regenerated or edited package sources are the ones the scratch app compiles against.
+link_node_modules() {
+  local half=$1 source="$repo/$1/node_modules" target="$scratch/$1/node_modules" entry package real
+  mkdir -p "$target"
+  for entry in "$source"/* "$source"/.[!.]*; do
+    [[ -e "$entry" || -L "$entry" ]] || continue
+    [[ "$(basename "$entry")" == "@fastbuild" ]] && continue
+    ln -s "$entry" "$target/$(basename "$entry")"
+  done
+  [[ -d "$source/@fastbuild" ]] || return 0
+  mkdir -p "$target/@fastbuild"
+  for package in "$source/@fastbuild"/*; do
+    real=$(cd "$package" && pwd -P)
+    ln -s "$scratch/${real#"$repo/"}" "$target/@fastbuild/$(basename "$package")"
+  done
+}
+
 step "Copying the checkout to $scratch"
 rsync -a --exclude node_modules --exclude .git --exclude .next --exclude dist \
   --exclude .fastbuild-dev --exclude coverage "$repo/" "$scratch/"
 for half in packages/contracts apps/web apps/admin; do
   if [[ -d "$repo/$half/node_modules" ]]; then
-    ln -s "$repo/$half/node_modules" "$scratch/$half/node_modules"
+    link_node_modules "$half"
   fi
 done
 

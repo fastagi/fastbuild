@@ -53,8 +53,8 @@ jobs:
           }
           flag api '^(api/|Makefile)'
           flag contracts '^(packages/contracts/|api/)'
-          flag web '^(apps/web/|packages/contracts/)'
-          flag admin '^(apps/admin/|packages/contracts/)'
+          flag web '^(apps/web/|packages/contracts/|packages/contract-types/)'
+          flag admin '^(apps/admin/|packages/contracts/|packages/contract-types/)'
           flag desktop '^(apps/desktop/|packages/)'
           flag mobile '^(apps/mobile/|packages/)'
           # What a new project inherits: project:init, ignore rules, root docs, and repository checks.
@@ -177,6 +177,9 @@ jobs:
 
       - name: Verify Wire output is current
         run: make wire-check
+
+      - name: Run architecture analyzers
+        run: make archlint
 
       - name: Verify runtime route catalog
         run: make route-catalog-check

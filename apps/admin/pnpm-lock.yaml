@@ -35,6 +35,9 @@ importers:
 
   .:
     dependencies:
+      '@fastbuild/contract-types':
+        specifier: workspace:*
+        version: link:../../packages/contract-types
       '@fastbuild/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
@@ -168,6 +171,8 @@ importers:
       vitest:
         specifier: ^4.1.12
         version: 4.1.12(@types/node@22.20.1)(@vitest/coverage-v8@4.1.12)(happy-dom@21.0.4)(vite@8.3.4(@types/node@22.20.1)(jiti@2.7.0))
+
+  ../../packages/contract-types: {}
 
   ../../packages/tokens: {}
 

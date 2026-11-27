@@ -1,0 +1,36 @@
+# Functions whose queries on organization-owned models predate the orgscope analyzer.
+#
+# They are listed, not individually reviewed: most reach rows through a parent that the caller
+# already confined to one organization, or are workers that cross organizations on purpose. A
+# function listed here is not checked. Do not add to this file: confine the new query to one
+# organization, or mark the function //archlint:cross-organization <reason>. Remove an entry when
+# its function is rewritten.
+internal/modules/organization.(repository).AcceptInvitation
+internal/modules/organization.(repository).CountMembershipsForUser
+internal/modules/organization.(repository).CreateInvitation
+internal/modules/organization.(repository).ListForUser
+internal/modules/organization.(repository).RevokeInvitation
+internal/modules/organization.operatorMemberScope
+internal/modules/permission.(repository).DeleteRole
+internal/modules/setting.(repository).DeleteForUser
+internal/modules/setting.(repository).List
+internal/modules/setting.(repository).Reset
+internal/modules/setting.(repository).Set
+internal/modules/setting.findSettingForUpdate
+internal/modules/usage.(repository).Apply
+internal/modules/usage.(repository).ListCurrent
+internal/modules/usage.(repository).PruneReceipts
+internal/modules/usage.(repository).ResetQuota
+internal/modules/usage.(repository).SetQuota
+internal/modules/usage.findUsageCounterForUpdate
+internal/modules/usage.findUsageEvent
+internal/modules/usage.findUsageQuotaForUpdate
+internal/modules/webhook.(repository).ClaimDue
+internal/modules/webhook.(repository).Complete
+internal/modules/webhook.(repository).DeleteEndpoint
+internal/modules/webhook.(repository).Prune
+internal/modules/webhook.(repository).Replay
+internal/modules/webhook.(repository).UpdateEndpoint
+internal/modules/webhook.cancelOpenDeliveries
+internal/modules/webhook.deliveriesForEvent
+internal/modules/webhook.findEndpointForUpdate

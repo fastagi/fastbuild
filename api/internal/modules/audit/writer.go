@@ -47,6 +47,7 @@ func newAsyncWriter(store batchStore) *asyncWriter {
 		stop:  make(chan struct{}),
 		done:  make(chan struct{}),
 	}
+	//archlint:goroutine ends when Shutdown closes the stop channel and the queue is drained
 	go writer.run()
 	return writer
 }

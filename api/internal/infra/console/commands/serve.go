@@ -59,10 +59,7 @@ func (c *ServeCommand) Run(args []string) error {
 			return fmt.Errorf("run startup migrations: %w", err)
 		}
 	}
-	if _, err := workflow.Bootstrap(workflow.QueueRuntimeConfig{
-		Driver: cfg.Queue.Driver, DefaultQueue: cfg.Queue.DefaultQueue,
-		BufferSize: cfg.Queue.BufferSize, Database: application.DB,
-	}); err != nil {
+	if _, err := workflow.Bootstrap(workflowQueueRuntimeConfig(cfg, application.DB)); err != nil {
 		return fmt.Errorf("initialize workflow queue: %w", err)
 	}
 

@@ -1,4 +1,4 @@
-import type { components } from '@/http/generated/openapi';
+import type { components } from '@fastbuild/contract-types/openapi';
 
 type OpenAPIErrorCode = components['schemas']['ErrorCode'];
 

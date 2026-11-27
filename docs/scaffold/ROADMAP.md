@@ -110,8 +110,8 @@ checks as `knowledge-base`. Candidates, in priority order:
 
 | Deliverable | Notes | Status |
 |---|---|---|
-| OIDC single sign-on | Core, not a plugin: login through enterprise identity providers | Not started |
-| Multi-factor authentication | TOTP and recovery codes for users and operators | Not started |
+| OIDC single sign-on | Core, not a plugin: login through enterprise identity providers | On `main` after v0.26.0 (API, Web, Admin); unreleased |
+| Multi-factor authentication | TOTP and recovery codes for users and operators | On `main` after v0.26.0 (API, Web, Admin); unreleased |
 | Email verification | Verified-address state for users, built on the existing email capability | Not started |
 | Shared rate limiting | A PostgreSQL or Redis adapter for multi-replica deployments | Done (v0.25.0, PostgreSQL) |
 | Stable API promise | Versioning and deprecation policy for HTTP contracts, CLI commands, the plugin manifest, and the lock file | Done: [`VERSIONING.md`](VERSIONING.md) |

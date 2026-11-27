@@ -14,11 +14,15 @@ manifest, and a service test; a frozen SQL migration; and it registers `config.S
 optional starter in `internal/starter/defaults.go`. A generator test compiles this output against the
 real module and runs its tests. Then:
 
-1. Run `make wire`.
-2. Regenerate the golden schema (`FASTBUILD_UPDATE_GOLDEN_SCHEMA=1`) and review the diff.
-3. Write the HTTP contract, replace the placeholder `name` field with real business fields, and add
-   record ownership: generated routes only require a signed-in user.
-4. Enable it with `OPTIONAL_STARTERS=blogpost`.
+1. Write the HTTP contract in the generated OpenAPI fragment, replace the placeholder `name` field
+   with real business fields, and add record ownership: generated routes only require a signed-in
+   user.
+2. Run `make sync` from the repository root. It regenerates the Wire graph, merges the fragment
+   into `openapi.yaml`, regenerates the contract types and the starter catalog, and regenerates
+   the golden schema when `FASTBUILD_TEST_POSTGRES_DSN` points at a disposable database. Review
+   the diff.
+3. Enable it with `OPTIONAL_STARTERS=blogpost` and run `make verify-changed` from the repository
+   root.
 
 The steps below describe the same structure for a starter written by hand.
 
@@ -80,6 +84,11 @@ and `ConfiguredMigrations` tests must prove the matching migration set. Unknown,
 non-canonical, missing-dependency, or cyclic selections must fail rather than being ignored.
 
 ## Organization-Scoped Product Modules
+
+`go run ./cmd/fastbuild make:module <name> --scope=organization` generates everything this section
+describes: scoped routes, a repository whose every query names `organization_id`, the foreign key,
+the `Organization-Id` contract parameter, and tests that refuse another organization. `make archlint`
+then fails any query on an organization-owned model that drops the predicate.
 
 When a downstream module stores organization-owned resources, make the dependency explicit: enable
 the optional `organization` starter for the API, migrations, and seeders, then apply its named

@@ -1,6 +1,7 @@
 package starter
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -205,4 +206,28 @@ func TestRegistryRejectsMigrationOwnershipCollisionsBeforeActivation(t *testing.
 	assert.Zero(t, activationCounters.events)
 	assert.Equal(t, []string{"first"}, registry.StarterNames())
 	assert.Empty(t, registry.Modules())
+}
+
+type shutdownRecorder struct {
+	name  string
+	order *[]string
+}
+
+func (m *shutdownRecorder) Name() string { return m.name }
+
+func (m *shutdownRecorder) Shutdown(context.Context) error {
+	*m.order = append(*m.order, m.name)
+	return nil
+}
+
+func TestRegistryShutsModulesDownInReverseRegistrationOrder(t *testing.T) {
+	var order []string
+	registry := NewRegistry()
+	for _, name := range []string{"first", "second", "third"} {
+		registry.RegisterModule(&shutdownRecorder{name: name, order: &order})
+	}
+
+	require.NoError(t, registry.Shutdown(context.Background()))
+
+	assert.Equal(t, []string{"third", "second", "first"}, order)
 }

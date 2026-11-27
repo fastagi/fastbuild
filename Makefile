@@ -1,4 +1,4 @@
-.PHONY: release-check init-project dev dev-down dev-reset check agent-check agent-check-changed agent-sync agent-context skill-routing-check governance contract-check contract-generate api-check web-check admin-check dependency-scan sbom container-scan container-sbom clean clean-all
+.PHONY: release-check init-project dev dev-down dev-reset check agent-check agent-check-changed agent-sync agent-context skill-routing-check governance contract-check contract-generate sync sync-check verify-changed api-check web-check admin-check desktop-check mobile-check dependency-scan sbom container-scan container-sbom clean clean-all
 
 # Turn a fresh copy of the scaffold into a named project (run once, before the first commit):
 #   make init-project NAME="Acme Platform" SLUG=acme MODULE=github.com/acme/platform/api \
@@ -37,6 +37,20 @@ contract-check:
 
 contract-generate:
 	cd packages/contracts && corepack pnpm generate
+
+# Regenerate every derived artifact (Wire graph, OpenAPI fragments, contract types, starter
+# catalog, golden schema) after a code or contract edit. sync-check writes nothing and fails when
+# any of them is stale.
+sync:
+	@bash tools/dev/sync.sh
+
+sync-check:
+	@bash tools/dev/sync.sh --check
+
+# Run the narrowest checks that cover the files changed from main, staged, unstaged, or untracked.
+# Pass ARGS=--json for a machine-readable summary, or ARGS=--list to print the plan only.
+verify-changed:
+	@PYTHONDONTWRITEBYTECODE=1 python3 tools/dev/verify_changed.py $(ARGS)
 
 agent-check:
 	@[ ! -d tools/scaffold ] || bash tools/scaffold/check-vocabulary.sh
@@ -93,6 +107,8 @@ governance: agent-check
 	[ ! -d tools/scaffold ] || bash tools/scaffold/check-branch-governance.sh
 
 api-check:
+	cd api && make wire-check
+	cd api && make archlint
 	cd api && bash ../.agents/skills/core/verification-before-completion/scripts/run-tiers.sh 1
 	cd api && make route-catalog-check
 
@@ -136,4 +152,4 @@ clean:
 
 # Also remove installed JavaScript dependencies for a cold workspace reset.
 clean-all: clean
-	rm -rf packages/contracts/node_modules web/node_modules admin/node_modules
+	rm -rf packages/contracts/node_modules apps/web/node_modules apps/admin/node_modules
